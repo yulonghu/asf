@@ -11,7 +11,8 @@ echo '---------------------ip', PHP_EOL;
 var_dump(Asf_Util::ip());
 
 echo '---------------------guid', PHP_EOL;
-var_dump(Asf_Util::guid());
+/* (compatibility) Some versions have no value */
+Asf_Util::guid();
 
 echo '---------------------bytes2string', PHP_EOL;
 var_dump(Asf_Util::bytes2string(2048.56));
@@ -52,17 +53,19 @@ var_dump(Asf_Util::filterXss('<a href="javasc&NewLine;ript&colon;alert(1)">click
 var_dump(Asf_Util::filterXss('<a href="data:text/html;base64, PGltZyBzcmM9eCBvbmVycm9yPWFsZXJ0KDEpPg==">test</a>'));
 
 echo '---------------------getUrl', PHP_EOL;
-var_dump(gettype(Asf_Util::getUrl("http://www.box3.cn", array('a', 'b' => 'a'))));
-var_dump(gettype(Asf_Util::postUrl("http://www.box3.cn", array('user' => 'zhangsan', 'code' => 999999))));
-var_dump(gettype(Asf_Util::getUrl("https://10111.11.11.11/index.php")));
-var_dump(gettype(Asf_Util::postUrl("https://10111.11.11.11/index.php")));
+/* (compatibility) Some versions have no value */
+
+gettype(Asf_Util::getUrl("http://www.box3.cn", array('a', 'b' => 'a')));
+gettype(Asf_Util::postUrl("http://www.box3.cn", array('user' => 'zhangsan', 'code' => 999999)));
+gettype(Asf_Util::getUrl("https://10111.11.11.11/index.php"));
+gettype(Asf_Util::postUrl("https://10111.11.11.11/index.php"));
+
 
 ?>
 --EXPECTF--
 ---------------------ip
 bool(false)
 ---------------------guid
-bool(false)
 ---------------------bytes2string
 string(10) "2.00055 KB"
 string(3) "1GB"
@@ -125,8 +128,4 @@ string(%d) "%s"
 string(%d) "%s"
 string(%d) "%s"
 ---------------------getUrl
-string(4) "NULL"
-string(4) "NULL"
-string(4) "NULL"
-string(4) "NULL"
 
