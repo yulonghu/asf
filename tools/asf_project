@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+define('APP_PATH', __DIR__);
+
+$template_project = APP_PATH . '/templates';
+$create_project   = APP_PATH . '/';
+
+if (isset($_SERVER['argc']) && $_SERVER['argc'] > 1) {
+    $pname =  trim($_SERVER['argv'][1]);
+}  else {
+    $pname = 'example'; 
+}
+
+$create_project .= $pname;
+
+system("cp -r {$template_project} {$create_project}", $ret);
+if ($ret == 0) {
+    echo "{$pname} project create success", PHP_EOL;
+} else {
+    echo "{$pname} create failed", PHP_EOL;
+}
+
