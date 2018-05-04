@@ -11,15 +11,15 @@ This is a PHP framework written in C. It is simple, fast, standards, security.
 ### DownLoad
 
 ```
-git clone git://github.com/yulonghu/asf.git
+git clone https://github.com/yulonghu/asf.git
 ```
 
 ### Linux/Unix/Mac
 
 ```
-$/path/to/phpize
-$./configure --with-php-config=/path/to/php-config
-$make && make install
+$ /path/to/phpize
+$ ./configure --with-php-config=/path/to/php-config
+$ make && make install
 ```
 ## Documentation
 
@@ -31,9 +31,7 @@ http://www.box3.cn/phpasf/index.html
 ```php
 <?php
 
-use Asf\AbstractService as Service;
-
-class IndexService extends Service
+class IndexService
 {
     public function indexAction()
     {
