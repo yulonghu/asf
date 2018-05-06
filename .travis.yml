@@ -1,9 +1,15 @@
 language: php 
 
+os:
+    - linux
+
 php:
     #- 7.0
     #- 7.1
     - 7.2
+
+compiler:
+      - gcc
 
 notifications:
     email: false
@@ -15,4 +21,4 @@ before_script:
     - ./travis/compile.sh
 
 script:
-    #- ./travis/run-test.sh
+    - ./travis/run-test.sh
