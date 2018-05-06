@@ -1,8 +1,8 @@
 language: php 
 
 php:
-    - 7.0
-    - 7.1
+    #- 7.0
+    #- 7.1
     - 7.2
 
 notifications:
@@ -15,4 +15,4 @@ before_script:
     - ./travis/compile.sh
 
 script:
-    - ./travis/run-test.sh
+    #- ./travis/run-test.sh

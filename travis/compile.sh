@@ -1,2 +1,3 @@
 #!/bin/sh
-phpize && ./configure && make
+php-config
+phpize && ./configure && make clean && make
