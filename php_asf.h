@@ -38,6 +38,12 @@ extern zend_module_entry asf_module_entry;
 #include "TSRM.h"
 #endif
 
+#ifdef ZTS
+#define ASF_G(v) TSRMG(asf_globals_id, zend_asf_globals *, v)
+#else
+#define ASF_G(v) (asf_globals.v)
+#endif
+
 #define ASF_INIT_CLASS(name) ZEND_MODULE_STARTUP_D(asf_ ##name)
 #define ASF_INIT(name) ZEND_MODULE_STARTUP_N(asf_ ##name)(INIT_FUNC_ARGS_PASSTHRU)
 #define ASF_API_NAME "api"
@@ -55,10 +61,6 @@ extern zend_module_entry asf_module_entry;
 #define asf_http_req_t	zval
 #define asf_http_rep_t	zval
 
-/*
-  	Declare any global variables you may need between the BEGIN
-	and END macros here:
-*/
 ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_string *root_path;
 	zend_string *log_path;
@@ -92,12 +94,7 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_bool   throw_exception;
 ZEND_END_MODULE_GLOBALS(asf)
 
-/* Always refer to the globals in your function as ASF_G(variable).
-   You are encouraged to rename these macros something shorter, see
-   examples in any other php module directory.
-*/
 extern ZEND_DECLARE_MODULE_GLOBALS(asf);
-#define ASF_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(asf, v)
 
 #if defined(ZTS) && defined(COMPILE_DL_ASF)
 ZEND_TSRMLS_CACHE_EXTERN()
