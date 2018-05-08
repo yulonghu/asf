@@ -542,7 +542,7 @@ const zend_function_entry asf_util_methods[] = {
 
 ASF_INIT_CLASS(util) /* {{{ */
 {
-    ASF_REGISTER_CLASS_PARENT(asf_util, Asf_Util, Asf\\/Util, ZEND_ACC_FINAL);
+    ASF_REGISTER_CLASS_PARENT(asf_util, Asf_Util, Asf\\Util, ZEND_ACC_FINAL);
 
     return SUCCESS;
 }
