@@ -246,7 +246,7 @@ PHP_METHOD(asf_db_absqb, orWhere)
     ZVAL_STR(&args[0], columns);
     ZVAL_COPY_VALUE(&args[1], value);
     if (oprator) {
-        ZVAL_STR(&args[2], oprator);
+        ZVAL_STR_COPY(&args[2], oprator);
     } else {
         ZVAL_STRINGL(&args[2], "=", 1);
     }

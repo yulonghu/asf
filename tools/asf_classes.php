@@ -359,9 +359,9 @@ interface Asf_Http_ResponseInterface
 {
     public function setContentType(string $ctype, string $charset)
     public function redirect(string $url, int $status_code)
-    public function setContent(mixed $content)
-    public function appendContent(mixed $content)
-    public function appendContent(mixed $content)
+    public function setContent(string $content)
+    public function appendContent(string $content)
+    public function appendContent(string $content)
     public function getContent(void)
     public function send(void)
 }

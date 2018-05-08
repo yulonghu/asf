@@ -43,15 +43,10 @@
 #include "asf_func.h"
 #include "asf_util.h"
 
-/* If you declare any globals in php_asf.h uncomment this: */
 ZEND_DECLARE_MODULE_GLOBALS(asf)
 
-/* True global resources - no need for thread safety here */
-static int le_asf;
-
 /* {{{ PHP_INI
- */
-/* Remove comments and fill if you need to have entries in php.ini */
+*/
 PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("asf.env",			  "online", PHP_INI_SYSTEM, OnUpdateString, environ_name, zend_asf_globals, asf_globals)
     STD_PHP_INI_BOOLEAN("asf.use_namespace",  "0", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_asf_globals, asf_globals)
@@ -66,15 +61,8 @@ PHP_INI_BEGIN()
 PHP_INI_END()
 /* }}} */
 
-/* The previous line is meant for vim and emacs, so it can correctly fold and
-   unfold functions in source code. See the corresponding marks just before
-   function definition, where the functions purpose is also documented. Please
-   follow this convention for the convenience of others editing your code.
-*/
-
 /* {{{ php_asf_init_globals
- */
-/* Uncomment this function if you have INI entries */
+*/
 static void php_asf_init_globals(zend_asf_globals *asf_globals)
 {
     memset(asf_globals, 0, sizeof(*asf_globals));
@@ -82,10 +70,11 @@ static void php_asf_init_globals(zend_asf_globals *asf_globals)
 /* }}} */
 
 /* {{{ PHP_MINIT_FUNCTION
- */
+*/
 PHP_MINIT_FUNCTION(asf)
 {
-    /* If you have INI entries, uncomment these lines */
+    ZEND_INIT_MODULE_GLOBALS(asf, php_asf_init_globals, NULL);
+
     REGISTER_INI_ENTRIES();
 
     if (ASF_G(use_namespace)) {
@@ -114,19 +103,17 @@ PHP_MINIT_FUNCTION(asf)
 /* }}} */
 
 /* {{{ PHP_MSHUTDOWN_FUNCTION
- */
+*/
 PHP_MSHUTDOWN_FUNCTION(asf)
 {
-    /* uncomment this line if you have INI entries */
     UNREGISTER_INI_ENTRIES();
 
     return SUCCESS;
 }
 /* }}} */
 
-/* Remove if there's nothing to do at request start */
 /* {{{ PHP_RINIT_FUNCTION
- */
+*/
 PHP_RINIT_FUNCTION(asf)
 {
 #if defined(COMPILE_DL_ASF) && defined(ZTS)
@@ -142,9 +129,8 @@ PHP_RINIT_FUNCTION(asf)
 }
 /* }}} */
 
-/* Remove if there's nothing to do at request end */
 /* {{{ PHP_RSHUTDOWN_FUNCTION
- */
+*/
 PHP_RSHUTDOWN_FUNCTION(asf)
 {
     /* one */
@@ -221,7 +207,7 @@ PHP_RSHUTDOWN_FUNCTION(asf)
 /* }}} */
 
 /* {{{ PHP_MINFO_FUNCTION
- */
+*/
 PHP_MINFO_FUNCTION(asf)
 {
     php_info_print_box_start(0);
@@ -241,7 +227,7 @@ PHP_MINFO_FUNCTION(asf)
 /* }}} */
 
 /* {{{ asf_deps[]
- */
+*/
 zend_module_dep asf_deps[] = {
     ZEND_MOD_REQUIRED("spl")
     ZEND_MOD_REQUIRED("pdo")
@@ -250,16 +236,14 @@ zend_module_dep asf_deps[] = {
 /* }}} */
 
 /* {{{ asf_functions[]
- *
- * Every user visible function must have an entry in asf_functions[].
- */
+    Every user visible function must have an entry in asf_functions[] */
 const zend_function_entry asf_functions[] = {
-    PHP_FE_END	/* Must be the last line in asf_functions[] */
+    PHP_FE_END
 };
 /* }}} */
 
 /* {{{ asf_module_entry
- */
+*/
 zend_module_entry asf_module_entry = {
     STANDARD_MODULE_HEADER_EX,
     NULL,
@@ -268,8 +252,8 @@ zend_module_entry asf_module_entry = {
     asf_functions,
     PHP_MINIT(asf),
     PHP_MSHUTDOWN(asf),
-    PHP_RINIT(asf),		/* Replace with NULL if there's nothing to do at request start */
-    PHP_RSHUTDOWN(asf),	/* Replace with NULL if there's nothing to do at request end */
+    PHP_RINIT(asf),
+    PHP_RSHUTDOWN(asf),
     PHP_MINFO(asf),
     PHP_ASF_VERSION,
     STANDARD_MODULE_PROPERTIES
