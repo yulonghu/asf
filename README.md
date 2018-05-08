@@ -79,6 +79,9 @@ class IndexService
 }
 ```
 
+### Run in Nginx/Apache/Lighttpd
+http://www.your-domain.com/
+
 #### Output results
 ```
 {
