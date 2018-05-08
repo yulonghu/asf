@@ -150,8 +150,6 @@ PHP_METHOD(asf_db_qb_select, having)
     ASF_CALL_USER_FUNCTION_EX(self, "where", 5, return_value, 4, args);
 
     (void)asf_db_absqb_clear_where_set(self);
-
-    zval_ptr_dtor(&args[2]);
 }
 /* }}} */
 

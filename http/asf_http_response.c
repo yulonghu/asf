@@ -316,17 +316,15 @@ PHP_METHOD(asf_http_response, appendContent)
 
     zval *value = zend_read_property(asf_http_response_ce, getThis(), ZEND_STRL(ASF_HTTP_REP_PRONAME_VALUE), 1, NULL);
 
-    if (Z_TYPE_P(value) == IS_NULL) {
-        rbody = zend_string_init(ZSTR_VAL(pbody), ZSTR_LEN(pbody), 0);
-    } else {
+    if (value && Z_TYPE_P(value) == IS_STRING) {
         size_t len = ZSTR_LEN(pbody) + Z_STRLEN_P(value);
-        rbody = zend_string_realloc(Z_STR_P(value), len, 0);
-        memcpy(ZSTR_VAL(rbody) + ZSTR_LEN(rbody) - ZSTR_LEN(pbody), ZSTR_VAL(pbody), ZSTR_LEN(pbody) + 1);
+        zend_string *ret = zend_string_realloc(Z_STR_P(value), len, 0);
+        memcpy(ZSTR_VAL(ret) + ZSTR_LEN(ret) - ZSTR_LEN(pbody), ZSTR_VAL(pbody), ZSTR_LEN(pbody));
+        ZSTR_VAL(ret)[ZSTR_LEN(ret)] = '\0'; 
+        ZVAL_NEW_STR(value, ret);
+    } else {
+        zend_update_property_str(asf_http_response_ce, getThis(), ZEND_STRL(ASF_HTTP_REP_PRONAME_VALUE), pbody);   
     }
-
-    zend_update_property_str(asf_http_response_ce, getThis(), ZEND_STRL(ASF_HTTP_REP_PRONAME_VALUE), rbody);
-
-    zend_string_release(rbody);
 
     RETURN_TRUE;
 }
