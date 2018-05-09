@@ -27,7 +27,7 @@ http://www.box3.cn/phpasf/index.html
 
 ### Use tools to create a new project
 ```
-/php-bin-path/php/ /tools/asf_project.php /to-path/project_name
+/php-bin-path/php /tools/asf_project.php /to-path/project_name
 ```
 #### Layout
 ```
