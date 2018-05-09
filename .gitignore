@@ -25,7 +25,6 @@ Makefile.global
 Makefile.objects
 missing
 mkinstalldirs
-modules
 run-tests.php
 tests/*/*.diff
 tests/*/*.out

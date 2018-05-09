@@ -1,7 +1,7 @@
 # Asf - API Services Framework
 [![Build Status](https://travis-ci.org/yulonghu/asf.svg?branch=master)](https://travis-ci.org/yulonghu/asf)
 
-This is a PHP framework written in C. It is simple, fast, standards, security.
+This is a PHP framework written in C. It is Simple, Fast, Standards, Security.
 
 ## Install
 ### Requirements
@@ -27,7 +27,7 @@ http://www.box3.cn/phpasf/index.html
 
 ### Use tools to create a new project
 ```
-/path/asf/tools/asf_project project_name
+/php-bin-path/php/ /tools/asf_project.php /to-path/project_name
 ```
 #### Layout
 ```
@@ -80,7 +80,7 @@ class IndexService
 ```
 
 ### Run in Nginx/Apache/Lighttpd
-http://www.your-domain.com/
+http://www.your-domain.com
 
 #### Output results
 ```
@@ -91,4 +91,4 @@ http://www.your-domain.com/
 ```
 
 ## License
-Asf is open source software under the [PHP License v3.01](http://www.php.net/license/3_01.txt). 
+Asf is open source software under the [PHP License v3.01](http://www.php.net/license/3_01.txt)
