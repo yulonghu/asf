@@ -106,19 +106,26 @@ PHP_METHOD(asf_Db, init)
     zval *zlinks = zend_read_static_property(asf_Db_ce, ZEND_STRL(LINKS), 1);
     if (!reset && !Z_ISNULL_P(zlinks) && IS_ARRAY == Z_TYPE_P(zlinks)) {
         if ((cpdo = zend_hash_str_find(Z_ARRVAL_P(zlinks), md5str, 32)) != NULL) {
-            /*
-            pdo_dbh_t *dbh = Z_PDO_DBH_P(cpdo);
-            if (EXPECTED(dbh->methods->get_attribute) && dbh->methods->get_attribute(dbh, attr, return_value)) {
+            zval attr_args[1], *fpdo = NULL;
+
+            /* PDO_ATTR_SERVER_INFO */
+            ZVAL_LONG(&attr_args[0], 6);
+            fpdo = zend_read_property(Z_OBJCE_P(cpdo), cpdo, ZEND_STRL("_dbh"), 1, NULL);
+            zend_call_method_with_1_params(fpdo, Z_OBJCE_P(fpdo), NULL, "getattribute", NULL, attr_args);
+
+            if (!EG(exception)) {
+                zend_update_static_property(asf_Db_ce, ZEND_STRL(CLINK), cpdo);
+                RETURN_TRUE;
+            } else {
+                zend_hash_str_del(Z_ARRVAL_P(zlinks), md5str, 32);
+                zend_clear_exception();
             }
-            */
-            zend_update_static_property(asf_Db_ce, ZEND_STRL(CLINK), cpdo);
-            RETURN_TRUE;
         }
     }
 
     ZVAL_UNDEF(&pdo);
 
-    /* connect database */
+    /* Connect/ReConnect DB */
     char *type = NULL;
     switch (adapter_id) {
         case 0: (void)asf_db_adapter_mysql_instance(&pdo); type = ASF_DB_TYPE_MYSQL; break;
@@ -142,21 +149,21 @@ PHP_METHOD(asf_Db, init)
         add_assoc_zval_ex(&executor, md5str, 32, &pdo);
         zend_update_static_property(asf_Db_ce, ZEND_STRL(LINKS), &executor);
         zval_ptr_dtor(&executor);
+
+        /* Free Resource, Fix leak in PHP 7.2.0 (cli)(NTS DEBUG) */
+        if (self && Z_TYPE_P(self) == IS_OBJECT) {
+            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(self);
+        } else {
+            zval this_ptr;
+            object_init_ex(&this_ptr, asf_Db_ce);
+            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(&this_ptr);
+            zval_ptr_dtor(&this_ptr);
+        }
     } else {
         if (EXPECTED(zend_hash_str_add(Z_ARRVAL_P(zlinks), md5str, 32, &pdo))) {
             Z_TRY_ADDREF_P(&pdo);
         }
         zend_update_static_property(asf_Db_ce, ZEND_STRL(LINKS), zlinks);
-    }
-
-    /* free resource */
-    if (self && Z_TYPE_P(self) == IS_OBJECT) {
-        ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(self);
-    } else {
-        zval this_ptr;
-        object_init_ex(&this_ptr, asf_Db_ce);
-        ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(&this_ptr);
-        zval_ptr_dtor(&this_ptr);
     }
 
     zval_ptr_dtor(&pdo);
@@ -260,20 +267,10 @@ PHP_METHOD(asf_Db, __callStatic)
         RETURN_FALSE;
     }
 
-    zval func;
     size_t arg_count = zend_hash_num_elements(Z_ARRVAL_P(args));
     zval params[arg_count];
 
-    array_init(&func);
-
-    Z_TRY_ADDREF_P(cur_link);
-    add_index_zval(&func, 0, cur_link);
-    Z_TRY_ADDREF_P(function_name);
-    add_index_zval(&func, 1, function_name);
-
-    if (!arg_count) {
-        ZVAL_NULL(&params[0]);
-    } else {
+    if (arg_count) {
         zval *entry = NULL;
         size_t i = 0;
         ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(args), entry) {
@@ -283,7 +280,6 @@ PHP_METHOD(asf_Db, __callStatic)
     }
 
     call_user_function_ex(&Z_OBJCE_P(cur_link)->function_table, cur_link, function_name, return_value, arg_count, params, 1, NULL);
-    zval_ptr_dtor(&func);
 
     /* If the method not found in class */
     if (!return_value || Z_TYPE_P(return_value) == IS_UNDEF) {
