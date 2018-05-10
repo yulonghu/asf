@@ -1143,19 +1143,10 @@ PHP_METHOD(asf_absadapter, __call)
         return;
     }
 
-    zval func;
     size_t arg_count = zend_hash_num_elements(Z_ARRVAL_P(args));
     zval params[arg_count];
 
-    array_init(&func);
-
-    Z_TRY_ADDREF_P(dbh);
-    add_index_zval(&func, 0, dbh);
-    add_index_zval(&func, 1, function_name);
-
-    if (!arg_count) {
-        ZVAL_NULL(&params[0]);
-    } else {
+    if (arg_count) {
         zval *entry = NULL;
         size_t i = 0;
         ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(args), entry) {
@@ -1164,9 +1155,11 @@ PHP_METHOD(asf_absadapter, __call)
         } ZEND_HASH_FOREACH_END();
     }
 
+    /* Important */
+    Z_TRY_ADDREF_P(function_name);
+
     call_user_function_ex(&Z_OBJCE_P(dbh)->function_table, dbh, function_name, return_value, arg_count, params, 1, NULL);
-    zval_ptr_dtor(&func);
-    
+
     if (UNEXPECTED(EG(exception))) {
         RETURN_FALSE;
     }
