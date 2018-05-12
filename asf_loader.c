@@ -306,6 +306,7 @@ _Bool asf_loader_import(zend_string *path, zval *return_value_ptr, size_t flag) 
 {
     zend_file_handle file_handle;
     zend_op_array 	*op_array = NULL;
+    _Bool ret = 1;
 
     if (UNEXPECTED(php_stream_open_for_zend_ex(ZSTR_VAL(path), &file_handle, USE_PATH|STREAM_OPEN_FOR_INCLUDE) != SUCCESS)) {
         return 0;
@@ -325,18 +326,19 @@ _Bool asf_loader_import(zend_string *path, zval *return_value_ptr, size_t flag) 
 
         zend_try {
             zend_execute(op_array, &result);
-            destroy_op_array(op_array);
-            efree(op_array);
             if (flag) {
                 ZVAL_COPY(return_value_ptr, &result);
             }
             zval_ptr_dtor(&result);
         } zend_catch {
-            return 0;	
+            ret = 0;
         } zend_end_try();
+
+        destroy_op_array(op_array);
+        efree(op_array);
     }
 
-    return 1;
+    return ret;
 }
 /* }}} */
 
