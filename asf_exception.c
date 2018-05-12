@@ -46,10 +46,13 @@ void asf_trigger_error(int code, char *format, ...) /* {{{ */
     va_end(args);
 
     if (ASF_G(throw_exception)) {
-        zend_function *active_function = EG(current_execute_data)->func;
-        const char *class_name = active_function->common.scope ? ZSTR_VAL(active_function->common.scope->name) : "";
-        zend_throw_exception_ex(asf_exception_ce, code, "%s%s%s() %s", class_name, class_name[0] ? "::" : ""
-                , ZSTR_VAL(active_function->common.function_name), message);
+        /* If PHP Fatal error, Check EG(current_execute_data) value */
+        if (EG(current_execute_data)) {
+            zend_function *active_function = EG(current_execute_data)->func;
+            const char *class_name = active_function->common.scope ? ZSTR_VAL(active_function->common.scope->name) : "";
+            zend_throw_exception_ex(asf_exception_ce, code, "%s%s%s() %s", class_name, class_name[0] ? "::" : ""
+                    , ZSTR_VAL(active_function->common.function_name), message);
+        }
     } else {
         php_error_docref(NULL, E_ERROR, "%s", message);
     }
