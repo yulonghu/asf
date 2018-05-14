@@ -48,7 +48,7 @@ final class Asf_Loader
 
 final class Asf_Sg
 {/*{{{*/
-    protected static $inputs = NULL;
+    public static $inputs = NULL;
 }
 /*}}}*/
 
