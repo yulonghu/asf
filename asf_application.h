@@ -37,11 +37,15 @@
 #define ASF_APPLICATION_CONS_BOOT(asfg_name, err_name, find_name_uf, find_name_lc, zret) \
     zend_string *path = NULL; \
     zend_class_entry *ce; \
+    if (UNEXPECTED(ZVAL_IS_NULL(zend_read_static_property(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE), 1)))) { \
+        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "Initialized application failed"); \
+        return; \
+    } \
     if (!(ce = zend_hash_str_find_ptr(EG(class_table), ZEND_STRL(find_name_lc)))) { \
         char *p = ASF_G(lowcase_path) ? find_name_lc : find_name_uf; \
         zend_string *path = ASF_G(asfg_name) ? zend_string_copy(ASF_G(asfg_name)) : \
         strpprintf(0, "%s%c%s.php", ZSTR_VAL(ASF_G(root_path)), DEFAULT_SLASH, p); \
-        if (UNEXPECTED(!asf_loader_import(path, NULL, 0))) { \
+        if (UNEXPECTED(!asf_loader_import(path, NULL))) { \
             asf_trigger_error(ASF_ERR_## err_name ##_FAILED, "No such file %s", ZSTR_VAL(path)); \
             zend_string_release(path); \
             RETURN_FALSE; \

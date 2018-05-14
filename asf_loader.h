@@ -40,7 +40,7 @@
 extern zend_class_entry *asf_loader_ce;
 
 zval *asf_loader_instance(zval *this_ptr, zend_string *library_path);
-_Bool asf_loader_import(zend_string *path, zval *return_value_ptr, size_t flag);
+_Bool asf_loader_import(zend_string *path, zval *return_value_ptr);
 _Bool asf_internal_autoload(char *file_name, size_t name_len, char **root_path);
 
 ASF_INIT_CLASS(loader);

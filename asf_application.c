@@ -267,7 +267,7 @@ PHP_METHOD(asf_application, __construct)
 /* }}} */
 
 /* {{{ proto object Asf_Application::constants(void)
- */
+*/
 PHP_METHOD(asf_application, constants)
 {
     ASF_APPLICATION_CONS_BOOT(constants, CONSTANTS, ASF_CONSTANTS_DEFAULT_NAME_UF, ASF_CONSTANTS_DEFAULT_NAME_LC, 1);
@@ -275,7 +275,7 @@ PHP_METHOD(asf_application, constants)
 /* }}} */
 
 /* {{{ proto object Asf_Application::bootstrap(void)
- */
+*/
 PHP_METHOD(asf_application, bootstrap)
 {
     ASF_APPLICATION_CONS_BOOT(bootstrap, BOOTSTRAP, ASF_BOOTSTRAP_DEFAULT_NAME_UF, ASF_BOOTSTRAP_DEFAULT_NAME_LC, 0);
@@ -315,6 +315,12 @@ PHP_METHOD(asf_application, run)
     dispatcher = zend_read_property(asf_application_ce, getThis(),
             ZEND_STRL(ASF_APP_PRONAME_DISPATCHER), 1, NULL);
 
+    /* Unexpected exit before 'asf_dispatcher_instance()' function */
+    if (UNEXPECTED(Z_TYPE_P(dispatcher) != IS_OBJECT)) {
+        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "initialized dispatcher failed");
+        return;
+    }
+
     if (EXPECTED(asf_dispatcher_ondispatch(dispatcher, &response))) {
         if (UNEXPECTED(Z_ISUNDEF(response))) {
             RETURN_FALSE;
@@ -337,7 +343,8 @@ PHP_METHOD(asf_application, task)
             self, ZEND_STRL(ASF_APP_PRONAME_DISPATCHER), 1, NULL);
 
     if (!dispatcher || IS_OBJECT != Z_TYPE_P(dispatcher)) {
-        RETURN_FALSE;
+        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "initialized dispatcher failed");
+        return;
     }
 
     zval *request = zend_read_property(Z_OBJCE_P(dispatcher),

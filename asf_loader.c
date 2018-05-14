@@ -142,7 +142,7 @@ _Bool asf_internal_autoload(char *file_name, size_t name_len, char **root_path) 
         zend_str_tolower(ZSTR_VAL(buf.s) + root_path_len, ZSTR_LEN(buf.s) - root_path_len);
     }
 
-    status = asf_loader_import(buf.s, NULL, 0); 
+    status = asf_loader_import(buf.s, NULL); 
     smart_str_free(&buf);
 
     return status;
@@ -302,7 +302,7 @@ output:
 }
 /* }}} */
 
-_Bool asf_loader_import(zend_string *path, zval *return_value_ptr, size_t flag) /* {{{ */
+_Bool asf_loader_import(zend_string *path, zval *return_value_ptr) /* {{{ */
 {
     zend_file_handle file_handle;
     zend_op_array 	*op_array = NULL;
@@ -326,8 +326,8 @@ _Bool asf_loader_import(zend_string *path, zval *return_value_ptr, size_t flag) 
 
         zend_try {
             zend_execute(op_array, &result);
-            if (flag) {
-                ZVAL_COPY(return_value_ptr, &result);
+            if (return_value_ptr) {
+                ZVAL_DUP(return_value_ptr, &result);
             }
             zval_ptr_dtor(&result);
         } zend_catch {

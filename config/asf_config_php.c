@@ -49,7 +49,7 @@ zval *asf_config_php_instance(zval *this_ptr, zend_string *file_path) /* {{{ */
         object_init_ex(this_ptr, asf_config_php_ce);
     }
 
-    retval = asf_loader_import(file_path, &values, 1);
+    retval = asf_loader_import(file_path, &values);
 
     if (UNEXPECTED(!retval)) {
         asf_trigger_error(ASF_ERR_BOOTSTRAP_FAILED, "No such file %s", ZSTR_VAL(file_path));
@@ -58,6 +58,9 @@ zval *asf_config_php_instance(zval *this_ptr, zend_string *file_path) /* {{{ */
 
     if (Z_TYPE(values) == IS_ARRAY) {
         zend_update_property(asf_config_php_ce, this_ptr, ZEND_STRL(ASF_ABSCONFIG_PROPERTY_NAME), &values);
+    }
+
+    if (Z_REFCOUNTED(values)) {
         zval_ptr_dtor(&values);
     }
 
