@@ -39,15 +39,21 @@ class IndexService
             var_dump($e->getMessage());
         }
 
-        var_dump(Asf_Loader::get(11));
+        try {
+            var_dump(Asf_Loader::get(11));
+        } catch (Exception $e) {
+            var_dump($e->getMessage());
+        }
 
         $data = Asf_Loader::get('IndexLogic')->getUser();
+        var_dump(Asf_Loader::clean('IndexLogic'));
 
-        var_dump(Asf_Loader::clean('IndexLogic'));
-        var_dump(Asf_Loader::clean('IndexLogic'));
+        try {
+            var_dump(Asf_Loader::get('IndexLogic'));
+        } catch (Exception $e) {
+            var_dump($e->getMessage());
+        }
         
-        var_dump(Asf_Loader::get('IndexLogic'));
-
         return $data;
     }/*}}}*/
 }
@@ -58,9 +64,8 @@ $handle->run();
 ?>
 --EXPECTF--
 string(%d) "%s"
-bool(false)
+string(%d) "%s"
 bool(true)
-bool(false)
-bool(false)
+string(%d) "%s"
 {"errno":0,"errmsg":"","data":"zhangsan"}
 

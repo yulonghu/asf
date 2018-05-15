@@ -29,7 +29,12 @@ class IndexService
         var_dump(Asf_Loader::get('IndexLogic')->getUser());
 
         var_dump(Asf_Loader::get('Lib')->getUser());
-        var_dump(Asf_Loader::get('Libdd'));
+
+        try {
+            Asf_Loader::get('Libdd');
+        } catch (Exception \$e) {
+            var_dump(\$e->getMessage());
+        }
     }
 }
 PHP
@@ -70,11 +75,11 @@ $handle->run();
 
 shutdown();
 ?>
---EXPECT--
+--EXPECTF--
 string(10) "logic_user"
 string(8) "lib_user"
 string(8) "lib_user"
 string(10) "logic_user"
 string(8) "lib_user"
-bool(false)
+string(%d) "%s"
 

@@ -53,19 +53,25 @@ $configs = array(
 $handle = new Asf_Application($configs);
 var_dump($handle->task());
 
-var_dump(Asf_Loader::get('MainService'));
-var_dump(Asf_Loader::get('UserLogic'));
+try {
+    var_dump(Asf_Loader::get('MainService'));
+} catch (Exception $e) {
+    var_dump($e->getMessage());
+}
 
-/* class 'WrongLogic' not found */
-var_dump(Asf_Loader::get('WrongLogic'));
+try {
+    var_dump(Asf_Loader::get('UserLogic'));
+} catch (Exception $e) {
+    var_dump($e->getMessage());
+}
+
+Asf_Loader::get('WrongLogic');
 
 shutdown();
 
 ?>
 --EXPECTF--
 bool(true)
-bool(false)
-bool(false)
-object(WrongLogic)#%d (%d) {
-}
+string(%d) "%s"
+string(%d) "%s"
 

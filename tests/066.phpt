@@ -71,7 +71,11 @@ var_dump(Asf_Loader::get('UserLogic')->test());
 var_dump($handle->getMode());
 
 /* class 'WrongLogic' not found */
-var_dump(Asf_Loader::get('WrongLogic'));
+try {
+    Asf_Loader::get('WrongLogic');
+} catch (Exception $e) {
+    var_dump($e->getMessage());
+}
 
 shutdown();
 
@@ -84,5 +88,5 @@ object(UserLogic)#%d (%d) {
 }
 string(%d) "%s"
 int(%d)
-bool(false)
+string(%d) "%s"
 

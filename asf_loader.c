@@ -395,7 +395,8 @@ PHP_METHOD(asf_loader, get)
     efree(lc_class_name);
 
     if (!ce) {
-        RETURN_FALSE;
+        asf_trigger_error(ASF_ERR_LOADER_FAILED, "Class '%s' not found", ZSTR_VAL(class_name));
+        return;
     }
 
     if (UNEXPECTED(object_init_ex(return_value, ce) != SUCCESS)) {
@@ -405,9 +406,6 @@ PHP_METHOD(asf_loader, get)
     if (ce->constructor && ce->constructor->common.fn_flags & ZEND_ACC_PUBLIC) {
         if (EXPECTED(ce->constructor->common.num_args == 0)) {
             zend_call_method_with_0_params(return_value, ce, NULL, ZEND_CONSTRUCTOR_FUNC_NAME, NULL);
-        } else {
-            zval_ptr_dtor(return_value);
-            RETURN_FALSE;
         }
     }
 }
