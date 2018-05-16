@@ -15,10 +15,18 @@ git clone https://github.com/yulonghu/asf.git
 
 ### Compile for Linux/Unix/Mac
 ```
-$ /path/to/phpize
-$ ./configure --with-php-config=/path/to/php-config
-$ make && make install
+/path/to/phpize
+./configure --with-php-config=/path/to/php-config
+make && make install
 ```
+
+#### Add the extension to your php.ini
+```ini
+extension=asf.so
+```
+
+Restart the web server
+
 ### Documentation
 
 http://www.box3.cn/phpasf/index.html
@@ -51,7 +59,7 @@ http://www.box3.cn/phpasf/index.html
 <?php
 $configs = array(
     'asf' => array(
-        'root_path' => realpath(dirname(__FILE__)),
+        'root_path' => APP_PATH . '/modules',
     )
 );
 
