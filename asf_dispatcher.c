@@ -182,7 +182,8 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
             /* Filter the space used by php_trim */
             if (Z_TYPE_P(arg) == IS_STRING) {
                 sarg = php_trim(Z_STR_P(arg), NULL, 0, 3);
-                if (sarg && ZSTR_LEN(sarg) && Z_STRLEN_P(arg) != ZSTR_LEN(sarg)) {
+                /* Fix sarg value is empty string, and cancel length judgment */
+                if (Z_STRLEN_P(arg) != ZSTR_LEN(sarg)) {
                     ZVAL_STR_COPY(arg, sarg);
                 }
             }
