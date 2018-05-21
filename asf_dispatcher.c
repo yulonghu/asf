@@ -174,8 +174,8 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
         } while(0);
 
         /* if not find key, search default value  */
-        if (!arg || !Z_STRLEN_P(arg)) {
-             arg = _get_recv_op_zval(fptr, current);
+        if (!arg) {
+            arg = _get_recv_op_zval(fptr, current);
         }
 
         if (arg) {
