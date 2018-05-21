@@ -46,6 +46,9 @@ $ta = array('1 ', ' 2', 'id' => ' 333 ', 'cat_id' => 4, '6' => ' 5000', ' hello 
 $result = Asf_Util::atrim($ta); 
 var_dump($result);
 
+$result = Asf_Util::atrim(''); 
+var_dump($result);
+
 echo '---------------------filterXss', PHP_EOL;
 var_dump(Asf_Util::filterXss("<input type='text' value='<>'>"));
 var_dump(Asf_Util::filterXss('<img src="x" onerror="&#97;&#108;&#101;&#114;&#116;&#40;&#49;&#41;">'));
@@ -122,6 +125,7 @@ array(7) {
     }
   }
 }
+string(0) ""
 ---------------------filterXss
 string(%d) "%s"
 string(%d) "%s"
