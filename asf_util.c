@@ -89,12 +89,15 @@ static inline void asf_util_atrim_callback(zval **cb) /* {{{ */
     } else {
         if (Z_TYPE_P(*cb) == IS_STRING) {
             st = php_trim(Z_STR_P(*cb), NULL, 0, 3);
-            memset(Z_STRVAL_P(*cb), '\0', Z_STRLEN_P(*cb));
-            Z_STRLEN_P(*cb) = ZSTR_LEN(st);
-            memcpy(Z_STRVAL_P(*cb), ZSTR_VAL(st), ZSTR_LEN(st));
-            Z_STRVAL_P(*cb)[ZSTR_LEN(st)] = '\0';
-            zend_string_forget_hash_val(Z_STR_P(*cb));
+            if (ZSTR_LEN(st) != Z_STRLEN_P(*cb)) {
+                memset(Z_STRVAL_P(*cb), '\0', Z_STRLEN_P(*cb));
+                Z_STRLEN_P(*cb) = ZSTR_LEN(st);
+                memcpy(Z_STRVAL_P(*cb), ZSTR_VAL(st), ZSTR_LEN(st));
+                Z_STRVAL_P(*cb)[ZSTR_LEN(st)] = '\0';
+                zend_string_forget_hash_val(Z_STR_P(*cb));
+            }
             zend_string_release(st);
+            st = NULL;
         }
     }
 }

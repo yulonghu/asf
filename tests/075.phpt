@@ -46,8 +46,8 @@ $ta = array('1 ', ' 2', 'id' => ' 333 ', 'cat_id' => 4, '6' => ' 5000', ' hello 
 $result = Asf_Util::atrim($ta); 
 var_dump($result);
 
-$result = Asf_Util::atrim(''); 
-var_dump($result);
+var_dump(Asf_Util::atrim('')); 
+var_dump(Asf_Util::atrim('%20')); 
 
 echo '---------------------filterXss', PHP_EOL;
 var_dump(Asf_Util::filterXss("<input type='text' value='<>'>"));
@@ -126,6 +126,7 @@ array(7) {
   }
 }
 string(0) ""
+string(3) "%20"
 ---------------------filterXss
 string(%d) "%s"
 string(%d) "%s"
