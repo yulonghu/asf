@@ -95,7 +95,17 @@ PHP_METHOD(asf_config_ini, __construct)
         return;
     }
 
-    (void)asf_config_ini_instance(getThis(), file_path, section);
+    if (UNEXPECTED(Z_TYPE_P(file_path) != IS_STRING)) {
+        asf_trigger_error(ASF_ERR_CONFIG_PARAM, "The parameters 'file_path' must be a string");
+        return;
+    }
+
+    if(UNEXPECTED(strncasecmp(Z_STRVAL_P(file_path) + Z_STRLEN_P(file_path) - 3, "ini", 3))) {
+        asf_trigger_error(ASF_ERR_CONFIG_PARAM, "The parameters 'file_path' must be an ini file");
+        return;
+    }
+
+    (void)asf_absconfig_instance(getThis(), file_path, section);
 }
 /** }}} */
 

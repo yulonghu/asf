@@ -72,13 +72,23 @@ zval *asf_config_php_instance(zval *this_ptr, zend_string *file_path) /* {{{ */
     Loaded the php file */
 PHP_METHOD(asf_config_php, __construct)
 {
-    zend_string *file_path = NULL;
+    zval *file_path = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &file_path) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &file_path) == FAILURE) {
         return;
     }
 
-    (void)asf_config_php_instance(getThis(), file_path);
+    if (UNEXPECTED(Z_TYPE_P(file_path) != IS_STRING)) {
+        asf_trigger_error(ASF_ERR_CONFIG_PARAM, "The parameters 'file_path' must be a string");
+        return;
+    }
+
+    if(UNEXPECTED(strncasecmp(Z_STRVAL_P(file_path) + Z_STRLEN_P(file_path) - 3, "php", 3))) {
+        asf_trigger_error(ASF_ERR_CONFIG_PARAM, "The parameters 'file_path' must be an php file");
+        return;
+    }
+
+    (void)asf_absconfig_instance(getThis(), file_path, NULL);
 }
 /** }}} */
 

@@ -168,9 +168,6 @@ zval *asf_absconfig_instance(zval *this_ptr, zval *arg1, zval *arg2) /* {{{ */
                 }
             }
         }
-
-        (void)asf_func_config_persistent_hash_destroy(ASF_G(cache_config_buf));
-        ASF_G(cache_config_buf) = NULL;
     }
 
     if (strncasecmp(Z_STRVAL_P(arg1) + Z_STRLEN_P(arg1) - 3, "php", 3) == 0) {
@@ -179,13 +176,15 @@ zval *asf_absconfig_instance(zval *this_ptr, zval *arg1, zval *arg2) /* {{{ */
         instance = asf_config_ini_instance(this_ptr, arg1, arg2);
     }
 
-    if (ASF_G(cache_config_enable) && !ASF_G(cache_config_buf) && Z_TYPE_P(this_ptr) == IS_OBJECT) {
+    if (ASF_G(cache_config_enable) && Z_TYPE_P(this_ptr) == IS_OBJECT) {
         zval *config = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_ABSCONFIG_PROPERTY_NAME), 1, NULL);
         if (EXPECTED(Z_TYPE_P(config) == IS_ARRAY)) {
             (void)asf_absconfig_cache_file_mtime(Z_STRVAL_P(arg1), Z_STRLEN_P(arg1), cur_time, 0);
-
-            PMALLOC_HASHTABLE(ASF_G(cache_config_buf));
-            zend_hash_init(ASF_G(cache_config_buf), 8, NULL, NULL, 1);
+            /* Initialize persistent memory */
+            if (!ASF_G(cache_config_buf)) {
+                PMALLOC_HASHTABLE(ASF_G(cache_config_buf));
+                zend_hash_init(ASF_G(cache_config_buf), 8, NULL, NULL, 1);
+            }
             (void)asf_absconfig_cache_hash_symtable_update(ASF_G(cache_config_buf), Z_STR_P(arg1), config);
         }
     }

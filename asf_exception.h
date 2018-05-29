@@ -55,6 +55,8 @@
 #define ASF_ERR_DB_SET_COLUMN			526
 #define ASF_ERR_DB_PARAM				527
 
+#define ASF_ERR_CONFIG_PARAM            528
+
 extern zend_class_entry *asf_exception_ce;
 
 void asf_trigger_error(int code, char *format, ...);
