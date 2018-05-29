@@ -17,6 +17,7 @@
 */
 
 /* Excerpt from the yaf, http://yaf.laruence.com/manual/ */
+/* Excerpt from the yaconf, https://github.com/laruence/yaconf */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -31,30 +32,165 @@
 #include "asf_config_simple.h"
 #include "asf_config_php.h"
 #include "asf_config_ini.h"
+#include "ext/standard/php_filestat.h" /* php_stat */
 
 zend_class_entry *asf_absconfig_ce;
 
+#define PMALLOC_HASHTABLE(ht) ((ht) = __zend_malloc(sizeof(HashTable)))
+
+static void asf_absconfig_cache_hash_copy(HashTable *target, HashTable *source);
+
+static inline _Bool asf_absconfig_cache_file_mtime(const char *filename, size_t filename_len, time_t time, _Bool check_expire) /* {{{ */
+{
+    zval mtime;
+
+    (void)php_stat(filename, filename_len, FS_MTIME, &mtime);
+
+    if (UNEXPECTED(Z_TYPE(mtime) != IS_LONG)) {
+        return 0;
+    }
+
+    /* If get mtime successful, Then renewal Expire */
+    if (!check_expire || ASF_G(cache_config_mtime) == Z_LVAL(mtime)) {
+        ASF_G(cache_config_last_time) = time + ASF_G(cache_config_expire);
+        ASF_G(cache_config_mtime) = Z_LVAL(mtime);
+        return 1;
+    }
+
+    return 0;
+}
+/* }}} */
+
+static zend_string *asf_absconfig_cache_str_persistent(const char *str, const size_t len) /* {{{ */
+{
+    /* Exclude Interned String */
+    zend_string *new_key = zend_string_init(str, len, 1);
+
+    if (UNEXPECTED(new_key == NULL)) {
+        zend_out_of_memory();
+    }
+
+    return new_key;
+}
+/* }}} */
+
+static void asf_absconfig_cache_zval_persistent(zval *zv, zval *rv) /* {{{ */
+{
+    switch (Z_TYPE_P(zv)) {
+        case IS_CONSTANT:
+        case IS_STRING:
+            ZVAL_NEW_STR(rv, asf_absconfig_cache_str_persistent(Z_STRVAL_P(zv), Z_STRLEN_P(zv)));
+            break;
+        case IS_ARRAY:
+            {
+                ZVAL_NEW_PERSISTENT_ARR(rv);
+                zend_hash_init(Z_ARRVAL_P(rv), zend_hash_num_elements(Z_ARRVAL_P(zv)), NULL, ZVAL_PTR_DTOR, 1);
+                (void)asf_absconfig_cache_hash_copy(Z_ARRVAL_P(rv), Z_ARRVAL_P(zv));
+            }
+            break;
+        case IS_RESOURCE:
+        case IS_OBJECT:
+            break;
+        case IS_FALSE:
+            ZVAL_FALSE(rv);
+            break;
+        case IS_TRUE:
+            ZVAL_TRUE(rv);
+            break;
+        case IS_LONG:
+            ZVAL_LONG(rv, Z_LVAL_P(zv));
+            break;
+        case IS_DOUBLE:
+            ZVAL_DOUBLE(rv, Z_DVAL_P(zv));
+            break;
+        case IS_NULL:
+            ZVAL_NULL(rv);
+            break;
+        default:
+            break;
+    }
+}
+/* }}} */
+
+static void asf_absconfig_cache_hash_copy(HashTable *target, HashTable *source) /* {{{ */
+{
+    zend_string *key = NULL;
+    zend_long idx = 0;
+    zval *element = NULL, rv;
+
+    ZEND_HASH_FOREACH_KEY_VAL(source, idx, key, element) {
+        (void)asf_absconfig_cache_zval_persistent(element, &rv);
+        if (key) {
+            zend_hash_update(target, asf_absconfig_cache_str_persistent(ZSTR_VAL(key), ZSTR_LEN(key)), &rv);
+        } else {
+            zend_hash_index_update(target, idx, &rv);
+        }
+    } ZEND_HASH_FOREACH_END();
+}
+/* }}} */
+
+static inline void asf_absconfig_cache_hash_symtable_update(HashTable *ht, zend_string *key, zval *zv) /* {{{ */
+{
+    zend_ulong idx = 0;
+    zval rv;
+
+    ZVAL_NEW_PERSISTENT_ARR(&rv);
+    zend_hash_init(Z_ARRVAL(rv), zend_hash_num_elements(Z_ARRVAL_P(zv)), NULL, ZVAL_PTR_DTOR, 1);
+
+    (void)asf_absconfig_cache_hash_copy(Z_ARRVAL(rv), Z_ARRVAL_P(zv));
+    zend_hash_update(ASF_G(cache_config_buf), asf_absconfig_cache_str_persistent(ZSTR_VAL(key), ZSTR_LEN(key)), &rv);
+}
+/* }}} */
+
 zval *asf_absconfig_instance(zval *this_ptr, zval *arg1, zval *arg2) /* {{{ */
 {
-    zval *instance = NULL;
+    zval *instance = NULL, *pzval = NULL;
+    time_t cur_time = time(NULL);
 
-    if (UNEXPECTED(!arg1)) {
+    if (UNEXPECTED(!arg1 || (Z_TYPE_P(arg1) != IS_ARRAY && Z_TYPE_P(arg1) != IS_STRING))) {
         return NULL;
     }
 
-    if (Z_TYPE_P(arg1) == IS_STRING) {
-        if (strncasecmp(Z_STRVAL_P(arg1) + Z_STRLEN_P(arg1) - 3, "php", 3) == 0) {
-            zend_string *file_path = zend_string_init(Z_STRVAL_P(arg1), Z_STRLEN_P(arg1), 0);
-            instance = asf_config_php_instance(this_ptr, file_path);
-            zend_string_release(file_path);
-        } else if (strncasecmp(Z_STRVAL_P(arg1) + Z_STRLEN_P(arg1) - 3, "ini", 3) == 0) {
-            instance = asf_config_ini_instance(this_ptr, arg1, arg2);
-        }
-    } else if (Z_TYPE_P(arg1) == IS_ARRAY) {
+    if (Z_TYPE_P(arg1) == IS_ARRAY) {
         instance = asf_config_simple_instance(this_ptr, arg1);
+        return instance;
     }
 
-    return NULL;
+    /* If cache_config_enable is true */
+    if (ASF_G(cache_config_enable) && ASF_G(cache_config_buf) != NULL) {
+        if ((pzval = zend_symtable_find(ASF_G(cache_config_buf), Z_STR_P(arg1))) != NULL) {
+            if (cur_time < ASF_G(cache_config_last_time)) {
+                return (instance = asf_config_simple_instance(this_ptr, pzval));
+            } else {
+                /* Check file_mtime */
+                if (asf_absconfig_cache_file_mtime(Z_STRVAL_P(arg1), Z_STRLEN_P(arg1), cur_time, 1)) {
+                    return (instance = asf_config_simple_instance(this_ptr, pzval));
+                }
+            }
+        }
+
+        (void)asf_func_config_persistent_hash_destroy(ASF_G(cache_config_buf));
+        ASF_G(cache_config_buf) = NULL;
+    }
+
+    if (strncasecmp(Z_STRVAL_P(arg1) + Z_STRLEN_P(arg1) - 3, "php", 3) == 0) {
+        instance = asf_config_php_instance(this_ptr, Z_STR_P(arg1));
+    } else if (strncasecmp(Z_STRVAL_P(arg1) + Z_STRLEN_P(arg1) - 3, "ini", 3) == 0) {
+        instance = asf_config_ini_instance(this_ptr, arg1, arg2);
+    }
+
+    if (ASF_G(cache_config_enable) && !ASF_G(cache_config_buf) && Z_TYPE_P(this_ptr) == IS_OBJECT) {
+        zval *config = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_ABSCONFIG_PROPERTY_NAME), 1, NULL);
+        if (EXPECTED(Z_TYPE_P(config) == IS_ARRAY)) {
+            (void)asf_absconfig_cache_file_mtime(Z_STRVAL_P(arg1), Z_STRLEN_P(arg1), cur_time, 0);
+
+            PMALLOC_HASHTABLE(ASF_G(cache_config_buf));
+            zend_hash_init(ASF_G(cache_config_buf), 8, NULL, NULL, 1);
+            (void)asf_absconfig_cache_hash_symtable_update(ASF_G(cache_config_buf), Z_STR_P(arg1), config);
+        }
+    }
+   
+    return instance;
 }
 /* }}} */
 

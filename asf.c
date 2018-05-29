@@ -57,7 +57,9 @@ PHP_INI_BEGIN()
     STD_PHP_INI_BOOLEAN("asf.use_lcache",     "0", PHP_INI_ALL, OnUpdateBool, use_lcache, zend_asf_globals, asf_globals)
     STD_PHP_INI_BOOLEAN("asf.throw_exception","1", PHP_INI_ALL, OnUpdateBool, throw_exception, zend_asf_globals, asf_globals)
 
-    STD_PHP_INI_ENTRY("asf.ctype_id",		 "5", PHP_INI_ALL, OnUpdateLong, ctype_id, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.ctype_id",            "5", PHP_INI_ALL, OnUpdateLong, ctype_id, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.cache_config_enable", "0", PHP_INI_ALL, OnUpdateBool, cache_config_enable, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.cache_config_expire", "300", PHP_INI_ALL, OnUpdateLong, cache_config_expire, zend_asf_globals, asf_globals)
 PHP_INI_END()
 /* }}} */
 
@@ -108,6 +110,11 @@ PHP_MSHUTDOWN_FUNCTION(asf)
 {
     UNREGISTER_INI_ENTRIES();
 
+    if (ASF_G(cache_config_buf)) {
+        (void)asf_func_config_persistent_hash_destroy(ASF_G(cache_config_buf));
+        ASF_G(cache_config_buf) = NULL;
+    }
+
     return SUCCESS;
 }
 /* }}} */
@@ -124,6 +131,10 @@ PHP_RINIT_FUNCTION(asf)
     ASF_G(default_module)	= zend_string_init(ASF_API_NAME, ASF_API_LEN, 0);
     ASF_G(default_service)  = zend_string_init("index", 5, 0);
     ASF_G(default_action)	= zend_string_init("index", 5, 0);
+
+#ifdef ZTS
+    ASF_G(cache_config_enable) = 0;
+#endif
 
     return SUCCESS;
 }

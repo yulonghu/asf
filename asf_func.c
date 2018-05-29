@@ -146,6 +146,32 @@ void asf_func_shutdown_buffer(_Bool exception) /* {{{ */
 }
 /* }}} */
 
+void asf_func_config_persistent_hash_destroy(HashTable *ht) /* {{{ */
+{
+    zend_string *key = NULL;
+    zval *element = NULL;
+
+    if (((ht)->u.flags & HASH_FLAG_INITIALIZED)) {
+        ZEND_HASH_FOREACH_STR_KEY_VAL(ht, key, element) {
+            if (key) {
+                free(key);
+            }
+            switch (Z_TYPE_P(element)) {
+                case IS_PTR:
+                case IS_STRING:
+                    free(Z_PTR_P(element));
+                    break;
+                case IS_ARRAY:
+                    (void)asf_func_config_persistent_hash_destroy(Z_ARRVAL_P(element));
+                    break;
+            }
+        } ZEND_HASH_FOREACH_END();
+        free(HT_GET_DATA_ADDR(ht));
+    }
+    free(ht);
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4

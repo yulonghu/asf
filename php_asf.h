@@ -92,6 +92,13 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_ulong	ctype_id;
 	zend_bool	use_lcache;
 	zend_bool   throw_exception;
+
+	/* Cache Config */
+	HashTable *cache_config_buf;
+	zend_ulong cache_config_last_time;
+	zend_ulong cache_config_expire;
+	zend_ulong cache_config_mtime;
+	zend_bool  cache_config_enable;
 ZEND_END_MODULE_GLOBALS(asf)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(asf);
