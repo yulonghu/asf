@@ -531,7 +531,7 @@ PHP_METHOD(asf_application, errorHandler)
             break;
     }/*}}}*/
 
-    /* If _4 is a string type, it comes from setErrorHandler */
+    /* If _4 is a string type, it comes from exceptionHandler */
     if (Z_TYPE_P(_4) == IS_STRING) {
         errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%s%s", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1, PHP_EOL, Z_STRVAL_P(_4));
     } else {
