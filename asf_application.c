@@ -531,7 +531,12 @@ PHP_METHOD(asf_application, errorHandler)
             break;
     }/*}}}*/
 
-    errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1);
+    /* If _4 is a string type, it comes from setErrorHandler */
+    if (Z_TYPE_P(_4) == IS_STRING) {
+        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%s%s", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1, PHP_EOL, Z_STRVAL_P(_4));
+    } else {
+        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1);
+    }
 
     zval zlogger = {{0}};
     (void)asf_log_adapter_create_file_handler(getThis(), &zlogger, Z_STRVAL_P(zef), Z_STRLEN_P(zef));
@@ -543,16 +548,17 @@ PHP_METHOD(asf_application, errorHandler)
 }
 /* }}} */
 
-/* {{{ proto void Asf_Application::errorHandler(object $_0)
+/* {{{ proto void Asf_Application::exceptionHandler(object $_0)
      Set a exception handler function, Please do not overwrite the call */
 PHP_METHOD(asf_application, exceptionHandler)
 {
     zval *_0 = NULL, _1, *_2 = NULL, *_3 = NULL;
     char *errmsg = NULL;
     uint errmsg_len = 0;
-    zval args[4], zparam;
+    zval args[5], zparam;
     zend_class_entry *ce = NULL;
     zend_long _4 = 0, _5 = 0;
+    zval trace;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "o", &_0) == FAILURE) {
         return;
@@ -566,16 +572,23 @@ PHP_METHOD(asf_application, exceptionHandler)
     _4 = E_USER_ERROR;
     _5 = zval_get_long(zend_read_property(ce, _0, ZEND_STRL("line"), 1, NULL));
 
+    /* getTraceAsString */
+    zend_call_method_with_0_params(_0, ce, NULL, "gettraceasstring", &trace);
+   
     ZVAL_STRINGL(&_1, "errorHandler", 12);
 
     ZVAL_LONG(&args[0], 1);
     ZVAL_COPY_VALUE(&args[1], _2);
     ZVAL_COPY_VALUE(&args[2], _3);
     ZVAL_LONG(&args[3], _5);
+    ZVAL_COPY_VALUE(&args[4], &trace);
 
-    call_user_function_ex(&(Z_OBJCE_P(self))->function_table, self, &_1, return_value, 4, args, 1, NULL);
+    call_user_function_ex(&(Z_OBJCE_P(self))->function_table, self, &_1, return_value, 5, args, 1, NULL);
 
     ASF_FAST_STRING_PTR_DTOR(_1);
+    if (Z_TYPE(trace) != IS_FALSE) {
+        zval_ptr_dtor(&trace);
+    }
 
     ZVAL_NULL(&zparam);
     (void)asf_http_rep_display_error(999, &zparam);
