@@ -1,7 +1,18 @@
 # Asf - API Services Framework
 [![Build Status](https://travis-ci.org/yulonghu/asf.svg?branch=master)](https://travis-ci.org/yulonghu/asf)
 
-This is a PHP framework written in C. It is Simple, Fast, Standards, Security.
+High performance PHP framework written in C, Work so easy. 
+
+## Introduction
+API Services Framework (or simply Asf). It's has many micro-innovation and is a new generation of lightweight MVC framework, internally called DLS.
+
+## Features
+- 999 special error number, Intercept all Exception conditions in the operation of the program
+- Support SQL CURD Log(Asf_Sql_Log), Run Exception information (Asf_Error_Log)
+- Support rich development libraries, classes reside in memory when the PHP process starts
+- Support Logger Buffer Cache, File descriptor auto-shutdown
+- Stronger GPC method, Use PHP Global Variables ($_GET, $_POST, $_COOKIE) becomes easier
+- Supports configuration file resident memory
 
 ## Install
 ### Requirements
