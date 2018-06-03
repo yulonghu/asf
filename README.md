@@ -12,7 +12,7 @@ API Services Framework (or simply Asf). It's has many micro-innovation and is a 
 - Support rich development libraries, classes reside in memory when the PHP process starts
 - Support Logger Buffer Cache, File descriptor auto-shutdown
 - Stronger GPC method, Use PHP Global Variables ($_GET, $_POST, $_COOKIE) becomes easier
-- Supports configuration file resident memory
+- Support configuration file resident memory
 
 ## Install
 ### Requirements
