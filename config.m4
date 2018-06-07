@@ -81,5 +81,9 @@ if test "$PHP_ASF" != "no"; then
       db/querybuilder/asf_db_querybuilder_update.c \
       db/querybuilder/asf_db_querybuilder_delete.c \
       asf_util.c \
+      debug/asf_debug_dump.c \
+      debug/dump/asf_debug_dump_abstractdump.c \
+      debug/dump/asf_debug_dump_cli.c \
+      debug/dump/asf_debug_dump_html.c \
       , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 fi

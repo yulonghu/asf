@@ -486,3 +486,10 @@ class Asf_Util
 }
 /* }}} Asf_Util */
 
+/* {{{ Asf_Debug_Dump */
+class Asf_Debug_Dump
+{
+    public static function vars(mixed $expression [, mixed $... ])
+}
+/* }}} Asf_Debug_Dump */
+
