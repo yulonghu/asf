@@ -211,6 +211,9 @@ PHP_RSHUTDOWN_FUNCTION(asf)
     ASF_G(log_sql) = 0;
     ASF_G(log_err) = 0;
 
+    /* Reset debug_dump */
+    ASF_G(debug_dump) = 0;
+
     return SUCCESS;
 }
 /* }}} */

@@ -52,7 +52,7 @@ static void asf_http_response_ctype_json_ex(size_t code, zval *body, _Bool flag)
     uint ret = SUCCESS;
 
     /* Exclude cli mode, 'request_method' value is NULL in cli mode */
-    if (EXPECTED(SG(request_info).request_method)) {
+    if (EXPECTED(SG(request_info).request_method && !ASF_G(debug_dump))) {
         sapi_add_header("Content-Type: application/json", 30, 1);
     }
 

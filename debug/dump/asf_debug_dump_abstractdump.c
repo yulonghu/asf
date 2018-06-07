@@ -219,6 +219,7 @@ PHP_METHOD(asf_debug_dump_abstractdump, vars)
                 , getThis(), ZEND_STRL(ASF_DEBUG_DUMP_PRONAME_MODE), 1, NULL));
 
     if (mode) {
+        ASF_G(debug_dump) = 1;
         php_printf("<pre>%s:%u\n", zend_get_executed_filename(), zend_get_executed_lineno());
     }
     
