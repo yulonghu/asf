@@ -22,9 +22,9 @@
 extern zend_module_entry asf_module_entry;
 #define phpext_asf_ptr &asf_module_entry
 
-#define PHP_ASF_VERSION "2.1.8-dev"
+#define PHP_ASF_VERSION "2.1.8"
 #define PHP_ASF_AUTHOR  "fanjiapeng"
-#define PHP_ASF_DESCRIPTION "This is PHP framework written in C. It is Simple, Fast, Standard, Security."
+#define PHP_ASF_DESCRIPTION "High performance PHP framework written in C, Work so easy."
 
 #ifdef PHP_WIN32
 #	define PHP_ASF_API __declspec(dllexport)
