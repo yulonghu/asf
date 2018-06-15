@@ -28,7 +28,7 @@
 #include "asf_ensure.h"
 #include "asf_loader.h"
 #include "asf_exception.h"
-#include "asf_constants.h"
+#include "kernel/asf_constants.h"
 #include "http/asf_http_response.h"
 
 zend_class_entry *asf_ensure_ce;
