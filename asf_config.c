@@ -25,7 +25,7 @@
 #include "ext/spl/spl_iterators.h"
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_exception.h"
 
 #include "asf_config.h"

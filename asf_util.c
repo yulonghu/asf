@@ -29,7 +29,7 @@
 #include "ext/standard/php_rand.h"
 #include "ext/standard/html.h" /* htmlspecialchars */
 
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "http/asf_http_request.h"
 #include "kernel/asf_func.h"
 #include "asf_util.h"

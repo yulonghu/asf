@@ -26,7 +26,7 @@
 #include "main/php_main.h" /* php_stream_* */
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_loader.h"
 #include "asf_exception.h"
 #include "http/asf_http_request.h" /* default module name */

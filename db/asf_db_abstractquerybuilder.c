@@ -27,7 +27,7 @@
 #include "ext/standard/php_array.h" /* php_array_merge */
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_exception.h"
 #include "kernel/asf_func.h"
 #include "asf_db.h"

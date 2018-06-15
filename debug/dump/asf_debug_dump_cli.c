@@ -22,7 +22,7 @@
 
 #include "php.h"
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 
 #include "asf_debug_dump_abstractdump.h"
 #include "asf_debug_dump_cli.h"

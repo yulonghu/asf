@@ -23,7 +23,7 @@
 #include "php.h"
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_router.h"
 #include "http/asf_http_request.h"
 #include "routes/asf_route_dot.h"

@@ -26,7 +26,7 @@
 #include "ext/standard/php_ext_syslog.h" /* php_syslog */
 #include "Zend/zend_interfaces.h" /* zend_call_ */
 
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_exception.h"
 #include "asf_log_adapter_syslog.h"
 #include "log/asf_log_adapter.h"

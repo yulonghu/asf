@@ -24,7 +24,7 @@
 #include "Zend/zend_interfaces.h" /* for zend_call_method_with_* */
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_ensure.h"
 #include "asf_loader.h"
 #include "asf_exception.h"

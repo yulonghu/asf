@@ -27,7 +27,7 @@
 #include "Zend/zend_exceptions.h"
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_application.h"
 #include "asf_dispatcher.h"
 #include "http/asf_http_request.h"

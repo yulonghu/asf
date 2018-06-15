@@ -30,7 +30,7 @@
 #include "ext/standard/basic_functions.h"
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_exception.h"
 #include "asf_log_adapter_file.h"
 #include "log/asf_log_adapter.h"

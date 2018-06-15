@@ -28,7 +28,7 @@
 #include "ext/standard/php_var.h" /* php_var_export */
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_exception.h"
 #include "asf_log_adapter.h"
 #include "asf_log_loggerinterface.h"

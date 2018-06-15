@@ -24,7 +24,7 @@
 #include "Zend/zend_interfaces.h"
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_exception.h"
 
 #include "config/asf_config_abstractconfig.h"

@@ -26,7 +26,7 @@
 #include "ext/standard/php_string.h" /* php_basename */
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_application.h"
 #include "asf_loader.h"
 #include "asf_dispatcher.h"

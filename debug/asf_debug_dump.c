@@ -24,7 +24,7 @@
 #include "main/SAPI.h"
 #include "Zend/zend_interfaces.h" /* zend_call_ */
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 
 #include "asf_debug_dump.h"
 #include "dump/asf_debug_dump_abstractdump.h"

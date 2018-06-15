@@ -26,7 +26,7 @@
 #include "ext/date/php_date.h" /* php_format_date */
 
 #include "php_asf.h"
-#include "asf_namespace.h"
+#include "kernel/asf_namespace.h"
 #include "asf_exception.h"
 #include "asf_log_formatter_file.h"
 #include "log/asf_log_formatterinterface.h"

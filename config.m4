@@ -39,7 +39,7 @@ if test "$PHP_ASF" != "no"; then
 
   PHP_NEW_EXTENSION(asf, \
       asf.c \
-      asf_func.c \
+      kernel/asf_func.c \
       asf_application.c \
       asf_config.c \
       config/asf_config_abstractconfig.c \
