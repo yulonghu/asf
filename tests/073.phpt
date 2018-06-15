@@ -17,7 +17,7 @@ var_dump($delete->show());
 $delete->clear();
 
 $delete = Asf_Db::qbd();
-var_dump($delete->from('test')->where('user', 'lisi2')->like('pass', '11111')->show());
+var_dump($delete->from('test')->where('user', 'lisi2')->like('pass', '%11111%')->show());
 
 var_dump($delete->getSql());
 var_dump(serialize($delete->getValues()));

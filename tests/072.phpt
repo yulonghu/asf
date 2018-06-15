@@ -19,7 +19,7 @@ var_dump($update->show());
 $update->clear();
 
 $update = Asf_Db::qbu();
-var_dump($update->table('test')->set('user', 'lisi2')->like('pass', '11111')->show());
+var_dump($update->table('test')->set('user', 'lisi2')->like('pass', '%11111%')->show());
 
 var_dump($update->getSql());
 var_dump(serialize($update->getValues()));
@@ -28,7 +28,7 @@ $update->clear();
 var_dump($update->update()->show());
 
 $update = Asf_Db::qbu();
-$update->table(' test')->set(' user', 'lisi2')->like('pass', '11111')->show();
+$update->table(' test')->set(' user', 'lisi2')->like('pass', '%11111%')->show();
 var_dump($update->update()->show());
 $update->clear();
 

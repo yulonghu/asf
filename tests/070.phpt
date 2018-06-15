@@ -150,7 +150,7 @@ var_dump($select->show());
 $select->clear();
 
 $select = Asf_Db::qbs();
-$select->cols()->from('test1')->like('user', 'sanmao')->notLike('pass', 123);
+$select->cols()->from('test1')->like('user', '%sanmao%')->notLike('pass', '%123%');
 
 var_dump($select->show());
 $select->clear();
@@ -204,7 +204,7 @@ var_dump($select->show());
 $select->clear();
 
 $select = Asf_Db::qbs();
-$select->cols('a, b, c, d')->from('test')->like('k', 1);
+$select->cols('a, b, c, d')->from('test')->like('k', '%1%');
 var_dump($select->show());
 $select->clear();
 
