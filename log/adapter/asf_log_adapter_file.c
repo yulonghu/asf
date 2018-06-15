@@ -35,7 +35,7 @@
 #include "asf_log_adapter_file.h"
 #include "log/asf_log_adapter.h"
 #include "log/formatter/asf_log_formatter_file.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 
 zend_class_entry *asf_log_adapter_file_ce;
 

@@ -34,7 +34,7 @@
 #include "kernel/asf_constants.h"
 #include "asf_exception.h"
 #include "asf_sg.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 
 #include "config/asf_config_abstractconfig.h"
 #include "http/asf_http_request.h"

@@ -31,7 +31,7 @@
 
 #include "asf_namespace.h"
 #include "http/asf_http_request.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 #include "asf_util.h"
 #include <math.h>
 

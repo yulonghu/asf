@@ -29,7 +29,7 @@
 #include "php_asf.h"
 #include "asf_namespace.h"
 #include "asf_exception.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 #include "asf_db.h"
 #include "db/asf_db_abstractquerybuilder.h"
 

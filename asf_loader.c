@@ -30,7 +30,7 @@
 #include "asf_loader.h"
 #include "asf_exception.h"
 #include "http/asf_http_request.h" /* default module name */
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 
 zend_class_entry *asf_loader_ce;
 

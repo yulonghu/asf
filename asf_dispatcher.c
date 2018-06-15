@@ -37,7 +37,7 @@
 #include "asf_loader.h"
 #include "asf_exception.h"
 #include "asf_service.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 
 #include "routes/asf_route_pathinfo.h"
 #include "routes/asf_route_query.h"

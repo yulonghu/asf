@@ -32,7 +32,7 @@
 #include "Zend/zend_exceptions.h"
 
 #include "asf_db.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 #include "db/asf_db_adapterinterface.h"
 #include "db/asf_db_abstractadapter.h"
 #include "db/adapter/asf_db_adapter_mysql.h"

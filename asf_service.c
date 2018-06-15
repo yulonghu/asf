@@ -24,7 +24,7 @@
 #include "php_asf.h"
 #include "asf_namespace.h"
 #include "http/asf_http_request.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 #include "asf_logger.h"
 #include "asf_service.h"
 #include "asf_exception.h"

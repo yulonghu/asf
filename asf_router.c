@@ -25,7 +25,7 @@
 #include "asf_namespace.h"
 #include "asf_exception.h"
 #include "asf_dispatcher.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 
 #include "asf_router.h"
 #include "routes/asf_route_pathinfo.h"

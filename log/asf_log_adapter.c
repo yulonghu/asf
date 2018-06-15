@@ -33,7 +33,7 @@
 #include "asf_log_adapter.h"
 #include "asf_log_loggerinterface.h"
 #include "asf_log_level.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 #include "log/adapter/asf_log_adapter_file.h"
 
 zend_class_entry *asf_log_adapter_ce;

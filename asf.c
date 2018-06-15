@@ -40,7 +40,7 @@
 #include "asf_sg.h"
 #include "asf_logger.h"
 #include "asf_db.h"
-#include "asf_func.h"
+#include "kernel/asf_func.h"
 #include "asf_util.h"
 #include "debug/asf_debug_dump.h"
 
