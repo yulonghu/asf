@@ -54,7 +54,7 @@ ZEND_END_ARG_INFO()
 
 void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_name, zend_string *file_path) /* {{{ */
 {
-    if (Z_ISUNDEF_P(this_ptr)) {
+    if (!this_ptr || Z_TYPE_P(this_ptr) != IS_OBJECT) {
         object_init_ex(this_ptr, asf_log_adapter_file_ce);
     }
 
@@ -87,7 +87,7 @@ void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_nam
             zend_update_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_STREAM), &zstream);
         }
 
-        ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr);
+        ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, 1);
 
         efree(fpath);
     }

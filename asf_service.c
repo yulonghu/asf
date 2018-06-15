@@ -79,7 +79,6 @@ PHP_METHOD(asf_service, getFileLogger)
         return;
     }
 
-    ZVAL_UNDEF(return_value);
     (void)asf_logger_instance(return_value, file_name, NULL);
 }
 /* }}} */

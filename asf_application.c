@@ -226,11 +226,10 @@ static _Bool asf_application_instance(zval *self, zval *config, zval *section) /
         asf_trigger_error(ASF_ERR_STARTUP_FAILED, "initialized loader failed");
         return 0;
     }
-    zval_ptr_dtor(&zloader);
 
     if (ASF_G(log_err)) {
-        ASF_FUNC_CALL_PHP_FUNC(self, "set_error_handler", "errorHandler", 12, NULL);
-        ASF_FUNC_CALL_PHP_FUNC(self, "set_exception_handler", "exceptionHandler", 16, NULL);
+        ASF_FUNC_CALL_PHP_FUNC(self, "set_error_handler", "errorHandler", 12, NULL, 1);
+        ASF_FUNC_CALL_PHP_FUNC(self, "set_exception_handler", "exceptionHandler", 16, NULL, 1);
     }
 
     zend_update_static_property(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE), self);

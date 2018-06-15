@@ -101,6 +101,7 @@ static inline void asf_db_absqb_end(zval *self, zval *value, zval *bind_value, z
     if (Z_TYPE_P(value) == IS_ARRAY) {
         php_array_merge(Z_ARRVAL_P(bind_value), Z_ARRVAL_P(value));
     } else {
+        /* If the 'value' not IS_STR_INTERNED, need refcount++ */
         Z_TRY_ADDREF_P(value);
         add_next_index_zval(bind_value, value);
     }
@@ -425,7 +426,7 @@ PHP_METHOD(asf_db_absqb, limit)
 PHP_METHOD(asf_db_absqb, like)
 {
     zend_string *col = NULL, *cols_ret = NULL;
-    zval *value = NULL;
+    zval *value = NULL, ztmp;
     char *tmp = NULL;
     size_t tmp_len = 0;
     zval *self = NULL, *sql = NULL, *bind_value = NULL, *where = NULL;
@@ -440,7 +441,7 @@ PHP_METHOD(asf_db_absqb, like)
 
     /* operator: like, not like */
     cols_ret = asf_db_backquote_columns(col);
-    tmp_len = spprintf(&tmp, 0, "%s %s %s %s '%?%'"
+    tmp_len = spprintf(&tmp, 0, "%s %s %s %s ?"
             , Z_STRVAL_P(sql)
             , ((Z_TYPE_P(where) == IS_FALSE) ? ASF_DB_ABSQB_WHERE : ASF_DB_ABSQB_AND)
             , ZSTR_VAL(cols_ret)

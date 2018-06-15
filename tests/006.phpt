@@ -1,5 +1,5 @@
 --TEST--
-Check for init Asf_Loader::get()/clean()
+Check for init Asf_Loader::get()/clean()/getInstance()
 --SKIPIF--
 <?php if (!extension_loaded("asf")) print "skip"; ?>
 --INI--
@@ -8,6 +8,8 @@ asf.use_namespace=0
 <?php
 class xxx {
 }
+
+Asf_Loader::getInstance('/tmp');
 
 var_dump(Asf_Loader::get('xxx'));
 

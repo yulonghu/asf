@@ -749,12 +749,12 @@ PHP_METHOD(asf_absadapter, doQuery)
 
     /* have a asf_exception */
     if (!Z_ISUNDEF(zret_1) && IS_OBJECT == Z_TYPE(zret_1)) {
-
         ZVAL_STRING(&zmn_2, (one == 1) ? "fetch" : "fetchAll");
         ZVAL_LONG(&fetch_type, mode);
 
         /* If FALSE(return_value) is returned on failure */
         call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, return_value, 1, &fetch_type, 1, NULL);
+        
         ASF_FAST_STRING_PTR_DTOR(zmn_2);
         zval_ptr_dtor(&zret_1);
     }
@@ -1154,9 +1154,6 @@ PHP_METHOD(asf_absadapter, __call)
             ZVAL_COPY_VALUE(&params[i++], entry);
         } ZEND_HASH_FOREACH_END();
     }
-
-    /* Important */
-    Z_TRY_ADDREF_P(function_name);
 
     call_user_function_ex(&Z_OBJCE_P(dbh)->function_table, dbh, function_name, return_value, arg_count, params, 1, NULL);
 

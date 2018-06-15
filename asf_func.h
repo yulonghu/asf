@@ -27,28 +27,28 @@ _Bool asf_func_isempty(const char *s);
 void asf_func_set_cur_module(char *module);
 void asf_func_shutdown_buffer(_Bool exception);
 
-#define ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr) {\
-    ASF_FUNC_CALL_PHP_FUNC(this_ptr, "register_shutdown_function", "close", 5, NULL); \
+#define ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, need_refcount) { \
+    ASF_FUNC_CALL_PHP_FUNC(this_ptr, "register_shutdown_function", "close", 5, NULL, need_refcount); \
 }
 
-#define ASF_FUNC_CALL_PHP_FUNC(self, php_method, method, method_len, ret) \
-{ \
+#define ASF_FUNC_CALL_PHP_FUNC(self, php_method, method, method_len, ret, need_refcount) do { \
     zval handler; \
     array_init(&handler); \
-    Z_TRY_ADDREF_P(self); \
+    if (need_refcount) { \
+        Z_TRY_ADDREF_P(self); \
+    } \
     add_index_zval(&handler, 0, self); \
     add_index_stringl(&handler, 1, method, method_len); \
     zend_call_method_with_1_params(NULL, NULL, NULL, php_method, ret, &handler); \
     zval_ptr_dtor(&handler); \
-}
+} while(0)
 
-#define ASF_CALL_USER_FUNCTION_EX(self, method, method_len, retval, args_i, args) \
-{\
+#define ASF_CALL_USER_FUNCTION_EX(self, method, method_len, retval, args_i, args) do { \
     zval zmn; \
     ZVAL_STRINGL(&zmn, method, method_len); \
     call_user_function_ex(&Z_OBJCE_P(self)->function_table, self, &zmn, retval, args_i, args, 1, NULL); \
     ASF_FAST_STRING_PTR_DTOR(zmn); \
-}
+} while(0)
 
 php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpath, _Bool exception);
 

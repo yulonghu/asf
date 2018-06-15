@@ -72,8 +72,6 @@ PHP_METHOD(asf_logger, adapter)
         RETURN_FALSE;
     }
 
-    ZVAL_UNDEF(return_value);
-
     switch (adapter) {
         case 0:
             (void)asf_logger_instance(return_value, file_name, NULL);

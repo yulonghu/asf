@@ -56,10 +56,13 @@ PHP_METHOD(asf_log_adapter_syslog, __construct)
 {
     zend_string *ident = NULL;
     zend_long options = 0, facility = 0;
+    zval *self = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|ll", &ident, &options, &facility) == FAILURE) {
         return;
     }
+
+    self = getThis();
 
     if (options == 0) {
         options = LOG_ODELAY;
@@ -81,7 +84,7 @@ PHP_METHOD(asf_log_adapter_syslog, __construct)
 
     openlog(BG(syslog_device), options, facility);
 
-    ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(getThis());
+    ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(self, 1);
 }
 /* }}} */
 

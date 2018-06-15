@@ -145,28 +145,23 @@ PHP_METHOD(asf_Db, init)
         zval executor;
         array_init(&executor);
 
-        Z_TRY_ADDREF_P(&pdo);
         add_assoc_zval_ex(&executor, md5str, 32, &pdo);
         zend_update_static_property(asf_Db_ce, ZEND_STRL(LINKS), &executor);
         zval_ptr_dtor(&executor);
 
         /* Free Resource, Fix leak in PHP 7.2.0 (cli)(NTS DEBUG) */
         if (self && Z_TYPE_P(self) == IS_OBJECT) {
-            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(self);
+            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(self, 1);
         } else {
             zval this_ptr;
             object_init_ex(&this_ptr, asf_Db_ce);
-            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(&this_ptr);
-            zval_ptr_dtor(&this_ptr);
+            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(&this_ptr, 0);
         }
     } else {
-        if (EXPECTED(zend_hash_str_add(Z_ARRVAL_P(zlinks), md5str, 32, &pdo))) {
-            Z_TRY_ADDREF_P(&pdo);
-        }
+        zend_hash_str_add(Z_ARRVAL_P(zlinks), md5str, 32, &pdo);
         zend_update_static_property(asf_Db_ce, ZEND_STRL(LINKS), zlinks);
     }
 
-    zval_ptr_dtor(&pdo);
     RETURN_TRUE;
 }
 /* }}} */

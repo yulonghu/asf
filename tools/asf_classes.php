@@ -41,8 +41,12 @@ final class Asf_Loader
 {/*{{{*/
     protected static $_ins = NULL;
 
-    public function get(string $class_name, string $module_name = '')
-    public function clean(string $class_name)
+    public static function get(string $class_name, string $module_name = '', $unique_instance = 1)
+    public static function logic(string $class_name, string $module_name = '', $unique_instance = 1)
+    public static function dao(string $class_name, string $module_name = '', $unique_instance = 1)
+    public static function import(string $file_name)
+    public static function getInstance(string $library_path)
+    public static function clean(string $class_name)
 }
 /*}}}*/
 
