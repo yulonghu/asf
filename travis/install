@@ -1,0 +1,64 @@
+#!/bin/env bash
+
+# ------------------------------------------------------
+# Asf Framework
+#
+# Copyright (c) 2018 Asf Team. (http:://box3.cn/phpasf/)
+#
+# Authors: fanjiapeng@126.com
+# Example:
+# ./install -i /usr/local/php/bin/phpize -c /usr/local/php/bin/php-config
+# ------------------------------------------------------
+
+# Environment
+PHPIZE_BIN=$(command -v phpize 2>/dev/null)
+PHPCONFIG_BIN=$(command -v php-config 2>/dev/null)
+PHPWARIN="Warning:"
+
+# Get Options
+while getopts i:c: opts; do
+    case ${opts} in
+        i) PHPIZE_BIN=${OPTARG} ;;
+        c) PHPCONFIG_BIN=${OPTARG} ;;
+    esac
+done
+
+# Check phpize and php-config file exists
+if [ ! -f ${PHPIZE_BIN} ]; then
+    echo "${PHPWARIN} ${PHPIZE_BIN} is not found"
+    exit 1
+fi
+
+if [ ! -f ${PHPCONFIG_BIN} ]; then
+    echo "${PHPWARIN} ${PHPCONFIG_BIN} is not found"
+    exit 1
+fi
+
+# Check PHP Version
+PHP_VERSION_ID=`${PHPCONFIG_BIN} --vernum`
+
+if [ $? != 0 ]; then
+    echo "${PHPWARIN} php-config is not installed"
+    exit 1
+fi
+
+if [ "${PHP_VERSION_ID:0:1}" -lt "7" ]; then
+    echo "${PHPWARIN} Version of the minimum requirements can not be lower than PHP 7.0"
+    exit 1
+fi
+
+# Clean Compilation Log
+#cd "asf/"
+if [ -f Makefile ]; then
+    make clean
+    ${PHPIZE_BIN} --clean
+fi
+
+# Start Compilation
+#${PHPIZE_BIN}
+#./configure --silent --with-php-config=${PHPCONFIG_BIN}
+#make -s && make -s install
+
+echo -e "\nThanks for install Asf.\nPlease add 'extension=asf.so' to php, restart your web server."
+echo -e "\nComplete!\n"
+
