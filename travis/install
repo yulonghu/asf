@@ -48,7 +48,7 @@ if [ "${PHP_VERSION_ID:0:1}" -lt "7" ]; then
 fi
 
 # Clean Compilation Log
-#cd "asf/"
+cd "./asf/"
 if [ -f Makefile ]; then
     make clean
     ${PHPIZE_BIN} --clean
