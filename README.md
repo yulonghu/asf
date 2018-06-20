@@ -26,14 +26,15 @@ git clone https://github.com/yulonghu/asf.git
 
 ### Compile for Linux/Unix/Mac
 
-Use the following methods to install the extension:
+Provide two installation methods.
+Select No.1, Use the following methods to install the extension:
 
 ```bash
 cd asf/travis
 sudo ./install -i /path/to/phpize -c /path/to/php-config
 ```
 
-PHP extension standard installation:
+Select No.2, PHP extension standard installation:
 
 ```bash
 cd asf
