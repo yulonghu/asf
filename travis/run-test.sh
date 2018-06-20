@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Environment
 PHP_TEST_PATH="./tests"
