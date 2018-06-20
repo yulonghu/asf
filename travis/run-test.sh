@@ -1,2 +1,3 @@
 #!/bin/sh
-make test
+cp -r ./tests ./asf/
+cd ./asf && make test

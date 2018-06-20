@@ -24,13 +24,13 @@ while getopts i:c: opts; do
 done
 
 # Check phpize and php-config file exists
-if [ ! -f ${PHPIZE_BIN} ]; then
-    echo "${PHPWARIN} ${PHPIZE_BIN} is not found"
+if  [ -z ${PHPIZE_BIN} ] || [ ! -f ${PHPIZE_BIN} ]; then
+    echo "${PHPWARIN} phpize is not found"
     exit 1
 fi
 
-if [ ! -f ${PHPCONFIG_BIN} ]; then
-    echo "${PHPWARIN} ${PHPCONFIG_BIN} is not found"
+if  [ -z ${PHPCONFIG_BIN} ] || [ ! -f ${PHPCONFIG_BIN} ]; then
+    echo "${PHPWARIN} php-config is not found"
     exit 1
 fi
 
@@ -55,9 +55,9 @@ if [ -f Makefile ]; then
 fi
 
 # Start Compilation
-#${PHPIZE_BIN}
-#./configure --silent --with-php-config=${PHPCONFIG_BIN}
-#make -s && make -s install
+${PHPIZE_BIN}
+./configure --with-php-config=${PHPCONFIG_BIN}
+make && make install
 
 echo -e "\nThanks for install Asf.\nPlease add 'extension=asf.so' to php, restart your web server."
 echo -e "\nComplete!\n"
