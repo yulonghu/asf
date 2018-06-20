@@ -37,7 +37,7 @@ sudo ./install -i /path/to/phpize -c /path/to/php-config
 Select No.2, PHP extension standard installation:
 
 ```bash
-cd asf
+cd asf/asf
 /path/to/phpize
 ./configure --with-php-config=/path/to/php-config
 make && make install
