@@ -25,10 +25,19 @@ git clone https://github.com/yulonghu/asf.git
 ```
 
 ### Compile for Linux/Unix/Mac
+
+Use the following methods to install the extension:
+
+```bash
+cd asf/travis
+sudo ./install
 ```
-/path/to/phpize
-./configure --with-php-config=/path/to/php-config
-make && make install
+
+Specified PHP Version installation:
+
+```bash
+cd asf/travis
+sudo ./install -i /path/to/phpize -c /path/to/php-config
 ```
 
 #### Add the extension to your php.ini
@@ -46,7 +55,7 @@ http://www.box3.cn/phpasf/index.html
 
 ### Use tools to create a new project
 ```
-/php-bin-path/php /tools/asf_project.php /to-path/project_name
+/php-bin-path/php asf-src/tools/asf_project.php /to-path/project_name
 ```
 #### Layout
 ```
