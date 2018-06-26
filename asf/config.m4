@@ -56,6 +56,8 @@ if test "$PHP_ASF" != "no"; then
       http/asf_http_requestinterface.c \
       http/asf_http_response.c \
       http/asf_http_responseinterface.c \
+      http/asf_http_cookie.c \
+      http/asf_http_cookieinterface.c \
       asf_service.c \
       asf_ensure.c \
       asf_exception.c \

@@ -33,6 +33,7 @@
 #include "asf_loader.h"
 #include "http/asf_http_request.h"
 #include "http/asf_http_response.h"
+#include "http/asf_http_cookie.h"
 #include "asf_service.h"
 #include "asf_router.h"
 #include "asf_ensure.h"
@@ -92,6 +93,7 @@ PHP_MINIT_FUNCTION(asf)
     ASF_INIT(loader);
     ASF_INIT(http_request);
     ASF_INIT(http_response);
+    ASF_INIT(http_cookie);
     ASF_INIT(service);
     ASF_INIT(router);
     ASF_INIT(ensure);
