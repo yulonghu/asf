@@ -301,7 +301,7 @@ ASF_HTTP_REQ_IS_METHOD(FlashRequest);
 ASF_HTTP_REQ_IS_METHOD(PropFind);
 /* }}} */
 
-/* {{{ proto bool Asf_Http_Request::getParams(void)
+/* {{{ proto array Asf_Http_Request::getParams(void)
 */
 PHP_METHOD(asf_http_request, getParams)
 {
@@ -311,7 +311,7 @@ PHP_METHOD(asf_http_request, getParams)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Http_Request::getParam(string $name [, $mixed $default = NULL])
+/* {{{ proto mixed Asf_Http_Request::getParam(string $name [, $mixed $default = NULL])
 */
 PHP_METHOD(asf_http_request, getParam)
 {
@@ -335,7 +335,7 @@ PHP_METHOD(asf_http_request, getParam)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Http_Request::getModuleName(void)
+/* {{{ proto string Asf_Http_Request::getModuleName(void)
 */
 PHP_METHOD(asf_http_request, getModuleName)
 {
