@@ -51,6 +51,8 @@ void asf_func_shutdown_buffer(_Bool exception);
 } while(0)
 
 php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpath, _Bool exception);
+int asf_func_array_isset(const zval *arr, const zval *index);
+zval *asf_func_array_fetch(const zval *arr, const zval *index);
 
 #endif
 

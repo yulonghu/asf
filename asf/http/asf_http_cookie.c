@@ -26,7 +26,9 @@
 #include "php_asf.h"
 #include "kernel/asf_namespace.h"
 #include "asf_exception.h"
+#include "kernel/asf_func.h"
 
+#include "http/asf_http_request.h"
 #include "http/asf_http_cookieinterface.h"
 #include "http/asf_http_cookie.h"
 
@@ -43,6 +45,47 @@ PHP_METHOD(asf_http_cookie, __construct)
 */
 PHP_METHOD(asf_http_cookie, init)
 {
+    zval *configs = NULL, *pzval = NULL, zconfig;
+    HashTable *st = NULL, *sz = NULL;
+    zend_ulong expire = 0;
+
+    if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "a", &configs) == FAILURE) {
+        return;
+    }
+
+    st = Z_ARRVAL_P(configs);
+
+    if (zend_hash_num_elements(st) < 1) {
+        RETURN_FALSE;
+    }
+
+    array_init(&zconfig);
+    sz = Z_ARRVAL(zconfig);
+
+    if ((pzval = zend_hash_str_find(st, "expire", 6)) && Z_TYPE_P(pzval) == IS_LONG) {
+        expire = Z_LVAL_P(pzval);
+    } else {
+        expire = time(NULL);
+    }
+    add_assoc_long(&sz, "expire", 6, expire + 86400);
+
+    if ((pzval = zend_hash_str_find(st, "path", 4)) && Z_TYPE_P(pzval) == IS_STRING) {
+        add_assoc_stringl(&sz, "path", 4, Z_STRVAL_P(pzval), Z_STRLEN_P(pzval));
+    } else {
+        add_assoc_stringl(&sz, "path", 4, "/", 1);
+    }
+
+    if ((expire = zend_hash_str_find(st, "domain", 6))) {
+        
+    }
+    
+    if ((expire = zend_hash_str_find(st, "secure", 6))) {
+        
+    }
+    
+    if ((expire = zend_hash_str_find(st, "httponly", 8))) {
+        
+    }
 }
 /* }}} */
 
@@ -71,6 +114,15 @@ PHP_METHOD(asf_http_cookie, forever)
 */
 PHP_METHOD(asf_http_cookie, has)
 {
+    zval *key = NULL;
+
+    if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "z", &key) == FAILURE) {
+        return;
+    }
+
+    zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
+
+    RETURN_BOOL(asf_func_array_isset(cookie, key));
 }
 /* }}} */
 
@@ -78,6 +130,20 @@ PHP_METHOD(asf_http_cookie, has)
 */
 PHP_METHOD(asf_http_cookie, get)
 {
+    zval *key = NULL;
+
+    if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "z", &key) == FAILURE) {
+        return;
+    }
+
+    zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
+    zval *ret = asf_func_array_fetch(cookie, key);
+
+    if (ret) {
+        RETURN_ZVAL(ret, 1, 0);
+    }
+    
+    RETURN_FALSE;
 }
 /* }}} */
 

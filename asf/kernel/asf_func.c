@@ -172,6 +172,59 @@ void asf_func_config_persistent_hash_destroy(HashTable *ht) /* {{{ */
 }
 /* }}} */
 
+int asf_func_array_isset(const zval *arr, const zval *index) /* {{{ */
+{
+    HashTable *ht = NULL;
+
+    if (Z_TYPE_P(arr) != IS_ARRAY) {
+        return 0;
+    }
+
+    ht = Z_ARRVAL_P(arr);
+    switch (Z_TYPE_P(index)) {
+        case IS_DOUBLE:
+            return zend_hash_index_exists(ht, (ulong)Z_DVAL_P(index));
+            
+        case IS_LONG:
+            return zend_hash_index_exists(ht, Z_LVAL_P(index));
+           
+        case IS_STRING:
+            return zend_symtable_exists(ht, Z_STR_P(index));
+           
+        default:
+            zend_error(E_WARNING, "Illegal offset type");
+            return 0;
+    }
+}
+/* }}} */
+
+zval *asf_func_array_fetch(const zval *arr, const zval *index) /* {{{ */
+{
+    HashTable *ht = NULL;
+
+    if (Z_TYPE_P(arr) != IS_ARRAY) {
+        return NULL;
+    }
+
+    ht = Z_ARRVAL_P(arr);
+    switch (Z_TYPE_P(index)) {
+        case IS_DOUBLE:
+            return zend_hash_index_find(ht, (ulong)Z_DVAL_P(index));
+
+        case IS_LONG:
+            return zend_hash_index_find(ht, Z_LVAL_P(index));
+
+        case IS_STRING:
+            return zend_symtable_find(ht, Z_STR_P(index));
+
+        default:
+            zend_error(E_WARNING, "Illegal offset type");
+            return NULL;
+
+    }
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4
