@@ -20,7 +20,7 @@
 #define ASF_HTTP_REQUESTINTERFACE_H
 
 /* {{{ ARG_INFO
- */
+*/
 ZEND_BEGIN_ARG_INFO_EX(asf_http_requestinterface_hasname_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
@@ -39,7 +39,7 @@ ZEND_BEGIN_ARG_INFO_EX(asf_http_requestinterface_get_param_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, name)
     ZEND_ARG_INFO(0, default)
 ZEND_END_ARG_INFO()
-/* }}}*/
+/* }}} */
 
 extern zend_class_entry *asf_http_requestinterface_ce;
 
