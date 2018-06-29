@@ -34,7 +34,7 @@ zend_function_entry asf_http_cookieinterface_methods[] = {
     PHP_ABSTRACT_ME(asf_http_cookieinterface, init, asf_http_cookieinterface_init_arginfo)
     PHP_ABSTRACT_ME(asf_http_cookieinterface, prefix, asf_http_cookieinterface_prefix_arginfo)
     PHP_ABSTRACT_ME(asf_http_cookieinterface, set, asf_http_cookieinterface_set_arginfo)
-    PHP_ABSTRACT_ME(asf_http_cookieinterface, forever, asf_http_cookieinterface_forever_arginfo)
+    PHP_ABSTRACT_ME(asf_http_cookieinterface, forever, asf_http_cookieinterface_set_arginfo)
     PHP_ABSTRACT_ME(asf_http_cookieinterface, has, asf_http_cookieinterface_has_arginfo)
     PHP_ABSTRACT_ME(asf_http_cookieinterface, get, asf_http_cookieinterface_get_arginfo)
     PHP_ABSTRACT_ME(asf_http_cookieinterface, del, asf_http_cookieinterface_del_arginfo)
