@@ -76,7 +76,7 @@ zend_function_entry asf_http_requestinterface_methods[] = {
 
 ASF_INIT_CLASS(http_requestinterface) /* {{{ */
 {
-    ASF_REGISTER_CLASS_INTERFACE(asf_http_requestinterface, asf_http_requestinterface, Asf\\Http\\RequestInterface);
+    ASF_REGISTER_CLASS_INTERFACE(asf_http_requestinterface, asf_Http_RequestInterface, Asf\\Http\\RequestInterface);
 
     return SUCCESS;
 }

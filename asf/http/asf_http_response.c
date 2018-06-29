@@ -371,7 +371,7 @@ ASF_INIT_CLASS(http_response) /* {{{ */
     zend_declare_property_null(asf_http_response_ce, ZEND_STRL(ASF_HTTP_REP_PRONAME_VALUE), ZEND_ACC_PROTECTED);
     zend_declare_property_null(asf_http_response_ce, ZEND_STRL(ASF_HTTP_REP_PRONAME_HEADER), ZEND_ACC_PROTECTED);
 
-    ASF_INIT(responseinterface);
+    ASF_INIT(http_responseinterface);
 
     zend_class_implements(asf_http_response_ce, 1, asf_http_responseinterface_ce);
 

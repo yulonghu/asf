@@ -43,7 +43,7 @@ zend_function_entry asf_http_cookieinterface_methods[] = {
 };
 /* }}} */
 
-ASF_INIT_CLASS(cookieinterface) /* {{{ */
+ASF_INIT_CLASS(http_cookieinterface) /* {{{ */
 {
     ASF_REGISTER_CLASS_INTERFACE(asf_http_cookieinterface, Asf_Http_CookieInterface, Asf\\Http\\CookieInterface);
 

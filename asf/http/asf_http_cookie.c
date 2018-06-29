@@ -281,7 +281,7 @@ ASF_INIT_CLASS(http_cookie) /* {{{ */
     zend_declare_property_null(asf_http_cookie_ce, ZEND_STRL(ASF_COOKIE_PRONAME_CONFIG), ZEND_ACC_PROTECTED);
     zend_declare_property_null(asf_http_cookie_ce, ZEND_STRL(ASF_COOKIE_PRONAME_PREFIX), ZEND_ACC_PROTECTED);
 
-    ASF_INIT(cookieinterface);
+    ASF_INIT(http_cookieinterface);
 
     zend_class_implements(asf_http_cookie_ce, 1, asf_http_cookieinterface_ce);
 

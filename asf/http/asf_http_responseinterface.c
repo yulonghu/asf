@@ -41,7 +41,7 @@ zend_function_entry asf_http_responseinterface_methods[] = {
 };
 /* }}} */
 
-ASF_INIT_CLASS(responseinterface) /* {{{ */
+ASF_INIT_CLASS(http_responseinterface) /* {{{ */
 {
     ASF_REGISTER_CLASS_INTERFACE(asf_http_responseinterface, Asf_Http_ResponseInterface, Asf\\Http\\ResponseInterface);
 

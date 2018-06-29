@@ -44,7 +44,7 @@ ZEND_END_ARG_INFO()
 
 extern zend_class_entry *asf_http_cookieinterface_ce;
 
-ASF_INIT_CLASS(cookieinterface);
+ASF_INIT_CLASS(http_cookieinterface);
 
 #endif
 

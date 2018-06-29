@@ -42,7 +42,7 @@ ZEND_END_ARG_INFO()
 
 extern zend_class_entry *asf_http_responseinterface_ce;
 
-ASF_INIT_CLASS(responseinterface);
+ASF_INIT_CLASS(http_responseinterface);
 
 #endif
 
