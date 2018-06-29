@@ -32,6 +32,8 @@
 #define ASF_COOKIE_SECURE_LEN 6
 #define ASF_COOKIE_HTTPONLY "httponly"
 #define ASF_COOKIE_HTTPONLY_LEN 8
+#define ASF_COOKIE_PREFIX "prefix"
+#define ASF_COOKIE_PREFIX_LEN 6
 
 extern zend_class_entry *asf_http_cookie_ce;
 

@@ -34,6 +34,22 @@
 
 zend_class_entry *asf_http_cookie_ce;
 
+zend_string *asf_http_cookie_string_extend(zval *cookie, zend_string *key) /* {{{ */
+{
+    zval *prefix = zend_read_property(Z_OBJCE_P(cookie), cookie, ZEND_STRL(ASF_COOKIE_PRONAME_PREFIX), 1, NULL);
+
+    if (!Z_ISNULL_P(prefix)) {
+        zend_string *new_key = zend_string_extend(Z_STR_P(prefix), ZSTR_LEN(key) + Z_STRLEN_P(prefix), 0);
+        memcpy(ZSTR_VAL(new_key) + Z_STRLEN_P(prefix), ZSTR_VAL(key), ZSTR_LEN(key));
+        ZSTR_VAL(new_key)[ZSTR_LEN(new_key)] = '\0';
+        
+        return new_key;
+    }
+
+    return zend_string_copy(key);
+}
+/* }}} */
+
 /* {{{ proto object Asf_Http_Cookie::__construct(void)
 */
 PHP_METHOD(asf_http_cookie, __construct)
@@ -42,7 +58,11 @@ PHP_METHOD(asf_http_cookie, __construct)
     HashTable *st = NULL, *sz = NULL;
     zend_ulong expire = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "a", &configs) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "|a", &configs) == FAILURE) {
+        return;
+    }
+
+    if (!configs) {
         return;
     }
 
@@ -79,6 +99,7 @@ PHP_METHOD(asf_http_cookie, __construct)
     }
     
     zend_update_property(asf_http_cookie_ce, getThis(), ZEND_STRL(ASF_COOKIE_PRONAME_CONFIG), &zconfig);
+    zval_ptr_dtor(&zconfig);
 }
 /* }}} */
 
@@ -124,13 +145,17 @@ PHP_METHOD(asf_http_cookie, set)
         httponly  = zend_hash_str_find(ht, ASF_COOKIE_HTTPONLY, ASF_COOKIE_HTTPONLY_LEN);
     }
 
-    int ret = php_setcookie(key, value,
+    zend_string *new_key = asf_http_cookie_string_extend(getThis(), key);
+
+    int ret = php_setcookie(new_key, value,
             lexpire ? (lexpire + Z_LVAL_P(expire)) : Z_LVAL_P(expire), 
             (path ? Z_STR_P(path) : NULL),
             (domain ? Z_STR_P(domain) : NULL),
             (secure ? Z_LVAL_P(secure) : 0),
             1,
             (httponly ? Z_LVAL_P(httponly) : 0));
+
+    zend_string_release(new_key);
 
     if (ret == SUCCESS) {
         RETURN_TRUE;
@@ -183,7 +208,10 @@ PHP_METHOD(asf_http_cookie, has)
         RETURN_FALSE;
     }
 
-    RETURN_BOOL(zend_symtable_exists(ht, key));
+    zend_string *new_key = asf_http_cookie_string_extend(getThis(), key);
+
+    RETVAL_BOOL(zend_symtable_exists(ht, new_key));
+    zend_string_release(new_key);
 }
 /* }}} */
 
@@ -197,14 +225,23 @@ PHP_METHOD(asf_http_cookie, get)
         return;
     }
 
+    if (UNEXPECTED(asf_func_isempty(ZSTR_VAL(key)))) {
+        asf_trigger_error(ASF_ERR_COOKIE_PUBLIC, "Parameter 'name' cannot be empty");
+        return;
+    }
+
+    /* Need to get in real time ? */
     zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
     HashTable *ht = Z_ARRVAL_P(cookie);
-    
+
     if (zend_hash_num_elements(ht) < 1) {
         RETURN_NULL();
     }
 
-    zval *ret = zend_symtable_find(ht, key);
+    zend_string *new_key = asf_http_cookie_string_extend(getThis(), key);
+
+    zval *ret = zend_symtable_find(ht, new_key);
+    zend_string_release(new_key);
 
     if (ret) {
         RETURN_ZVAL(ret, 1, 0);
@@ -233,8 +270,9 @@ PHP_METHOD(asf_http_cookie, del)
 
     zval *path = NULL, *domain = NULL, *secure = NULL, *httponly = NULL;
     zval *pzval = zend_read_property(asf_http_cookie_ce, getThis(), ZEND_STRL(ASF_COOKIE_PRONAME_CONFIG), 1, NULL);
+    zend_string *new_key = NULL, *con_key = NULL;
+    zval *self = getThis();
     int ret = SUCCESS;
-    zend_string *new_key = NULL;
     
     if (!Z_ISNULL_P(pzval)) {
         HashTable *ht = Z_ARRVAL_P(pzval);
@@ -246,14 +284,18 @@ PHP_METHOD(asf_http_cookie, del)
     }
 
     for (i = 0; i < argc; i++) {
-        new_key = zval_get_string(&args[i]);
+        con_key = zval_get_string(&args[i]);
+        new_key = asf_http_cookie_string_extend(self, con_key);
         asf_func_array_del(cookie, &args[i]);
+
         ret = php_setcookie(new_key, NULL, 0, 
                 (path ? Z_STR_P(path) : NULL),
                 (domain ? Z_STR_P(domain) : NULL),
                 (secure ? Z_LVAL_P(secure) : 0),
                 1,
                 (httponly ? Z_LVAL_P(httponly) : 0));
+
+        zend_string_release(con_key);
         zend_string_release(new_key);
     }
 

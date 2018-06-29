@@ -56,7 +56,7 @@
 #define ASF_ERR_DB_PARAM				527
 
 #define ASF_ERR_CONFIG_PARAM            528
-#define ASF_ERR_COOKIE_CONFIG           529
+#define ASF_ERR_COOKIE_PUBLIC           529
 
 extern zend_class_entry *asf_exception_ce;
 
