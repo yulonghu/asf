@@ -20,6 +20,16 @@
 #define ASF_HTTP_COOKIE_H
 
 #define ASF_COOKIE_PRONAME_CONFIG  "_conf"
+#define ASF_COOKIE_PATH "path"
+#define ASF_COOKIE_PATH_LEN 4
+#define ASF_COOKIE_DOMAIN "domain"
+#define ASF_COOKIE_DOMAIN_LEN 6
+#define ASF_COOKIE_EXPIRE "expire"
+#define ASF_COOKIE_EXPIRE_LEN 6
+#define ASF_COOKIE_SECURE "secure"
+#define ASF_COOKIE_SECURE_LEN 6
+#define ASF_COOKIE_HTTPONLY "httponly"
+#define ASF_COOKIE_HTTPONLY_LEN 8
 
 extern zend_class_entry *asf_http_cookie_ce;
 

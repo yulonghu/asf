@@ -38,53 +38,44 @@ zend_class_entry *asf_http_cookie_ce;
 */
 PHP_METHOD(asf_http_cookie, __construct)
 {
-}
-/* }}} */
-
-/* {{{ proto bool Asf_Http_Cookie::init(array $configs)
-*/
-PHP_METHOD(asf_http_cookie, init)
-{
     zval *configs = NULL, *pzval = NULL, zconfig;
     HashTable *st = NULL, *sz = NULL;
     zend_ulong expire = 0;
 
-    if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "a", &configs) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "a", &configs) == FAILURE) {
         return;
     }
 
     st = Z_ARRVAL_P(configs);
 
     if (zend_hash_num_elements(st) < 1) {
-        RETURN_FALSE;
+        return;
     }
 
     array_init(&zconfig);
     sz = Z_ARRVAL(zconfig);
 
-    if ((pzval = zend_hash_str_find(st, "expire", 6)) && Z_TYPE_P(pzval) == IS_LONG) {
+    if ((pzval = zend_hash_str_find(st, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN)) && Z_TYPE_P(pzval) == IS_LONG) {
         expire = Z_LVAL_P(pzval);
     } else {
         expire = time(NULL);
     }
-    add_assoc_long(&sz, "expire", 6, expire + 86400);
+    add_assoc_long_ex(&sz, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN, expire + 86400);
 
-    if ((pzval = zend_hash_str_find(st, "path", 4)) && Z_TYPE_P(pzval) == IS_STRING) {
-        add_assoc_stringl(&sz, "path", 4, Z_STRVAL_P(pzval), Z_STRLEN_P(pzval));
-    } else {
-        add_assoc_stringl(&sz, "path", 4, "/", 1);
+    if ((pzval = zend_hash_str_find(st, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN)) && Z_TYPE_P(pzval) == IS_STRING) {
+        add_assoc_stringl_ex(&sz, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN, Z_STRVAL_P(pzval), Z_STRLEN_P(pzval));
     }
 
-    if ((expire = zend_hash_str_find(st, "domain", 6))) {
-        
+    if ((pzval = zend_hash_str_find(st, ASF_COOKIE_DOMAIN, ASF_COOKIE_DOMAIN_LEN)) && Z_TYPE_P(pzval) == IS_STRING) {
+        add_assoc_stringl_ex(&sz, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN, Z_STRVAL_P(pzval), Z_STRLEN_P(pzval));
     }
     
-    if ((expire = zend_hash_str_find(st, "secure", 6))) {
-        
+    if ((pzval = zend_hash_str_find(st, ASF_COOKIE_SECURE, ASF_COOKIE_SECURE_LEN)) && Z_TYPE_P(pzval) == IS_LONG) {
+        add_assoc_long_ex(&sz, ASF_COOKIE_SECURE, ASF_COOKIE_SECURE, Z_LVAL_P(pzval));
     }
     
-    if ((expire = zend_hash_str_find(st, "httponly", 8))) {
-        
+    if ((pzval = zend_hash_str_find(st, ASF_COOKIE_HTTPONLY, ASF_COOKIE_HTTPONLY_LEN))) {
+        add_assoc_long_ex(&sz, ASF_COOKIE_HTTPONLY, ASF_COOKIE_HTTPONLY_LEN, Z_LVAL_P(pzval));
     }
 }
 /* }}} */
@@ -96,7 +87,7 @@ PHP_METHOD(asf_http_cookie, prefix)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Http_Cookie::set(string $name [, string $value = ''])
+/* {{{ proto bool Asf_Http_Cookie::set(string $name [, mixed $value = ''])
 */
 PHP_METHOD(asf_http_cookie, set)
 {
@@ -116,11 +107,14 @@ PHP_METHOD(asf_http_cookie, has)
 {
     zval *key = NULL;
 
-    if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "z", &key) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &key) == FAILURE) {
         return;
     }
 
     zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
+    if (zend_hash_num_elements(cookie) < 1) {
+        RETURN_FALSE;
+    }
 
     RETURN_BOOL(asf_func_array_isset(cookie, key));
 }
@@ -132,11 +126,15 @@ PHP_METHOD(asf_http_cookie, get)
 {
     zval *key = NULL;
 
-    if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "z", &key) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &key) == FAILURE) {
         return;
     }
 
     zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
+    if (zend_hash_num_elements(cookie) < 1) {
+        RETURN_FALSE;
+    }
+
     zval *ret = asf_func_array_fetch(cookie, key);
 
     if (ret) {
@@ -147,10 +145,49 @@ PHP_METHOD(asf_http_cookie, get)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Http_Cookie::del(string $name)
+/* {{{ proto bool Asf_Http_Cookie::del(string $name [, string $...])
 */
 PHP_METHOD(asf_http_cookie, del)
 {
+    zval *args = NULL;
+    int argc = 0;
+    uint i = 0;
+
+    ZEND_PARSE_PARAMETERS_START(1, -1)
+        Z_PARAM_VARIADIC('+', args, argc)
+    ZEND_PARSE_PARAMETERS_END();
+
+    zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
+    if (zend_hash_num_elements(cookie) < 1) {
+        RETURN_FALSE;
+    }
+
+    zval *pzval = zend_read_property(asf_http_cookie_ce, getThis(), ZEND_STRL(ASF_COOKIE_PRONAME_CONFIG), 1, NULL);
+    if (Z_ISNULL_P(pzval)) {
+        asf_trigger_error(ASF_ERR_COOKIE_CONFIG, "Please initialize 'cookie' first");
+        return;
+    }
+
+    HashTable *st = Z_ARRVAL_P(pzval);
+
+    zval *path      = zend_hash_str_find(ht, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN);
+    zval *domain    = zend_hash_str_find(ht, ASF_COOKIE_DOMAIN, ASF_COOKIE_DOMAIN_LEN);
+    zval *secure    = zend_hash_str_find(ht, ASF_COOKIE_SECURE, ASF_COOKIE_SECURE_LEN);
+    zval *httponly  = zend_hash_str_find(ht, ASF_COOKIE_HTTPONLY, ASF_COOKIE_HTTPONLY_LEN);
+
+    uint i = 0;
+
+    for (i = 0; i < argc; i++) {
+        asf_func_array_del(cookie, &args[i]);
+        php_setcookie(Z_STR(args[i]), NULL, 0, 
+                (path ? Z_STR_P(path) : NULL),
+                (domain ? Z_STR_P(domain) : NULL),
+                (secure ? Z_LVAL_P(secure) : 0),
+                1,
+                (httponly ? Z_LVAL_P(httponly) : 0));
+    }
+
+    RETURN_TRUE;
 }
 /* }}} */
 
@@ -158,6 +195,22 @@ PHP_METHOD(asf_http_cookie, del)
 */
 PHP_METHOD(asf_http_cookie, clear)
 {
+    zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
+    size_t argc = zend_hash_num_elements(cookie);
+    if (argc < 1) {
+        RETURN_FALSE;
+    }
+    
+    zval args[argc];
+    zend_string *key = NULL;
+    
+    ZEND_HASH_FOREACH_STR_KEY(Z_ARRVAL_P(cookie), key) {
+        if (key)  {
+            ZVAL_STR_COPY(&args[i], key);
+        }
+    } ZEND_HASH_FILL_END();
+
+    call_user_function_ex(&Z_OBJCE_P(instance)->function_table, instance, &zmn, return_value, argc, args, 1, NULL);
 }
 /* }}} */
 
@@ -165,13 +218,12 @@ PHP_METHOD(asf_http_cookie, clear)
 */
 zend_function_entry asf_http_cookie_methods[] = {
     PHP_ME(asf_http_cookie, __construct,    asf_http_cookieinterface_init_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(asf_http_cookie, init,           asf_http_cookieinterface_init_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_http_cookie, prefix,         asf_http_cookieinterface_prefix_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_http_cookie, set,            asf_http_cookieinterface_set_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_http_cookie, forever,        asf_http_cookieinterface_forever_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_http_cookie, has,            asf_http_cookieinterface_has_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_http_cookie, get,            asf_http_cookieinterface_get_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_http_cookie, del,            asf_http_cookieinterface_has_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_http_cookie, del,            asf_http_cookieinterface_del_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_http_cookie, clear,          NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };

@@ -198,6 +198,32 @@ int asf_func_array_isset(const zval *arr, const zval *index) /* {{{ */
 }
 /* }}} */
 
+int asf_func_array_del(const zval *arr, const zval *index) /* {{{ */
+{
+    HashTable *ht = NULL;
+
+    if (Z_TYPE_P(arr) != IS_ARRAY) {
+        return 0;
+    }
+
+    ht = Z_ARRVAL_P(arr);
+    switch (Z_TYPE_P(index)) {
+        case IS_DOUBLE:
+            return zend_hash_index_del(ht, (ulong)Z_DVAL_P(index));
+
+        case IS_LONG:
+            return zend_hash_index_del(ht, Z_LVAL_P(index));
+
+        case IS_STRING:
+            return zend_symtable_del(ht, Z_STR_P(index));
+
+        default:
+            zend_error(E_WARNING, "Illegal offset type");
+            return 0;
+    }
+}
+/* }}} */
+
 zval *asf_func_array_fetch(const zval *arr, const zval *index) /* {{{ */
 {
     HashTable *ht = NULL;

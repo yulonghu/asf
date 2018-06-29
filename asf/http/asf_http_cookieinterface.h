@@ -41,6 +41,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_http_cookieinterface_get_arginfo, 0, 0, 0)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_http_cookieinterface_del_arginfo, 0, 0, 1)
+	ZEND_ARG_VARIADIC_INFO(0, key)
+ZEND_END_ARG_INFO()
 /* }}} */
 
 extern zend_class_entry *asf_http_cookieinterface_ce;
