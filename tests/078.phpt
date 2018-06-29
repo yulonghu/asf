@@ -30,4 +30,24 @@ var_dump($cookie->clear());
 
 ?>
 --EXPECTF--
+bool(true)
+Asf_Http_Cookie Object
+(
+    [_conf:protected] => Array
+        (
+            [expire] => 90000
+            [path] => /
+            [domain] => box3.cn
+            [secure] => 1
+            [httponly] => 1
+        )
+
+    [_prefix:protected] => Asf_
+)
+bool(false)
+bool(false)
+NULL
+NULL
+bool(false)
+bool(false)
 
