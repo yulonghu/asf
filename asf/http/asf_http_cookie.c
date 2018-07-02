@@ -56,7 +56,6 @@ PHP_METHOD(asf_http_cookie, __construct)
 {
     zval *configs = NULL, *pzval = NULL, zconfig;
     HashTable *st = NULL, *sz = NULL;
-    zend_ulong expire = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "|a", &configs) == FAILURE) {
         return;
@@ -76,11 +75,8 @@ PHP_METHOD(asf_http_cookie, __construct)
     sz = Z_ARRVAL(zconfig);
 
     if ((pzval = zend_hash_str_find(st, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN)) && Z_TYPE_P(pzval) == IS_LONG) {
-        expire = Z_LVAL_P(pzval);
-    } else {
-        expire = time(NULL);
+        add_assoc_long_ex(&zconfig, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN, Z_LVAL_P(pzval));
     }
-    add_assoc_long_ex(&zconfig, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN, expire + 86400);
 
     if ((pzval = zend_hash_str_find(st, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN)) && Z_TYPE_P(pzval) == IS_STRING) {
         add_assoc_stringl_ex(&zconfig, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN, Z_STRVAL_P(pzval), Z_STRLEN_P(pzval));
@@ -119,7 +115,7 @@ PHP_METHOD(asf_http_cookie, prefix)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Http_Cookie::set(string $name, mixed $value [, int expire = 0])
+/* {{{ proto bool Asf_Http_Cookie::set(string $name [, mixed $value = '' [, int expire = 0]])
 */
 PHP_METHOD(asf_http_cookie, set)
 {
@@ -127,12 +123,13 @@ PHP_METHOD(asf_http_cookie, set)
     zval *self = NULL;
     zend_long lexpire = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "SS|l", &key, &value, &lexpire) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|Sl", &key, &value, &lexpire) == FAILURE) {
         return;
     }
 
     self = getThis();
     zval *path = NULL, *domain = NULL, *expire = NULL, *secure = NULL, *httponly = NULL;
+    zend_ulong ctime = time(NULL);
     
     zval *pzval = zend_read_property(asf_http_cookie_ce, self, ZEND_STRL(ASF_COOKIE_PRONAME_CONFIG), 1, NULL);
     if (!Z_ISNULL_P(pzval)) {
@@ -148,7 +145,7 @@ PHP_METHOD(asf_http_cookie, set)
     zend_string *new_key = asf_http_cookie_string_extend(getThis(), key);
 
     int ret = php_setcookie(new_key, value,
-            lexpire ? (lexpire + Z_LVAL_P(expire)) : Z_LVAL_P(expire), 
+            lexpire ? (lexpire + ctime) : (expire ? (Z_LVAL_P(expire) + ctime) : 0), 
             (path ? Z_STR_P(path) : NULL),
             (domain ? Z_STR_P(domain) : NULL),
             (secure ? Z_LVAL_P(secure) : 0),
@@ -268,42 +265,18 @@ PHP_METHOD(asf_http_cookie, del)
         RETURN_FALSE;
     }
 
-    zval *path = NULL, *domain = NULL, *secure = NULL, *httponly = NULL;
-    zval *pzval = zend_read_property(asf_http_cookie_ce, getThis(), ZEND_STRL(ASF_COOKIE_PRONAME_CONFIG), 1, NULL);
-    zend_string *new_key = NULL, *con_key = NULL;
-    zval *self = getThis();
-    int ret = SUCCESS;
+    zval zmn, *self = getThis(), retval, new_args[1];
     
-    if (!Z_ISNULL_P(pzval)) {
-        HashTable *ht = Z_ARRVAL_P(pzval);
-
-        zval *path      = zend_hash_str_find(ht, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN);
-        zval *domain    = zend_hash_str_find(ht, ASF_COOKIE_DOMAIN, ASF_COOKIE_DOMAIN_LEN);
-        zval *secure    = zend_hash_str_find(ht, ASF_COOKIE_SECURE, ASF_COOKIE_SECURE_LEN);
-        zval *httponly  = zend_hash_str_find(ht, ASF_COOKIE_HTTPONLY, ASF_COOKIE_HTTPONLY_LEN);
-    }
+    ZVAL_STRINGL(&zmn, "set", 3);
 
     for (i = 0; i < argc; i++) {
-        con_key = zval_get_string(&args[i]);
-        new_key = asf_http_cookie_string_extend(self, con_key);
-        asf_func_array_del(cookie, &args[i]);
-
-        ret = php_setcookie(new_key, NULL, 0, 
-                (path ? Z_STR_P(path) : NULL),
-                (domain ? Z_STR_P(domain) : NULL),
-                (secure ? Z_LVAL_P(secure) : 0),
-                1,
-                (httponly ? Z_LVAL_P(httponly) : 0));
-
-        zend_string_release(con_key);
-        zend_string_release(new_key);
+        ZVAL_COPY_VALUE(&new_args[0], &args[i]);
+        call_user_function_ex(&Z_OBJCE_P(self)->function_table, self, &zmn, &retval, 1, new_args, 1, NULL);
     }
 
-    if (ret == SUCCESS) {
-        RETURN_TRUE;
-    } else {
-        RETURN_FALSE;
-    }
+    ZVAL_COPY_VALUE(return_value, &retval);
+
+    zend_string_release(Z_STR(zmn)); 
 }
 /* }}} */
 
@@ -327,7 +300,7 @@ PHP_METHOD(asf_http_cookie, clear)
 
     ZEND_HASH_FOREACH_KEY(ht, idx, key) {
         if (key) {
-            ZVAL_STR_COPY(&args[i++], key);
+            ZVAL_STR(&args[i++], key);
         } else {
             ZVAL_LONG(&args[i++], idx);
         }
