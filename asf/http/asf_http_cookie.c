@@ -21,7 +21,11 @@
 #endif
 
 #include "php.h"
+#include "SAPI.h" /* sapi_header_line */
 #include "Zend/zend_interfaces.h" /* zend_call_method* */
+#include "ext/standard/php_standard.h"
+#include "ext/standard/head.h"
+#include "ext/date/php_date.h" /* php_format_date */
 
 #include "php_asf.h"
 #include "kernel/asf_namespace.h"
@@ -76,6 +80,9 @@ PHP_METHOD(asf_http_cookie, __construct)
 
     if ((pzval = zend_hash_str_find(st, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN)) && Z_TYPE_P(pzval) == IS_LONG) {
         add_assoc_long_ex(&zconfig, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN, Z_LVAL_P(pzval));
+    } else {
+        /* Default expire = 86400 */
+        add_assoc_long_ex(&zconfig, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN, (zend_long)86400);
     }
 
     if ((pzval = zend_hash_str_find(st, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN)) && Z_TYPE_P(pzval) == IS_STRING) {
@@ -121,38 +128,106 @@ PHP_METHOD(asf_http_cookie, set)
 {
     zend_string *key = NULL, *value = NULL;
     zval *self = NULL;
-    zend_long lexpire = 0;
+    zend_ulong lexpire = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|Sl", &key, &value, &lexpire) == FAILURE) {
         return;
     }
 
+    if (UNEXPECTED(asf_func_isempty(ZSTR_VAL(key)))) {
+        asf_trigger_error(ASF_ERR_COOKIE_PUBLIC, "Parameter 'name' cannot be empty");
+        return;
+    }
+
+    if (strpbrk(ZSTR_VAL(key), "=,; \t\r\n\013\014") != NULL) {   /* man isspace for \013 and \014 */
+        zend_error(E_WARNING, "Cookie names cannot contain any of the following '=,; \\t\\r\\n\\013\\014'");
+        return;
+    }
+
     self = getThis();
+
     zval *path = NULL, *domain = NULL, *expire = NULL, *secure = NULL, *httponly = NULL;
     zend_ulong ctime = time(NULL);
-    
+
+    zend_string *dt = NULL, *encoded_value = NULL;
+    char *cookie = NULL, *cookie_tmp = NULL;
+    size_t cookie_len = 0;
+    sapi_header_line ctr = {0};
+    size_t len = 0;
+
     zval *pzval = zend_read_property(asf_http_cookie_ce, self, ZEND_STRL(ASF_COOKIE_PRONAME_CONFIG), 1, NULL);
-    if (!Z_ISNULL_P(pzval)) {
-        HashTable *ht = Z_ARRVAL_P(pzval);
-        
-        path      = zend_hash_str_find(ht, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN);
-        domain    = zend_hash_str_find(ht, ASF_COOKIE_DOMAIN, ASF_COOKIE_DOMAIN_LEN);
-        expire    = zend_hash_str_find(ht, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN);
-        secure    = zend_hash_str_find(ht, ASF_COOKIE_SECURE, ASF_COOKIE_SECURE_LEN);
-        httponly  = zend_hash_str_find(ht, ASF_COOKIE_HTTPONLY, ASF_COOKIE_HTTPONLY_LEN);
+    if (Z_ISNULL_P(pzval)) {
+        asf_trigger_error(ASF_ERR_COOKIE_PUBLIC, "First initialization the class 'Cookie'");
+        return;
+    }
+
+    HashTable *ht = Z_ARRVAL_P(pzval);
+
+    path      = zend_hash_str_find(ht, ASF_COOKIE_PATH, ASF_COOKIE_PATH_LEN);
+    domain    = zend_hash_str_find(ht, ASF_COOKIE_DOMAIN, ASF_COOKIE_DOMAIN_LEN);
+    expire    = zend_hash_str_find(ht, ASF_COOKIE_EXPIRE, ASF_COOKIE_EXPIRE_LEN);
+    secure    = zend_hash_str_find(ht, ASF_COOKIE_SECURE, ASF_COOKIE_SECURE_LEN);
+    httponly  = zend_hash_str_find(ht, ASF_COOKIE_HTTPONLY, ASF_COOKIE_HTTPONLY_LEN);
+
+    /* Check Cookies value */
+    if (value == NULL || ZSTR_LEN(value) == 0) {
+        lexpire = 0;
+        dt = php_format_date("D, d-M-Y H:i:s T", sizeof("D, d-M-Y H:i:s T") - 1, 1, 0);
+    } else {
+        /* Cancel unnecessary boundary judgment for 'Year' */
+        lexpire = lexpire ? lexpire : Z_LVAL_P(expire);
+        dt = php_format_date("D, d-M-Y H:i:s T", sizeof("D, d-M-Y H:i:s T") - 1, lexpire + ctime, 0);
+    }
+
+    if (value) {
+        encoded_value = php_url_encode(ZSTR_VAL(value), ZSTR_LEN(value));
+    }
+    if (path) {
+        len = Z_STRLEN_P(path) + 7; /* ; path= */
+    }
+    if (domain) {
+        len += Z_STRLEN_P(domain) + 9; /* ; domain= */
+    }
+    if (len > 0) {
+        len = len + 1;
+        cookie_tmp = (char *)emalloc(len);
+        memset(cookie_tmp, '\0', len);
+
+        if (path) {
+            strlcat(cookie_tmp, COOKIE_PATH, len); 
+            strlcat(cookie_tmp, Z_STRVAL_P(path), len);
+        }
+        if (domain) {
+            strlcat(cookie_tmp, COOKIE_DOMAIN, len); 
+            strlcat(cookie_tmp, Z_STRVAL_P(domain), len);
+        }
     }
 
     zend_string *new_key = asf_http_cookie_string_extend(getThis(), key);
 
-    int ret = php_setcookie(new_key, value,
-            lexpire ? (lexpire + ctime) : (expire ? (Z_LVAL_P(expire) + ctime) : 0), 
-            (path ? Z_STR_P(path) : NULL),
-            (domain ? Z_STR_P(domain) : NULL),
-            (secure ? Z_LVAL_P(secure) : 0),
-            1,
-            (httponly ? Z_LVAL_P(httponly) : 0));
+    cookie_len = spprintf(&cookie, 0, "Set-Cookie: %s=%s; expires=%s; Max-Age=%ld%s%s%s",
+            ZSTR_VAL(new_key),
+            value ? ZSTR_VAL(value) : "deleted",
+            ZSTR_VAL(dt),
+            lexpire,
+            cookie_tmp,
+            secure ? "; secure" : "",
+            httponly ? "; HttpOnly" : "");
 
     zend_string_release(new_key);
+    if (encoded_value) {
+        zend_string_release(encoded_value);
+    }
+
+    ctr.line = cookie;
+    ctr.line_len = cookie_len;
+
+    int ret = sapi_header_op(SAPI_HEADER_ADD, &ctr);
+
+    efree(cookie);
+    if (cookie_tmp) {
+        efree(cookie_tmp);
+    }
 
     if (ret == SUCCESS) {
         RETURN_TRUE;
@@ -179,7 +254,7 @@ PHP_METHOD(asf_http_cookie, forever)
     ZVAL_STRINGL(&zmn, "set", 3); 
     ZVAL_STR_COPY(&args[0], key);
     ZVAL_STR_COPY(&args[1], value);
-    ZVAL_LONG(&args[2], 315360000);
+    ZVAL_LONG(&args[2], 315360000); /* 10 years */
     
     call_user_function_ex(&Z_OBJCE_P(self)->function_table, self, &zmn, return_value, 3, args, 1, NULL);
     zend_string_release(Z_STR(zmn)); 
@@ -219,11 +294,6 @@ PHP_METHOD(asf_http_cookie, get)
     zend_string *key = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &key) == FAILURE) {
-        return;
-    }
-
-    if (UNEXPECTED(asf_func_isempty(ZSTR_VAL(key)))) {
-        asf_trigger_error(ASF_ERR_COOKIE_PUBLIC, "Parameter 'name' cannot be empty");
         return;
     }
 
