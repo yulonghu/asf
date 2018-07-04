@@ -19,9 +19,6 @@
 #ifndef ASF_HTTP_COOKIE_H
 #define ASF_HTTP_COOKIE_H
 
-#define ASF_COOKIE_PRONAME_CONFIG  "_conf"
-#define ASF_COOKIE_PRONAME_PREFIX  "_prefix"
-
 #define ASF_COOKIE_PATH "path"
 #define ASF_COOKIE_PATH_LEN 4
 #define ASF_COOKIE_DOMAIN "domain"
