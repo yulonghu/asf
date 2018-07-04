@@ -7,6 +7,7 @@ asf.use_namespace=0
 --FILE--
 <?php
 
+//$cookie = new Asf_Http_Cookie(['path' => '/', 'domain' => 'box3.cn', 'expire' => 3600, 'secure' => 1, 'httponly' => 1, 'prefix' => 'Asf_']);
 $cookie = new Asf_Http_Cookie(['path' => '/', 'domain' => 'box3.cn', 'expire' => 3600, 'secure' => 1, 'httponly' => 1]);
 
 var_dump($cookie->prefix('Asf_'));
@@ -33,16 +34,12 @@ var_dump($cookie->clear());
 bool(true)
 Asf_Http_Cookie Object
 (
-    [_conf:protected] => Array
-        (
-            [expire] => 90000
-            [path] => /
-            [domain] => box3.cn
-            [secure] => 1
-            [httponly] => 1
-        )
-
-    [_prefix:protected] => Asf_
+    [prefix:protected] => Asf_
+    [path:protected] => /
+    [domain:protected] => box3.cn
+    [expire:protected] => 3600
+    [secure:protected] => 1
+    [httponly:protected] => 1
 )
 bool(false)
 bool(false)
