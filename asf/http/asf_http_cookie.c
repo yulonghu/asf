@@ -116,7 +116,7 @@ PHP_METHOD(asf_http_cookie, prefix)
         return;
     }
 
-    zend_update_property_str(asf_http_cookie_ce, getThis(), ZEND_STRL(ASF_COOKIE_PRONAME_PREFIX), key);
+    zend_update_property_str(asf_http_cookie_ce, getThis(), ASF_COOKIE_PREFIX, ASF_COOKIE_PREFIX_LEN, key);
 
     RETURN_TRUE;
 }
