@@ -22,7 +22,7 @@
 /* {{{ ARG_INFO
 */
 ZEND_BEGIN_ARG_INFO_EX(asf_http_cookieinterface_init_arginfo, 0, 0, 0)
-    ZEND_ARG_INFO(0, configs)
+    ZEND_ARG_ARRAY_INFO(0, configs, 0)
 ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_http_cookieinterface_prefix_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, prefix)
