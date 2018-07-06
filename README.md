@@ -7,12 +7,13 @@ High performance PHP framework written in C, Work so easy.
 API Services Framework (or simply Asf). It's has many micro-innovation and is a new generation of lightweight MVC framework, internally called DLS.
 
 ## Features
-- 999 special error number, Intercept all Exception conditions in the operation of the program
-- Support SQL CURD Log(Asf_Sql_Log), Run Exception information (Asf_Error_Log)
-- Support rich development libraries, classes reside in memory when the PHP process starts
-- Support Logger Buffer Cache, File descriptor auto-shutdown
-- Stronger GPC method, Use PHP Global Variables ($_GET, $_POST, $_COOKIE) becomes easier
-- Support configuration file resident memory
+- The class provided by the framework, loaded when the PHP process starts, and resident in memory.
+- When the PHP business logic is exception, the interface will only throw a '999' special error number.
+- Support for SQL CURD Log(Asf_Sql_Log), Run Exception information (Asf_Error_Log)
+- Support for Logger Buffer Cache, File descriptor auto-shutdown
+- More powerful GPC methods, making it easier to use PHP global variables ($_GET, $_POST, $_COOKIE)
+- Support for configuration file resident memory
+- Support for faster, easier-to-operate cookie management
 
 ## Install
 ### Requirements
