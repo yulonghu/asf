@@ -52,7 +52,12 @@ final class Asf_Loader
 
 final class Asf_Sg
 {/*{{{*/
-    public static $inputs = NULL;
+    public static $inputs = ['get' => array(), 'post' => array(), 'cookie' => array()];
+
+    public static has(string $name)
+    public static get(string $name)
+    public static set(string $name, mixed $value)
+    public static del(string $name)
 }
 /*}}}*/
 
@@ -470,6 +475,30 @@ final class Asf_Http_Request implements Asf_Http_RequestInterface
     public function hasQuery(void)
     public function hasServer(void)
     public function hasFiles(void)
+}
+
+interface Asf_Http_CookieInterface
+{
+    public function __construct([array $configs])
+    public function prefix(string $name)
+    public function set(string $name, string $value)
+    public function forever(string $name, string $value)
+    public function has(string $name)
+    public function get(string $name = '')
+    public function del(string $name [, string $...])
+    public function clear(void)
+}
+
+final class Asf_Http_Cookie implements Asf_Http_CookieInterface
+{
+    public Asf_Http_Cookie function __construct([array $configs])
+    public boolean function prefix(string $name)
+    public boolean function set(string $name, string $value)
+    public boolean function forever(string $name, string $value)
+    public boolean function has(string $name)
+    public mixed function get(string $name = '')
+    public boolean function del(string $name [, string $...])
+    public boolean function clear(void)
 }
 /* }}} http */
 
