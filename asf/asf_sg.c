@@ -77,12 +77,12 @@ PHP_METHOD(asf_sg, has)
         return;
     }
 
-    zval *entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
-    if (Z_TYPE_P(entries) != IS_ARRAY) {
+    zval *vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
+    if (Z_TYPE_P(vars) != IS_ARRAY) {
         RETURN_NULL();
     }
 
-    RETURN_BOOL(zend_hash_exists(Z_ARRVAL_P(entries), name));
+    RETURN_BOOL(zend_hash_exists(Z_ARRVAL_P(vars), name));
 }
 /* }}} */
 
@@ -91,18 +91,18 @@ PHP_METHOD(asf_sg, has)
 PHP_METHOD(asf_sg, get)
 {
     zend_string *name = NULL;
-    zval *entries = NULL, *pzval = NULL;
+    zval *vars = NULL, *pzval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
         return;
     }
 
-    entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
-    if (Z_TYPE_P(entries) != IS_ARRAY) {
+    vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
+    if (Z_TYPE_P(vars) != IS_ARRAY) {
         RETURN_NULL();
     }
 
-    if ((pzval = zend_hash_find(Z_ARRVAL_P(entries), name)) != NULL) {
+    if ((pzval = zend_hash_find(Z_ARRVAL_P(vars), name)) != NULL) {
         RETURN_ZVAL(pzval, 1, 0);
     }
 
@@ -115,19 +115,19 @@ PHP_METHOD(asf_sg, get)
 PHP_METHOD(asf_sg, set)
 {
     zend_string *name = NULL;
-    zval *entries = NULL, *value = NULL, regs;
+    zval *vars = NULL, *value = NULL, regs;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "Sz", &name, &value) == FAILURE) {
         return;
     }
 
-    entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
-    if (Z_TYPE_P(entries) != IS_ARRAY) {
+    vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
+    if (Z_TYPE_P(vars) != IS_ARRAY) {
         array_init(&regs);
-        entries = &regs;
+        vars = &regs;
     }
 
-    if (zend_hash_update(Z_ARRVAL_P(entries), name, value) != NULL) {
+    if (zend_hash_update(Z_ARRVAL_P(vars), name, value) != NULL) {
         Z_TRY_ADDREF_P(value);
         RETVAL_TRUE;
     } else {
@@ -135,7 +135,7 @@ PHP_METHOD(asf_sg, set)
     }
 
     if (Z_TYPE(regs) == IS_ARRAY) {
-        zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), &regs);
+        zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), &regs);
         zval_ptr_dtor(&regs);
     }
 }
@@ -146,18 +146,18 @@ PHP_METHOD(asf_sg, set)
 PHP_METHOD(asf_sg, del)
 {
     zend_string *name = NULL;
-    zval *entries = NULL;
+    zval *vars = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
         return;
     }
 
-    entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
-    if (Z_TYPE_P(entries) != IS_ARRAY) {
+    vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
+    if (Z_TYPE_P(vars) != IS_ARRAY) {
         RETURN_FALSE;
     }
 
-    if (zend_hash_del(Z_ARRVAL_P(entries), name) == SUCCESS) {
+    if (zend_hash_del(Z_ARRVAL_P(vars), name) == SUCCESS) {
         RETURN_TRUE;
     }
 
@@ -180,7 +180,6 @@ ASF_INIT_CLASS(sg) /* {{{ */
     ASF_REGISTER_CLASS_PARENT(asf_sg, Asf_Sg, Asf\\Sg, ZEND_ACC_FINAL);
 
     zend_declare_property_null(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), ZEND_ACC_PUBLIC | ZEND_ACC_STATIC);
-	zend_declare_property_null(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
 
     return SUCCESS;
 }

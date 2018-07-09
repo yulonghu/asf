@@ -19,8 +19,7 @@
 #ifndef ASF_SG_H
 #define ASF_SG_H
 
-#define ASF_SG_PRONAME_VAR      "inputs"
-#define ASF_SG_PRONAME_ENTRIES  "_entries"
+#define ASF_SG_PRONAME_VAR  "inputs"
 
 void asf_sg_instance(asf_sg_t *this_ptr);
 
