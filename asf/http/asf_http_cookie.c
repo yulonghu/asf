@@ -199,7 +199,7 @@ PHP_METHOD(asf_http_cookie, set)
 
     cookie_len = spprintf(&cookie, 0, "Set-Cookie: %s=%s; expires=%s; Max-Age=%ld%s%s%s",
             ZSTR_VAL(new_key),
-            value ? ZSTR_VAL(value) : "deleted",
+            encoded_value ? ZSTR_VAL(encoded_value) : "deleted",
             ZSTR_VAL(dt),
             lexpire,
             cookie_tmp,
