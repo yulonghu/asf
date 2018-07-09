@@ -29,6 +29,18 @@
 
 zend_class_entry *asf_sg_ce;
 
+/* {{{ ARG_INFO
+*/
+ZEND_BEGIN_ARG_INFO_EX(asf_sg_common_arginfo, 0, 0, 1)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(asf_sg_set_arginfo, 0, 0, 2)
+    ZEND_ARG_INFO(0, name)
+    ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO()
+/* }}} */
+
 void asf_sg_instance(asf_sg_t *this_ptr) /* {{{ */
 {
     zval regs;
@@ -50,14 +62,115 @@ void asf_sg_instance(asf_sg_t *this_ptr) /* {{{ */
     zend_hash_str_update(ht, "post",    4, post);
     zend_hash_str_update(ht, "cookie",  6, cookie);
     
-    zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PROPERTY_NAME_VAR), &regs);
+    zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), &regs);
     zval_ptr_dtor(&regs);
 }
 /* }}} */
 
-/* {{{ asf_sg_methods[]
-    Will add methods later */
+/* {{{ proto bool Asf_Sg::has(string $name)
+*/
+PHP_METHOD(asf_sg, has)
+{
+    zend_string *name = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
+        return;
+    }
+
+    zval *entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
+    if (Z_TYPE_P(entries) != IS_ARRAY) {
+        RETURN_NULL();
+    }
+
+    RETURN_BOOL(zend_hash_exists(Z_ARRVAL_P(entries), name));
+}
+/* }}} */
+
+/* {{{ proto mixed Asf_Sg::get(string $name)
+*/
+PHP_METHOD(asf_sg, get)
+{
+    zend_string *name = NULL;
+    zval *entries = NULL, *pzval = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
+        return;
+    }
+
+    entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
+    if (Z_TYPE_P(entries) != IS_ARRAY) {
+        RETURN_NULL();
+    }
+
+    if ((pzval = zend_hash_find(Z_ARRVAL_P(entries), name)) != NULL) {
+        RETURN_ZVAL(pzval, 1, 0);
+    }
+
+    RETURN_NULL();
+}
+/* }}} */
+
+/* {{{ proto bool Asf_Sg::set(string $name, mixed $value)
+*/
+PHP_METHOD(asf_sg, set)
+{
+    zend_string *name = NULL;
+    zval *entries = NULL, *value = NULL, regs;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "Sz", &name, &value) == FAILURE) {
+        return;
+    }
+
+    entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
+    if (Z_TYPE_P(entries) != IS_ARRAY) {
+        array_init(&regs);
+        entries = &regs;
+    }
+
+    if (zend_hash_update(Z_ARRVAL_P(entries), name, value) != NULL) {
+        Z_TRY_ADDREF_P(value);
+        RETVAL_TRUE;
+    } else {
+        RETVAL_FALSE; 
+    }
+
+    if (Z_TYPE(regs) == IS_ARRAY) {
+        zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), &regs);
+        zval_ptr_dtor(&regs);
+    }
+}
+/* }}} */
+
+/* {{{ proto bool Asf_Sg::del(string $name)
+*/
+PHP_METHOD(asf_sg, del)
+{
+    zend_string *name = NULL;
+    zval *entries = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
+        return;
+    }
+
+    entries = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), 1);
+    if (Z_TYPE_P(entries) != IS_ARRAY) {
+        RETURN_FALSE;
+    }
+
+    if (zend_hash_del(Z_ARRVAL_P(entries), name) == SUCCESS) {
+        RETURN_TRUE;
+    }
+
+    RETURN_FALSE;
+}
+/* }}} */
+
+/* {{{ asf_sg_methods[] */
 zend_function_entry asf_sg_methods[] = {
+    PHP_ME(asf_sg, has, asf_sg_common_arginfo,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_sg, get, asf_sg_common_arginfo,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_sg, set, asf_sg_set_arginfo,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_sg, del, asf_sg_common_arginfo,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_FE_END
 };
 /* }}} */
@@ -66,7 +179,8 @@ ASF_INIT_CLASS(sg) /* {{{ */
 {
     ASF_REGISTER_CLASS_PARENT(asf_sg, Asf_Sg, Asf\\Sg, ZEND_ACC_FINAL);
 
-    zend_declare_property_null(asf_sg_ce, ZEND_STRL(ASF_SG_PROPERTY_NAME_VAR), ZEND_ACC_PUBLIC | ZEND_ACC_STATIC);
+    zend_declare_property_null(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), ZEND_ACC_PUBLIC | ZEND_ACC_STATIC);
+	zend_declare_property_null(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_ENTRIES), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
 
     return SUCCESS;
 }
