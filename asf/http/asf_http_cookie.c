@@ -280,13 +280,13 @@ PHP_METHOD(asf_http_cookie, has)
 }
 /* }}} */
 
-/* {{{ proto mixed Asf_Http_Cookie::get(string $name)
+/* {{{ proto mixed Asf_Http_Cookie::get([string $name])
 */
 PHP_METHOD(asf_http_cookie, get)
 {
     zend_string *key = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &key) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "|S", &key) == FAILURE) {
         return;
     }
 
@@ -294,8 +294,15 @@ PHP_METHOD(asf_http_cookie, get)
     zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
     HashTable *ht = Z_ARRVAL_P(cookie);
 
+    /* Compatible with $_COOKIE[key], if not found the key, Return NULL */
     if (zend_hash_num_elements(ht) < 1) {
         RETURN_NULL();
+    }
+
+    /* If key is equal to empty, Return $_COOKIE */
+    /* Strong check? asf_func_isempty(ZSTR_VAL(key)) */
+    if (!key) {
+        RETURN_ZVAL(cookie, 1, 0);
     }
 
     zend_string *new_key = asf_http_cookie_string_extend(getThis(), key);
