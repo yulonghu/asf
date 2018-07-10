@@ -473,6 +473,7 @@ PHP_METHOD(asf_application, __destruct)
     zend_update_static_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE));
     zend_update_static_property_null(asf_dispatcher_ce, ZEND_STRL(ASF_DISP_PRONAME_INS));
     zend_update_static_property_null(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_INSTANCE));
+    zend_update_static_property_null(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR));
 }
 /* }}} */
 
