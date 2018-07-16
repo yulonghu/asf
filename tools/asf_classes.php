@@ -248,6 +248,7 @@ abstract class Asf_Db_AbstractAdapter implements Asf_Db_AdapterInterface
     public function addByArray(array $data)
     public function addDupByArray(array $data, array $update_cols)
     public function getCount(string $sql_where = '', array $bind_value = array())
+    public function getLastSql(void)
     public function setTable(string $name)
     public function getTable(void)
     public function close(void)
