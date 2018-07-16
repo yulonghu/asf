@@ -790,7 +790,9 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
 
     self   = getThis();
     dbh    = zend_read_property(asf_absadapter_ce, self, ZEND_STRL("_dbh"), 1, NULL);
-
+    
+    /* Add Debug SQL information */
+    zend_update_property_str(asf_absadapter_ce, self, ZEND_STRL("_sql"), sql);
 
     ZVAL_STRINGL(&zmn_1, "prepare", 7);
     ZVAL_STR_COPY(&zsql, sql);
@@ -810,6 +812,9 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     } else {
         ZVAL_NULL(&args[0]);
     }
+
+    /* Add Debug value information */
+    zend_update_property(asf_absadapter_ce, self, ZEND_STRL("_value"), &args[0]);
 
     ZVAL_STRINGL(&zmn_2, "execute", 7);
     call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, &zret_2, count, args, 1, NULL);
@@ -1125,6 +1130,25 @@ PHP_METHOD(asf_absadapter, getTable)
 }
 /* }}} */
 
+/* {{{ proto string Asf_Db_AbstractAdapter::getLastSql(void)
+*/
+PHP_METHOD(asf_absadapter, getLastSql)
+{
+    zval *self = getThis();
+
+    array_init(return_value);
+
+    zval *sql   = zend_read_property(asf_absadapter_ce, self, ZEND_STRL("_sql"), 1, NULL);
+    zval *value = zend_read_property(asf_absadapter_ce, self, ZEND_STRL("_value"), 1, NULL);
+
+    add_assoc_zval_ex(return_value, "sql", 3, sql);
+    add_assoc_zval_ex(return_value, "value", 5, value);
+
+    Z_TRY_ADDREF_P(sql);
+    Z_TRY_ADDREF_P(value);
+}
+/* }}} */
+
 /* {{{ proto mixed Asf_Db_AbstractAdapter::__call(string $function_name, array $args)
 */
 PHP_METHOD(asf_absadapter, __call)
@@ -1212,6 +1236,8 @@ zend_function_entry asf_absadapter_methods[] = {
     PHP_ME(asf_absadapter, setTable, asf_db_adapterinterface_settable_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_absadapter, getTable, NULL, ZEND_ACC_PUBLIC)
 
+    PHP_ME(asf_absadapter, getLastSql, NULL, ZEND_ACC_PUBLIC)
+
     PHP_ME(asf_absadapter, __call, asf_absadapter_call_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_absadapter, close, NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
@@ -1226,6 +1252,9 @@ ASF_INIT_CLASS(db_abstractadapter) /* {{{ */
     zend_declare_property_null(asf_absadapter_ce, ZEND_STRL("_dbh"),   ZEND_ACC_PROTECTED);
     zend_declare_property_null(asf_absadapter_ce, ZEND_STRL("_logh"),  ZEND_ACC_PROTECTED);
     zend_declare_property_string(asf_absadapter_ce, ZEND_STRL("_table"), "", ZEND_ACC_PROTECTED);
+    
+    zend_declare_property_string(asf_absadapter_ce, ZEND_STRL("_sql"), "", ZEND_ACC_PROTECTED);
+    zend_declare_property_string(asf_absadapter_ce, ZEND_STRL("_value"), "", ZEND_ACC_PROTECTED);
 
     zend_class_implements(asf_absadapter_ce, 1, asf_db_adapterinterface_ce);
 
