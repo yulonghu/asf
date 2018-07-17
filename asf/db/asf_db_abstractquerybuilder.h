@@ -33,14 +33,18 @@
 #define ASF_DB_ABSQB_SET        "SET"
 #define ASF_DB_ABSQB_HAVING     "HAVING"
 
-#define ASF_DB_ABSQB_INSERT 1
-#define ASF_DB_ABSQB_UPDATE 2
-#define ASF_DB_ABSQB_SELECT 3
-#define ASF_DB_ABSQB_DELETE 4
+enum sql_method {
+    ASF_DB_ABSQB_INSERT,
+    ASF_DB_ABSQB_UPDATE,
+    ASF_DB_ABSQB_SELECT,
+    ASF_DB_ABSQB_DELETE,
+    ASF_DB_ABSQB_INSERT_IGNORE,
+};
 
 void asf_db_absqb_clear_where_set(asf_db_t *db);
 void asf_db_absqb_sql_format(asf_db_t *db, char *format, ...);
 zend_string *asf_db_backquote_columns(zend_string *cols);
+void asf_db_absqb_set_header(zval *self, zend_long header_id);
 
 #define ASF_DB_ABSQB_SETS_WHERES(method, cm, cm_len) \
     PHP_METHOD(asf_db_absqb, method) \

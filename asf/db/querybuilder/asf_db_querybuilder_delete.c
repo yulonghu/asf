@@ -37,7 +37,7 @@ PHP_METHOD(asf_db_qb_delete, __construct)
 {
     zval *self = getThis();
 
-    (void)asf_db_absqb_sql_format(self, "DELETE");
+    (void)asf_db_absqb_set_header(self, ASF_DB_ABSQB_DELETE);
 
     zend_update_property_long(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_CURD), ASF_DB_ABSQB_DELETE);
 

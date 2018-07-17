@@ -77,6 +77,29 @@ ZEND_BEGIN_ARG_INFO_EX(asf_db_absqb_between_arginfo, 0, 0, 2)
 ZEND_END_ARG_INFO()
 /* }}} */
 
+/* Set the CURD header, SELECT/INSERT/DELETE/UPDATE */
+void asf_db_absqb_set_header(zval *self, zend_long header_id) /*{{{*/
+{
+    switch (header_id) {
+        case ASF_DB_ABSQB_SELECT:
+            (void)asf_db_absqb_sql_format(self, "SELECT");
+            break;
+        case ASF_DB_ABSQB_INSERT:
+            (void)asf_db_absqb_sql_format(self, "INSERT INTO");
+            break;
+        case ASF_DB_ABSQB_UPDATE:
+            (void)asf_db_absqb_sql_format(self, "UPDATE");
+            break;
+        case ASF_DB_ABSQB_DELETE:
+            (void)asf_db_absqb_sql_format(self, "DELETE");
+            break;
+        case ASF_DB_ABSQB_INSERT_IGNORE:
+            (void)asf_db_absqb_sql_format(self, "INSERT IGNORE INTO");
+            break;
+    }
+}
+/*}}}*/
+
 static inline void asf_db_absqb_start(zval *self, zval **sql, zval **bind_value, zval **where) /*{{{*/
 {
     *sql         = zend_read_property(asf_db_absqb_ce, self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_SQL), 1, NULL);
@@ -690,8 +713,10 @@ PHP_METHOD(asf_db_absqb, clear)
 
     zend_update_property_null(asf_db_absqb_ce, self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_SQL));
     zend_update_property_null(asf_db_absqb_ce, self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_BINDVALUE));
-    zend_update_property_bool(asf_db_absqb_ce, self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_WHERE), 0);
-    zend_update_property_bool(asf_db_absqb_ce, self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_SET), 0);
+
+    zend_long curd = Z_LVAL_P(zend_read_property(asf_db_absqb_ce, self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_CURD), 1, NULL));
+
+    (void)asf_db_absqb_set_header(self, curd);
 
     RETURN_TRUE;
 }

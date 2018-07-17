@@ -17,26 +17,22 @@ $insert
 var_dump($insert->show());
 $insert->clear();
 
-$insert = Asf_Db::qbi();
 var_dump($insert->table('test')->set('user', 'lisi2')->show());
 
 var_dump($insert->getSql());
 var_dump(serialize($insert->getValues()));
 $insert->clear();
 
-$insert = Asf_Db::qbi();
 var_dump($insert->table('test')->set('user', 'lisi2')->set('pass', 1234)->where('user', 'lisi', '!=')->show());
 $insert->clear();
 
-$insert = Asf_Db::qbi();
 var_dump($insert->table('test')->set('user', 'user+1')->set('pass', 123456)->show());
 $insert->clear();
 
-$insert = Asf_Db::qbi(1);
-var_dump($insert->table('test')->set('user', 'user+1')->set('pass', 123456)->ondku('status', 1)->show());
-$insert->clear();
+$insert_ignore = Asf_Db::qbi(1);
+var_dump($insert_ignore->table('test')->set('user', 'user+1')->set('pass', 123456)->ondku('status', 1)->show());
+$insert_ignore->clear();
 
-$insert = Asf_Db::qbi();
 var_dump($insert->table('test')->sets(array('user' => 'zs', 'pass' => 123456))->where('user', 'lisi', '!=')->show());
 $insert->clear();
 

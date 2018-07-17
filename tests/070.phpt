@@ -17,7 +17,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->cols()
 ->from('test')
 ->OrWhere(0, 1)
@@ -25,12 +24,11 @@ $select
 var_dump($select->show());
 $select->clear();
 
-$select->cm('select * from test where cm = 1');
+$select->cm('* from test where cm = 1');
 var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->cols()
 ->from('test')
 ->where('user', 'zhangsan');
@@ -38,7 +36,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->cols()
 ->from('test')
 ->where('where_user', 'zhangsan')
@@ -55,7 +52,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->from('test')
 ->whereIn('pid', array('100', 200))
 ->orWhereIn('cid', array('10', 20));
@@ -64,7 +60,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->cols()
 ->from('test', 'a')
 ->leftJoin('image', 'b')
@@ -77,7 +72,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->cols()
 ->from('test', 'a')
 ->rightJoin('image', 'b')
@@ -88,7 +82,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->max('username')
 ->cm(',')
 ->min('username')
@@ -105,7 +98,7 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->cm('select * from test')
+->cm('* from test')
 ->unionAll()
 ->cm('select * from test1');
 
@@ -113,7 +106,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->cols(array(
     'b.*',
     'd.factory',
@@ -132,7 +124,6 @@ var_dump($select->show());
 $select->clear();
 
 $select
-->select()
 ->cols()
 ->from('test', 'a');
 

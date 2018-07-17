@@ -55,14 +55,15 @@ PHP_METHOD(asf_db_qb_insert, __construct)
 
     zval *self = getThis();
 
-    name = "INSERT INTO";
-    if (bignore) {
-        name =  "INSERT IGNORE INTO";
+    if (!bignore) {
+        name = "INSERT INTO";
+        (void)asf_db_absqb_set_header(self, ASF_DB_ABSQB_INSERT);
+        zend_update_property_long(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_CURD), ASF_DB_ABSQB_INSERT);
+    } else {
+        name = "INSERT IGNORE INTO";
+        (void)asf_db_absqb_set_header(self, ASF_DB_ABSQB_INSERT_IGNORE);
+        zend_update_property_long(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_CURD), ASF_DB_ABSQB_INSERT_IGNORE);
     }
-
-    (void)asf_db_absqb_sql_format(self, name);
-
-    zend_update_property_long(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_CURD), ASF_DB_ABSQB_INSERT);
 
     RETURN_ZVAL(self, 1, 0);
 }
@@ -84,8 +85,6 @@ PHP_METHOD(asf_db_qb_insert, onDku)
     cols_ret = asf_db_backquote_columns(col);
 
     (void)asf_db_absqb_sql_format(self, "ON DUPLICATE KEY UPDATE %s = %s", ZSTR_VAL(cols_ret), ZSTR_VAL(s));
-
-    zend_update_property_long(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_CURD), ASF_DB_ABSQB_INSERT);
 
     zend_string_release(cols_ret);
     zend_string_release(s);
