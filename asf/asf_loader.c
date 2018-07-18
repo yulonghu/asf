@@ -60,6 +60,7 @@ do { \
         memcpy(Z_STRVAL(args[0]) + Z_STRLEN(args[0]) - len, #name, len); \
         Z_STRVAL(args[0])[Z_STRLEN(args[0])] = '\0'; \
         ASF_CALL_USER_FUNCTION_EX(instance, "get", 3, return_value, argc, args); \
+        zend_string_release(Z_STR(args[0])); \
     }
 /* }}} */
 
@@ -421,14 +422,11 @@ PHP_METHOD(asf_loader, get)
         } else {
             asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s.php", ZSTR_VAL(class_name));
             efree(lc_class_name);
-            zend_string_release(class_name);
             return;
         }
     }
 
     efree(lc_class_name);
-    /* Free used function zend_string_extend */
-    zend_string_release(class_name);
 
     if (!ce) {
         asf_trigger_error(ASF_ERR_LOADER_FAILED, "Class '%s' not found", ZSTR_VAL(class_name));
@@ -571,7 +569,7 @@ PHP_METHOD(asf_loader, __construct)
 
 /* {{{ proto private Asf_Loader::__clone(void)
 */
-PHP_METHOD(asf_loader, __clone) /* {{{ */
+PHP_METHOD(asf_loader, __clone)
 {
 }
 /* }}} */
