@@ -39,7 +39,7 @@ zend_class_entry *asf_loader_ce;
 do { \
     instance = zend_read_static_property(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_INSTANCE), 1); \
     if (UNEXPECTED(Z_TYPE_P(instance) != IS_OBJECT)) { \
-        asf_trigger_error(ASF_ERR_LOADER_FAILED, "Loader used failed, Please the Application First init"); \
+        asf_trigger_error(ASF_ERR_LOADER_FAILED, "Loader used failed, Please initialize first"); \
         return; \
     } \
 } while(0)
@@ -55,12 +55,11 @@ do { \
         if (UNEXPECTED(Z_TYPE(args[0]) != IS_STRING)) { \
             RETURN_FALSE; \
         } \
+        ASF_LOADER_CHECK_CE(instance); \
         Z_STR(args[0]) = zend_string_extend(Z_STR(args[0]), Z_STRLEN(args[0]) + len, 0); \
         memcpy(Z_STRVAL(args[0]) + Z_STRLEN(args[0]) - len, #name, len); \
         Z_STRVAL(args[0])[Z_STRLEN(args[0])] = '\0'; \
-        ASF_LOADER_CHECK_CE(instance); \
         ASF_CALL_USER_FUNCTION_EX(instance, "get", 3, return_value, argc, args); \
-        zend_string_release(Z_STR(args[0])); \
     }
 /* }}} */
 
@@ -81,7 +80,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_loader_import_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, file_path)
 ZEND_END_ARG_INFO()
-ZEND_BEGIN_ARG_INFO_EX(asf_loader_getintance_arginfo, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(asf_loader_getintance_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, library_path)
 ZEND_END_ARG_INFO()
 /* }}} */
@@ -419,10 +418,17 @@ PHP_METHOD(asf_loader, get)
 
         if (Z_TYPE(ret) == IS_TRUE) {
             ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, ZSTR_LEN(class_name));
+        } else {
+            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s.php", ZSTR_VAL(class_name));
+            efree(lc_class_name);
+            zend_string_release(class_name);
+            return;
         }
     }
 
     efree(lc_class_name);
+    /* Free used function zend_string_extend */
+    zend_string_release(class_name);
 
     if (!ce) {
         asf_trigger_error(ASF_ERR_LOADER_FAILED, "Class '%s' not found", ZSTR_VAL(class_name));
@@ -497,12 +503,15 @@ PHP_METHOD(asf_loader, import)
     asf_loader_t *loader = NULL, rv = {{0}};
     zval *library = NULL; _Bool ret = 0, need_free = 0;
 
+    /* Relative path */
     if (!IS_ABSOLUTE_PATH(ZSTR_VAL(file_name), ZSTR_LEN(file_name))) {
         loader = asf_loader_instance(&rv, NULL);
         if (EXPECTED(loader)) {
             library = zend_read_property(asf_loader_ce, loader, ZEND_STRL(ASF_LOADER_LIBRARY_DIRECTORY_NAME), 1, NULL);
-            file_name = strpprintf(0, "%s%c%s", Z_STRVAL_P(library), DEFAULT_SLASH, ZSTR_VAL(file_name));
-            need_free = 1;
+            if (!Z_ISNULL_P(library)) {
+                file_name = strpprintf(0, "%s%c%s", Z_STRVAL_P(library), DEFAULT_SLASH, ZSTR_VAL(file_name));
+                need_free = 1;
+            }
         } else {
             asf_trigger_error(ASF_ERR_STARTUP_FAILED, "Load loader failed");
             RETURN_FALSE;
@@ -526,7 +535,7 @@ PHP_METHOD(asf_loader, import)
 }
 /* }}} */
 
-/* {{{ proto object Asf_Loader::getInstance(string $library_path)
+/* {{{ proto object Asf_Loader::getInstance([string $library_path])
 */
 PHP_METHOD(asf_loader, getInstance)
 {
@@ -542,27 +551,26 @@ PHP_METHOD(asf_loader, getInstance)
         return;
     }
 
-    ASF_G(root_path_route) = zend_string_copy(library_path);
-
-    loader = asf_loader_instance(&rv, library_path);
-    if (loader) {
-        RETURN_ZVAL(loader, 1, 0);
+    /* Make ensure this is first Instantiation */
+    if (library_path && !ASF_G(root_path_route)) {
+        ASF_G(root_path_route) = zend_string_copy(library_path);
     }
 
-    RETURN_FALSE;
+    loader = asf_loader_instance(&rv, library_path);
+
+    RETURN_ZVAL(loader, 1, 0);
 }
 /* }}} */
 
-PHP_METHOD(asf_loader, __sleep) /* {{{ */
+/* {{{ proto private Asf_Loader::__construct(void)
+*/
+PHP_METHOD(asf_loader, __construct)
 {
 }
 /* }}} */
 
-PHP_METHOD(asf_loader, __wakeup) /* {{{ */
-{
-}
-/* }}} */
-
+/* {{{ proto private Asf_Loader::__clone(void)
+*/
 PHP_METHOD(asf_loader, __clone) /* {{{ */
 {
 }
@@ -571,6 +579,8 @@ PHP_METHOD(asf_loader, __clone) /* {{{ */
 /* {{{ asf_loader_methods[]
 */
 zend_function_entry asf_loader_methods[] = {
+    PHP_ME(asf_loader, __construct, NULL,                           ZEND_ACC_CTOR | ZEND_ACC_PRIVATE)
+    PHP_ME(asf_loader, __clone,     NULL,                           ZEND_ACC_CTOR | ZEND_ACC_PRIVATE)
     PHP_ME(asf_loader, get,         asf_loader_get_arginfo,         ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_loader, logic,       asf_loader_get_arginfo,         ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_loader, dao,         asf_loader_get_arginfo,         ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
