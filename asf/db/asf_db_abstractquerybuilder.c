@@ -615,7 +615,7 @@ PHP_METHOD(asf_db_absqb, show)
         impl = zend_string_init(" , ", 3, 0);
         php_implode(impl, bind_value, &impl_ret);
 
-        smart_str_appendl(&buf, " [bindValues] ", 14);
+        smart_str_appendl(&buf, " [BVALUES] ", 11);
         smart_str_append(&buf, Z_STR_P(&impl_ret));
 
         zend_string_release(impl);
