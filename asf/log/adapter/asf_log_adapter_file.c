@@ -185,8 +185,9 @@ PHP_METHOD(asf_log_adapter_file, doLog)
     zval *path = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_PATH), 1, NULL);
     zval *fname = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_NAME), 1, NULL);
 
-    if (!fname) {
-        return;
+    /* Fix file_name is empty issue */
+    if (Z_ISNULL_P(fname)) {
+        RETURN_FALSE;
     }
 
     zval zmn_1, zret_1;

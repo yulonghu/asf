@@ -42,10 +42,16 @@
 
 zend_class_entry *asf_logger_ce;
 
+enum logger_type {
+    ASF_LOGGER_FILE,
+    ASF_LOGGER_SYSLOG,
+};
+
 /* {{{ ARG_INFO
 */
-ZEND_BEGIN_ARG_INFO_EX(asf_logger_adapter_arginfo, 0, 0, 1)
-    ZEND_ARG_INFO(0, adapter)
+ZEND_BEGIN_ARG_INFO_EX(asf_logger_adapter_arginfo, 0, 0, 2)
+    ZEND_ARG_INFO(0, adapter_id)
+    ZEND_ARG_INFO(0, file_name)
 ZEND_END_ARG_INFO()
 /* }}}*/
 
@@ -59,11 +65,11 @@ void asf_logger_instance(asf_logger_t *this_ptr, zend_string *file_name, zend_st
 */
 PHP_METHOD(asf_logger, adapter)
 {
-    zend_long adapter = 0;
+    zend_long adapter_id = 0;
     zend_string *file_name = NULL;
     zval *self = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "lS", &adapter, &file_name) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "lS", &adapter_id, &file_name) == FAILURE) {
         return;
     }
 
@@ -72,11 +78,11 @@ PHP_METHOD(asf_logger, adapter)
         RETURN_FALSE;
     }
 
-    switch (adapter) {
-        case 0:
+    switch (adapter_id) {
+        case ASF_LOGGER_FILE:
             (void)asf_logger_instance(return_value, file_name, NULL);
             break;
-        case 1:
+        case ASF_LOGGER_SYSLOG:
             object_init_ex(return_value, asf_log_adapter_syslog_ce);
             break;
         default:
