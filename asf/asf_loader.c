@@ -550,8 +550,8 @@ PHP_METHOD(asf_loader, getInstance)
     }
 
     /* Make ensure this is first Instantiation */
-    if (library_path && !ASF_G(root_path_route)) {
-        ASF_G(root_path_route) = zend_string_copy(library_path);
+    if (library_path && !ASF_G(root_path)) {
+        ASF_G(root_path) = zend_string_copy(library_path);
     }
 
     loader = asf_loader_instance(&rv, library_path);
