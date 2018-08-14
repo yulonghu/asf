@@ -54,8 +54,8 @@ final class Asf_Sg
 {/*{{{*/
     public static $inputs = ['get' => array(), 'post' => array(), 'cookie' => array()];
 
-    public static has(string $name)
-    public static get(string $name)
+    public static has(string $name [, bool $strtok = 1])
+    public static get(string $name [, bool $strtok = 1])
     public static set(string $name, mixed $value)
     public static del(string $name)
 }
