@@ -23,7 +23,7 @@ var_dump(Asf_Ensure::isTrue(true, Constants::ERR_TEST_CODE));
 var_dump(Asf_Ensure::notEmpty('xxx', Constants::ERR_TEST_CODE));
 var_dump(Asf_Ensure::notFalse('xxx', Constants::ERR_TEST_CODE));
 var_dump(Asf_Ensure::notNull('xxx', Constants::ERR_TEST_CODE));
-Asf_Ensure::out(110, 'xxx');
+Asf_Ensure::out('xxx', 110);
 ?>
 --EXPECT--
 bool(true)
@@ -33,4 +33,5 @@ bool(true)
 bool(true)
 bool(true)
 bool(true)
+{"errno":110,"data":"xxx"}
 

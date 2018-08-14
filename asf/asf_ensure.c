@@ -40,8 +40,8 @@ ZEND_BEGIN_ARG_INFO_EX(asf_ensure_common_arginfo, 0, 0, 2)
     ZEND_ARG_INFO(0, code)
 ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_ensure_out_arginfo, 0, 0, 2)
-    ZEND_ARG_INFO(0, code)
     ZEND_ARG_INFO(0, data)
+    ZEND_ARG_INFO(0, code)
 ZEND_END_ARG_INFO()
 /* }}} */
 
@@ -146,14 +146,14 @@ ASF_ENSURE_COMMON_METHOD(asf_ensure, notFalse, ASF_ENSURE_FLAG_NOTFALSE);
 ASF_ENSURE_COMMON_METHOD(asf_ensure, isTrue, ASF_ENSURE_FLAG_ISTRUE);
 /* }}} */
 
-/* {{{ proto bool Asf_Ensure::out(int $code, string $data)
+/* {{{ proto bool Asf_Ensure::out(string $data, int $code)
 */
 PHP_METHOD(asf_ensure, out)
 {
-    zend_long errno = 0;
     zval *data = NULL;
+    zend_long code = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "lz", &errno, &data) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "zl", &data, &code) == FAILURE) {
         return;
     }
 

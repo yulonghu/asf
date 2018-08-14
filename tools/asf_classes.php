@@ -101,7 +101,7 @@ final class Asf_Ensure
     public static function isFalse(mixed $data, int $errno)
     public static function notFalse(mixed $data, int $errno)
     public static function isTrue(mixed $data, int $errno)
-    public static function out(int $error, string $data)
+    public static function out(string $data, int $errno)
 }/*}}}*/
 
 abstract class Asf_Router_AbstractRoute
