@@ -39,6 +39,10 @@ ZEND_BEGIN_ARG_INFO_EX(asf_ensure_common_arginfo, 0, 0, 2)
     ZEND_ARG_INFO(0, data)
     ZEND_ARG_INFO(0, code)
 ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_ensure_out_arginfo, 0, 0, 2)
+    ZEND_ARG_INFO(0, code)
+    ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO()
 /* }}} */
 
 static _Bool asf_ensure_write_stdout(char *class_name, size_t class_name_len, zend_ulong code) /* {{{ */
@@ -142,17 +146,33 @@ ASF_ENSURE_COMMON_METHOD(asf_ensure, notFalse, ASF_ENSURE_FLAG_NOTFALSE);
 ASF_ENSURE_COMMON_METHOD(asf_ensure, isTrue, ASF_ENSURE_FLAG_ISTRUE);
 /* }}} */
 
+/* {{{ proto bool Asf_Ensure::out(int $code, string $data)
+*/
+PHP_METHOD(asf_ensure, out)
+{
+    zend_long errno = 0;
+    zval *data = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "lz", &errno, &data) == FAILURE) {
+        return;
+    }
+
+    (void)asf_http_rep_display_error(code, data);
+}
+/* }}} */
+
 /* {{{ asf_ensure_methods[]
 */
 zend_function_entry asf_ensure_methods[] = {
     PHP_ME(asf_ensure, isNull,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(asf_ensure, notNull,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(asf_ensure, isEmpty,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(asf_ensure, NotEmpty,	asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(asf_ensure, isFalse,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(asf_ensure, notFalse,	asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(asf_ensure, isTrue,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_FE_END
+    PHP_ME(asf_ensure, notNull,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_ensure, isEmpty,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_ensure, NotEmpty,	asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_ensure, isFalse,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_ensure, notFalse,	asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_ensure, isTrue,		asf_ensure_common_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_ensure, out,         asf_ensure_out_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_FE_END
 };
 /* }}} */
 
