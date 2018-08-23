@@ -62,44 +62,28 @@ static _Bool asf_ensure_write_stdout(char *class_name, size_t class_name_len, ze
         return 0;
     }
 
-    /*
-       if (UNEXPECTED(!instanceof_function(ce, asf_constants_ce))) {
-       asf_trigger_error(ASF_ERR_CONSTANTS_FAILED, "Expect a %s instance, %s give", ZSTR_VAL(asf_constants_ce->name), ZSTR_VAL(ce->name));	
-       return 0;
-       }
-       */
-
-    /*
-       zend_class_constant *constant = NULL;
-       if ((constant = zend_hash_str_find_ptr(&((ce)->constants_table), code, code_len)) == NULL) {
-       asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_TABLE, "Class Constant %s::%s does not exist", class_name, code);
-       return 0;
-       }
-       */
-
-    zend_property_info *prop_info;
-    if ((prop_info = zend_hash_str_find_ptr(&((ce)->properties_info), ASF_CONSTANTS_ERR_PROPERTY_NAME, ASF_CONSTANTS_ERR_PROPERTY_LEN)) == NULL) {
-        asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP, "Class Properties %s::%s does not exist", class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME);
+    zval *rets = zend_read_static_property(ce, ASF_CONSTANTS_ERR_PROPERTY_NAME, ASF_CONSTANTS_ERR_PROPERTY_LEN, 1);
+    if (!rets) {
+        asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP,
+                "Class Properties %s::%s does not exist", class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME);
         return 0;
     }
 
-    if ((prop_info->flags & ZEND_ACC_STATIC) && (prop_info->flags & ZEND_ACC_PUBLIC)) {
-        zval *rets = zend_read_static_property(ce, ASF_CONSTANTS_ERR_PROPERTY_NAME, ASF_CONSTANTS_ERR_PROPERTY_LEN, 1);
-        if (Z_TYPE_P(rets) != IS_ARRAY) {
-            asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP, "Class Properties %s::%s value is must be array", class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME);
-            return 0;
-        }
-
-        retval = zend_hash_index_find(Z_ARRVAL_P(rets), code);
-
-        if (retval == NULL) {
-            asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP, "Class Properties %s::$%s[%d] does not exist",
-                    class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME, code);
-            return 0;
-        }
+    if (Z_TYPE_P(rets) != IS_ARRAY) {
+        asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP,
+                "Class Properties %s::%s value is must be array", class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME);
+        return 0;
     }
 
-    if (Z_TYPE_P(retval) != IS_STRING) {
+    retval = zend_hash_index_find(Z_ARRVAL_P(rets), code);
+
+    if (retval == NULL) {
+        asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP, "Class Properties %s::$%s[%d] does not exist",
+                class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME, code);
+        return 0;
+    }
+
+    if (retval == NULL || Z_TYPE_P(retval) != IS_STRING) {
         asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP, "Class Properties %s::$%s[%d] value is must be string",
                 class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME, code);
         return 0;
