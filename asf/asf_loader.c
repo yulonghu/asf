@@ -376,19 +376,17 @@ _Bool asf_loader_import(zend_string *path, zval *return_value_ptr) /* {{{ */
 }
 /* }}} */
 
-/* {{{ proto object Asf_Loader::get(string $class_name [, string $module_name = '', [, class_table_cache = 1]])
+/* {{{ proto object Asf_Loader::get(string $class_name [, string $module_name = ''])
 */
 PHP_METHOD(asf_loader, get)
 {
     zend_string *class_name = NULL, *module_name = NULL;
-    zend_long ct_cache = 1;
     zval *instance = NULL;
 
     ZEND_PARSE_PARAMETERS_START(1, 3)
         Z_PARAM_STR(class_name)
         Z_PARAM_OPTIONAL
         Z_PARAM_STR(module_name)
-        Z_PARAM_LONG(ct_cache)
     ZEND_PARSE_PARAMETERS_END_EX(RETURN_FALSE);
 
     if (UNEXPECTED(asf_func_isempty(ZSTR_VAL(class_name)))) {
@@ -399,15 +397,25 @@ PHP_METHOD(asf_loader, get)
     ASF_LOADER_CHECK_CE(instance);
 
     zend_class_entry *ce = NULL;
-    char *lc_class_name = zend_str_tolower_dup(ZSTR_VAL(class_name), ZSTR_LEN(class_name));
+    size_t class_name_len = ZSTR_LEN(class_name);
+    char *lc_class_name = zend_str_tolower_dup(ZSTR_VAL(class_name), class_name_len);
 
-    /* If the class 'xx' not found */
-    if (!ct_cache || (ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, ZSTR_LEN(class_name))) == NULL) {
+    /* Find the class name 'lc_class_name' for self::$_finder */
+    zval *fret = NULL, *finder = NULL;
+    finder = zend_read_static_property(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_FINDER), 1);
+    if (Z_TYPE_P(finder) == IS_ARRAY && (fret = zend_hash_str_find(Z_ARRVAL_P(finder), lc_class_name, class_name_len)) != NULL) {
+        efree(lc_class_name);
+        ZVAL_COPY(return_value, fret);
+        return;
+    }
+
+    /* Find the symbol table first, Then go to loading the PHP file by rule. */
+    if ((ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, class_name_len)) == NULL) {
         zval zclass_name, zmodule_name, ret;
 
         ZVAL_STR_COPY(&zclass_name, class_name);
+        
         ZVAL_NULL(&zmodule_name);
-
         if (UNEXPECTED(module_name && !asf_func_isempty(ZSTR_VAL(module_name)))) {
             ZVAL_STR_COPY(&zmodule_name, module_name);
         }
@@ -418,18 +426,24 @@ PHP_METHOD(asf_loader, get)
         zval_ptr_dtor(&zmodule_name);
 
         if (Z_TYPE(ret) == IS_TRUE) {
-            ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, ZSTR_LEN(class_name));
+            ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, class_name_len);
         } else {
-            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s.php", ZSTR_VAL(class_name));
+            /* Throw error message */
+            if (module_name) {
+                asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "(No such file OR Class does not exist) %s/%s/%s.php",
+                        ZSTR_VAL(ASF_G(root_path)), ZSTR_VAL(module_name), ZSTR_VAL(class_name));
+            } else {
+                asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "(No such file OR Class does not exist) %s/%s.php",
+                        ZSTR_VAL(ASF_G(root_path)), ZSTR_VAL(class_name));
+            }
             efree(lc_class_name);
             return;
         }
     }
 
-    efree(lc_class_name);
-
-    if (!ce) {
-        asf_trigger_error(ASF_ERR_LOADER_FAILED, "Class '%s' not found", ZSTR_VAL(class_name));
+    /* Prevent accidents */
+    if (UNEXPECTED(!ce)) {
+        asf_trigger_error(ASF_ERR_LOADER_FAILED, "Class '%s' happened accident", ZSTR_VAL(class_name));
         return;
     }
 
@@ -442,6 +456,20 @@ PHP_METHOD(asf_loader, get)
             zend_call_method_with_0_params(return_value, ce, NULL, ZEND_CONSTRUCTOR_FUNC_NAME, NULL);
         }
     }
+    
+    /* Store instantiated object */
+    if (Z_ISNULL_P(finder)) {
+        zval executor;
+        array_init(&executor);
+        zend_hash_str_add_new(Z_ARRVAL(executor), lc_class_name, class_name_len, return_value);
+        zend_update_static_property(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_FINDER), &executor);
+        zval_ptr_dtor(&executor);
+    } else {
+        zend_hash_str_add_new(Z_ARRVAL_P(finder), lc_class_name, class_name_len, return_value);
+    }
+
+    efree(lc_class_name);
+    Z_TRY_ADDREF_P(return_value);
 }
 /* }}} */
 
@@ -460,6 +488,7 @@ ASF_LOADER_METHOD(dao, 3);
 PHP_METHOD(asf_loader, clean)
 {
     zend_string *class_name = NULL;
+    _Bool ret = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &class_name) == FAILURE) {
         return;
@@ -471,15 +500,18 @@ PHP_METHOD(asf_loader, clean)
     }
 
     zend_string *lc_class_name = zend_string_tolower(class_name);
+    
+    zval *finder = zend_read_static_property(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_FINDER), 1);
+    if (Z_TYPE_P(finder) == IS_ARRAY && zend_hash_del(Z_ARRVAL_P(finder), lc_class_name) == SUCCESS) {
+        ret = 1;
+    }
 
-    if (zend_hash_exists(EG(class_table), lc_class_name) &&
-            zend_hash_del(EG(class_table), lc_class_name) == SUCCESS) {
-        zend_string_release(lc_class_name);
-        RETURN_TRUE;
+    if (zend_hash_exists(EG(class_table), lc_class_name) && zend_hash_del(EG(class_table), lc_class_name) == SUCCESS) {
+        ret = 1;
     }
 
     zend_string_release(lc_class_name);
-    RETURN_FALSE;
+    RETURN_BOOL(ret);
 }
 /* }}} */
 
@@ -567,6 +599,15 @@ PHP_METHOD(asf_loader, __construct)
 }
 /* }}} */
 
+/* {{{ proto private Asf_Loader::getFinders(void)
+*/
+PHP_METHOD(asf_loader, getFinders)
+{
+    ZVAL_COPY(return_value, zend_read_static_property(asf_loader_ce,
+                ZEND_STRL(ASF_LOADER_PROPERTY_NAME_FINDER), 1));
+}
+/* }}} */
+
 /* {{{ proto private Asf_Loader::__clone(void)
 */
 PHP_METHOD(asf_loader, __clone)
@@ -586,6 +627,7 @@ zend_function_entry asf_loader_methods[] = {
     PHP_ME(asf_loader, import,      asf_loader_import_arginfo,      ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_loader, getInstance, asf_loader_getintance_arginfo,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_loader, autoload,    asf_loader_autoloader_arginfo,  ZEND_ACC_PUBLIC)
+    PHP_ME(asf_loader, getFinders,  NULL,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_FE_END
 };
 /* }}} */
@@ -595,6 +637,7 @@ ASF_INIT_CLASS(loader) /* {{{ */
     ASF_REGISTER_CLASS_PARENT(asf_loader, Asf_Loader, Asf\\Loader, ZEND_ACC_FINAL);
 
     zend_declare_property_null(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_INSTANCE), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
+    zend_declare_property_null(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_FINDER), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
     zend_declare_property_null(asf_loader_ce, ZEND_STRL(ASF_LOADER_LIBRARY_DIRECTORY_NAME), ZEND_ACC_PROTECTED);
 
     return SUCCESS;

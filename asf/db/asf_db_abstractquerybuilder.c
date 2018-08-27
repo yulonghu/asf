@@ -299,6 +299,11 @@ PHP_METHOD(asf_db_absqb, whereIn)
         return;
     }
 
+    if (zend_hash_num_elements(Z_ARRVAL_P(value)) < 1) {
+        asf_trigger_error(ASF_ERR_DB_QB, "The second parameter is array elements and more than zero");
+        return;
+    }
+
     self = getThis();
     (void)asf_db_absqb_start(self, &sql, &bind_value, &where);
 
