@@ -147,7 +147,7 @@ _Bool asf_internal_autoload(char *file_name, size_t name_len, char **root_path) 
 
     root_path_len = ZSTR_LEN(buf.s);
 
-    /* aussume all the path is not end in slash */
+    /* Assume all the path is not end in slash */
     smart_str_appendc(&buf, DEFAULT_SLASH);
 
     p = file_name;
@@ -170,12 +170,15 @@ _Bool asf_internal_autoload(char *file_name, size_t name_len, char **root_path) 
     smart_str_appendl(&buf, ".php", 4);
     smart_str_0(&buf);
 
-    /* all path changeto lowercase */
+    /* All path changeto lowercase */
     if (ASF_G(lowcase_path)) {
         zend_str_tolower(ZSTR_VAL(buf.s) + root_path_len, ZSTR_LEN(buf.s) - root_path_len);
     }
 
     status = asf_loader_import(buf.s, NULL); 
+    if (!status) {
+        asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s", ZSTR_VAL(buf.s));
+    }
     smart_str_free(&buf);
 
     return status;
@@ -211,16 +214,16 @@ PHP_METHOD(asf_loader, autoload)
         return;
     }
 
-    /* specified module name */
+    /* Specified module name */
     if (UNEXPECTED(module_name && !asf_func_isempty(ZSTR_VAL(module_name)))) {
         spprintf(&root_path_route, 0,
                 "%s%c%s", ZSTR_VAL(ASF_G(root_path)), DEFAULT_SLASH, ZSTR_VAL(module_name));
         is_path_efree = 1;
     } else {
-    /* usually */
+        /* Usually */
         if (ASF_G(root_path_route)) {
             root_path_route = ZSTR_VAL(ASF_G(root_path_route));
-        } else if (ASF_G(root_path)) {
+        } else if (ASF_G(root_path)) { /* Call from Bootstrap */
             is_path_efree = 1;
             spprintf(&root_path_route, 0,
                     "%s%c%s", ZSTR_VAL(ASF_G(root_path)), DEFAULT_SLASH, ASF_API_NAME);
@@ -304,18 +307,8 @@ PHP_METHOD(asf_loader, autoload)
     } while (0);
     /* }}} */
 
-    char *lower_case_name = zend_str_tolower_dup(origin_classname, class_name_len);
+    ret = asf_internal_autoload(file_name, file_name_len, &root_path_rel);
 
-    if (asf_internal_autoload(file_name, file_name_len, &root_path_rel) &&
-            zend_hash_str_exists(EG(class_table), lower_case_name, class_name_len)) {
-        efree(lower_case_name);
-        goto output;
-    }
-
-    ret = 0;
-    efree(lower_case_name);
-
-output:
     if (root_path_rel) {
         efree(root_path_rel);
     }
@@ -420,30 +413,20 @@ PHP_METHOD(asf_loader, get)
             ZVAL_STR_COPY(&zmodule_name, module_name);
         }
 
-        zend_call_method_with_2_params(instance, Z_OBJCE_P(instance), NULL, "autoload", &ret, &zclass_name, &zmodule_name);
+        zend_call_method_with_2_params(instance, Z_OBJCE_P(instance), NULL, ASF_AUTOLOAD_FUNC_NAME, &ret, &zclass_name, &zmodule_name);
 
         zval_ptr_dtor(&zclass_name);
         zval_ptr_dtor(&zmodule_name);
 
         if (Z_TYPE(ret) == IS_TRUE) {
             ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, class_name_len);
-        } else {
-            /* Throw error message */
-            if (module_name) {
-                asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "(No such file OR Class does not exist) %s/%s/%s.php",
-                        ZSTR_VAL(ASF_G(root_path)), ZSTR_VAL(module_name), ZSTR_VAL(class_name));
-            } else {
-                asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "(No such file OR Class does not exist) %s/%s.php",
-                        ZSTR_VAL(ASF_G(root_path)), ZSTR_VAL(class_name));
-            }
-            efree(lc_class_name);
-            return;
         }
     }
 
     /* Prevent accidents */
     if (UNEXPECTED(!ce)) {
-        asf_trigger_error(ASF_ERR_LOADER_FAILED, "Class '%s' happened accident", ZSTR_VAL(class_name));
+        efree(lc_class_name);
+        asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found", class_name);
         return;
     }
 
@@ -584,6 +567,7 @@ PHP_METHOD(asf_loader, getInstance)
     /* Make ensure this is first Instantiation */
     if (library_path && !ASF_G(root_path)) {
         ASF_G(root_path) = zend_string_copy(library_path);
+        ASF_G(root_path_route) = zend_string_copy(library_path);
     }
 
     loader = asf_loader_instance(&rv, library_path);
@@ -599,7 +583,7 @@ PHP_METHOD(asf_loader, __construct)
 }
 /* }}} */
 
-/* {{{ proto private Asf_Loader::getFinders(void)
+/* {{{ proto public Asf_Loader::getFinders(void)
 */
 PHP_METHOD(asf_loader, getFinders)
 {

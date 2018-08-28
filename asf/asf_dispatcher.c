@@ -216,7 +216,6 @@ static inline zend_class_entry *asf_dispatcher_load_service(zend_string *service
 
     zend_class_entry *ce = NULL;
     char *filename = NULL;
-    uint ret = 0;
 
     zend_string *lc_class = strpprintf(0, "%s%s", ZSTR_VAL(service), "service"); 
 
@@ -233,18 +232,13 @@ static inline zend_class_entry *asf_dispatcher_load_service(zend_string *service
         *filename = toupper(*filename);
     }
 
-    if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL) {
-        ret = asf_internal_autoload(filename, strlen(filename), &path);
-        if (UNEXPECTED(!ret)) {
-            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s/%s.php", path, filename);
-            goto free_res;
-        } else if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL) {
+    if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL
+            && asf_internal_autoload(filename, strlen(filename), &path)) {
+        if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL) {
             asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found in %s/%s.php", ZSTR_VAL(lc_class), path, filename);
-            goto free_res;
         }
     }
 
-free_res:
     zend_string_release(lc_class);
     efree(path);
     efree(filename);
