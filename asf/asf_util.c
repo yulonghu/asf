@@ -156,6 +156,7 @@ static _Bool asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval
 
     if (http_ispost && http_data && Z_TYPE_P(http_data) == IS_STRING) {
         add_index_zval(&opts, 10015, http_data); /* CURLOPT_POSTFIELDS */
+        Z_TRY_ADDREF_P(http_data);
     } else {
         add_index_long(&opts, 80, 1); /* CURLOPT_HTTPGET */
     }
@@ -517,11 +518,13 @@ PHP_METHOD(asf_util, postUrl)
         zend_call_method_with_1_params(NULL, NULL, NULL, "http_build_query", &retval, data);
     }
 
+    if (Z_TYPE(retval) == IS_FALSE) {
+        RETURN_FALSE;
+    }
+
     (void)asf_util_request_url(url, 1, &retval, opts, return_value);
 
-    if (Z_TYPE(retval) == IS_STRING) {
-        zval_ptr_dtor(&retval);
-    }
+    zval_ptr_dtor(&retval);
 }
 /* }}} */
 
