@@ -426,7 +426,7 @@ PHP_METHOD(asf_loader, get)
     /* Prevent accidents */
     if (UNEXPECTED(!ce)) {
         efree(lc_class_name);
-        asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found", class_name);
+        asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found", ZSTR_VAL(class_name));
         return;
     }
 
