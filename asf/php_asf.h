@@ -74,6 +74,9 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_string *default_action;
 	zend_string *local_library;
 
+	/* Loader */
+	char *last_load_err_full_path;
+
     /* router */
 	zval		modules;
 	zval		*route;

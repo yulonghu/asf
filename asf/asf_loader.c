@@ -176,9 +176,19 @@ _Bool asf_internal_autoload(char *file_name, size_t name_len, char **root_path) 
     }
 
     status = asf_loader_import(buf.s, NULL); 
+    /** 
+     *  Don't open the comment, it will interrupt spl_autoload_register. 2018-09-04
+     *  if (!status) {
+     *      asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s", ZSTR_VAL(buf.s));
+     *  }
+     */
     if (!status) {
-        asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s", ZSTR_VAL(buf.s));
+        if (ASF_G(last_load_err_full_path)) { /* If not found php file, spl_autoload_register execute other autoload */
+            efree(ASF_G(last_load_err_full_path));
+        }
+        ASF_G(last_load_err_full_path) = estrndup(ZSTR_VAL(buf.s), ZSTR_LEN(buf.s));
     }
+
     smart_str_free(&buf);
 
     return status;
@@ -420,13 +430,17 @@ PHP_METHOD(asf_loader, get)
 
         if (Z_TYPE(ret) == IS_TRUE) {
             ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, class_name_len);
+        } else if (ASF_G(last_load_err_full_path)) {
+            efree(lc_class_name);
+            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s", ASF_G(last_load_fullpath));
+            return;
         }
     }
 
     /* Prevent accidents */
     if (UNEXPECTED(!ce)) {
         efree(lc_class_name);
-        asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found", ZSTR_VAL(class_name));
+        asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found in %s", ZSTR_VAL(class_name), ASF_G(last_load_err_full_path));
         return;
     }
 

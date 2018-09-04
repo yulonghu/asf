@@ -216,6 +216,11 @@ PHP_RSHUTDOWN_FUNCTION(asf)
     /* Reset debug_dump */
     ASF_G(debug_dump) = 0;
 
+    /* Loader */
+    if (ASF_G(last_load_err_full_path)) {
+        efree(ASF_G(last_load_err_full_path));
+    }
+
     return SUCCESS;
 }
 /* }}} */
