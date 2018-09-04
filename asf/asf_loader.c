@@ -430,9 +430,9 @@ PHP_METHOD(asf_loader, get)
 
         if (Z_TYPE(ret) == IS_TRUE) {
             ce = zend_hash_str_find_ptr(EG(class_table), lc_class_name, class_name_len);
-        } else if (ASF_G(last_load_err_full_path)) {
+        } else {
             efree(lc_class_name);
-            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s", ASF_G(last_load_fullpath));
+            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "No such file %s", ASF_G(last_load_err_full_path));
             return;
         }
     }

@@ -28,7 +28,7 @@ class IndexService
 
         try {
             new a();
-        } catch (Exception $e) {
+        } catch (Error $e) {
             var_dump($e->getMessage());
         }   
     }   

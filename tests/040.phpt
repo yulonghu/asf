@@ -21,7 +21,7 @@ class IndexService
     {
         try {
             new IndexLogic();
-        } catch (Exception \$e) {
+        } catch (Error \$e) {
             var_dump(\$e->getMessage());
         }
     }
