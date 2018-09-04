@@ -425,6 +425,9 @@ PHP_METHOD(asf_loader, get)
 
         zend_call_method_with_2_params(instance, Z_OBJCE_P(instance), NULL, ASF_AUTOLOAD_FUNC_NAME, &ret, &zclass_name, &zmodule_name);
 
+        /* If used 'new ClassName()' method and Z_TYPE(ret) == IS_FALSE, spl_autoload_register will execute next autoload.
+           When the execution completes all autoloads, Still not found PHP file, PHP will throw Exception. (Interrupt program)
+        */
         zval_ptr_dtor(&zclass_name);
         zval_ptr_dtor(&zmodule_name);
 
