@@ -185,6 +185,7 @@ _Bool asf_internal_autoload(char *file_name, size_t name_len, char **root_path) 
     if (!status) {
         if (ASF_G(last_load_err_full_path)) { /* If not found php file, spl_autoload_register execute other autoload */
             efree(ASF_G(last_load_err_full_path));
+            ASF_G(last_load_err_full_path) = NULL;
         }
         ASF_G(last_load_err_full_path) = estrndup(ZSTR_VAL(buf.s), ZSTR_LEN(buf.s));
     }
@@ -342,7 +343,8 @@ PHP_METHOD(asf_loader, autoload)
 _Bool asf_loader_import(zend_string *path, zval *return_value_ptr) /* {{{ */
 {
     zend_file_handle file_handle;
-    zend_op_array 	*op_array = NULL;
+    zend_op_array *op_array = NULL;
+    zval dummy;
     _Bool ret = 1;
 
     if (UNEXPECTED(php_stream_open_for_zend_ex(ZSTR_VAL(path), &file_handle, USE_PATH|STREAM_OPEN_FOR_INCLUDE) != SUCCESS)) {
@@ -353,9 +355,13 @@ _Bool asf_loader_import(zend_string *path, zval *return_value_ptr) /* {{{ */
         file_handle.opened_path = zend_string_init(ZSTR_VAL(path), ZSTR_LEN(path), 0);
     }
 
-    zend_hash_add_empty_element(&EG(included_files), file_handle.opened_path);
-    op_array = zend_compile_file(&file_handle, ZEND_INCLUDE);
-    zend_destroy_file_handle(&file_handle);
+    ZVAL_NULL(&dummy);
+    if(zend_hash_add(&EG(included_files), file_handle.opened_path, &dummy)) {
+        op_array = zend_compile_file(&file_handle, ZEND_INCLUDE);
+        zend_destroy_file_handle(&file_handle);
+    } else {
+        zend_file_handle_dtor(&file_handle);
+    }
 
     if (op_array) {
         zval result;

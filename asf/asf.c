@@ -135,6 +135,7 @@ PHP_RINIT_FUNCTION(asf)
     ASF_G(default_module)   = zend_string_init(ASF_API_NAME, ASF_API_LEN, 0);
     ASF_G(default_service)  = zend_string_init("index", 5, 0);
     ASF_G(default_action)   = zend_string_init("index", 5, 0);
+    ASF_G(last_load_err_full_path) = NULL;
 
     return SUCCESS;
 }
