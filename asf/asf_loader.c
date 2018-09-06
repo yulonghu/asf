@@ -351,17 +351,12 @@ _Bool asf_loader_import(zend_string *path, zval *return_value_ptr) /* {{{ */
         return 0;
     }
 
-    if (!file_handle.opened_path) {
-        file_handle.opened_path = zend_string_init(ZSTR_VAL(path), ZSTR_LEN(path), 0);
+    op_array = zend_compile_file(&file_handle, ZEND_INCLUDE);
+    if (op_array) {
+        ZVAL_NULL(&dummy);
+        zend_hash_add(&EG(included_files), path, &dummy);
     }
-
-    ZVAL_NULL(&dummy);
-    if(zend_hash_add(&EG(included_files), file_handle.opened_path, &dummy)) {
-        op_array = zend_compile_file(&file_handle, ZEND_INCLUDE);
-        zend_destroy_file_handle(&file_handle);
-    } else {
-        zend_file_handle_dtor(&file_handle);
-    }
+    zend_destroy_file_handle(&file_handle);
 
     if (op_array) {
         zval result;
