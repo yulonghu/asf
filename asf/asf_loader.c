@@ -86,6 +86,21 @@ ZEND_BEGIN_ARG_INFO_EX(asf_loader_getintance_arginfo, 0, 0, 1)
 ZEND_END_ARG_INFO()
 /* }}} */
 
+static inline void asf_loader_clean_interfaces_traits(zend_class_entry **ce, uint32_t num) /* {{{ */
+{
+    uint i = 0;
+    zend_string *lc_name = NULL;
+
+    while (i < num) {
+        lc_name = zend_string_tolower(ce[i]->name);
+        zend_hash_del(EG(class_table), lc_name);
+        zend_string_release(lc_name);
+        lc_name = NULL;
+        ++i;
+    }
+}
+/* }}} */
+
 asf_loader_t *asf_loader_instance(zval *this_ptr, zend_string *library_path) /* {{{ */
 {
     zval *instance = NULL;
@@ -485,11 +500,10 @@ ASF_LOADER_METHOD(dao, 3);
 /* }}} */
 
 /* {{{ proto bool Asf_Loader::clean(string $class_name)
-*/
+    Clean related class(ZEND_ACC_INTERFACE | ZEND_ACC_TRAIT | ZEND_ACC_EXPLICIT_ABSTRACT_CLASS | ZEND_ACC_IMPLICIT_ABSTRACT_CLASS) */
 PHP_METHOD(asf_loader, clean)
 {
     zend_string *class_name = NULL;
-    _Bool ret = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &class_name) == FAILURE) {
         return;
@@ -500,19 +514,38 @@ PHP_METHOD(asf_loader, clean)
         return;
     }
 
+    zend_class_entry *ce = NULL;
     zend_string *lc_class_name = zend_string_tolower(class_name);
-    
     zval *finder = zend_read_static_property(asf_loader_ce, ZEND_STRL(ASF_LOADER_PROPERTY_NAME_FINDER), 1);
-    if (Z_TYPE_P(finder) == IS_ARRAY && zend_hash_del(Z_ARRVAL_P(finder), lc_class_name) == SUCCESS) {
-        ret = 1;
+
+    if ((ce = zend_hash_find_ptr(EG(class_table), lc_class_name)) == NULL) {
+        zend_string_release(lc_class_name);
+        RETURN_FALSE;
     }
 
-    if (zend_hash_exists(EG(class_table), lc_class_name) && zend_hash_del(EG(class_table), lc_class_name) == SUCCESS) {
-        ret = 1;
+    if (ce->num_interfaces) {
+        (void)asf_loader_clean_interfaces_traits(ce->interfaces, ce->num_interfaces);
     }
 
-    zend_string_release(lc_class_name);
-    RETURN_BOOL(ret);
+    if (ce->num_traits) {
+        (void)asf_loader_clean_interfaces_traits(ce->traits, ce->num_traits);
+    }
+
+    do {
+        if (Z_TYPE_P(finder) == IS_ARRAY) {
+            zend_hash_del(Z_ARRVAL_P(finder), lc_class_name);
+        }
+        zend_hash_del(EG(class_table), lc_class_name);
+        zend_string_release(lc_class_name);
+
+        if (!ce->parent) {
+            break;
+        } else {
+            lc_class_name = zend_string_tolower(ce->parent->name);
+        }
+    } while ((ce = zend_hash_find_ptr(EG(class_table), lc_class_name)));
+
+    RETURN_TRUE;
 }
 /* }}} */
 
