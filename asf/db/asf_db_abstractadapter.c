@@ -509,6 +509,9 @@ PHP_METHOD(asf_absadapter, update)
             add_next_index_zval(&values, entry);
 
         } ZEND_HASH_FOREACH_END();
+    } else {
+        /* No update condition */
+        smart_str_appendl(&w_columns, "1 = 1", 5);   
     }
 
     if (limit && !asf_db_is_sqlite(self)) {
