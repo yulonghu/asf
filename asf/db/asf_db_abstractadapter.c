@@ -444,18 +444,21 @@ PHP_METHOD(asf_absadapter, update)
 {
     zval *data = NULL, *condition = NULL;
     zend_bool limit = 0;
+    size_t size_1 = 0, size_2 = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "a|ab", &data, &condition, &limit) == FAILURE) {
         return;
     }
 
-    size_t size_1 = zend_hash_num_elements(Z_ARRVAL_P(data));
+    size_1 = zend_hash_num_elements(Z_ARRVAL_P(data));
     if (size_1 < 1) {
         asf_trigger_error(ASF_ERR_DB_SET_COLUMN, "The first parameter is array elements and more than zero");
         return;
     }
 
-    size_t size_2 = zend_hash_num_elements(Z_ARRVAL_P(condition));
+    if (condition) {
+        size_2 = zend_hash_num_elements(Z_ARRVAL_P(condition));
+    }
 
     char *sql = NULL;
     zval zmn_1, values, *entry = NULL, args[2], *self = getThis(), *table = NULL;
@@ -508,7 +511,7 @@ PHP_METHOD(asf_absadapter, update)
         } ZEND_HASH_FOREACH_END();
     }
 
-    if (limit && size_2 && !asf_db_is_sqlite(self)) {
+    if (limit && !asf_db_is_sqlite(self)) {
         smart_str_appendl(&w_columns, " LIMIT 1", 8);
     }
 
