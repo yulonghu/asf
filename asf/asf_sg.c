@@ -78,7 +78,7 @@ static inline zval *asf_sg_strtok_get(HashTable *vars, zend_string *name) /* {{{
 }
 /* }}} */
 
-void asf_sg_instance(asf_sg_t *this_ptr) /* {{{ */
+void asf_sg_instance() /* {{{ */
 {
     zval regs;
 
@@ -95,9 +95,9 @@ void asf_sg_instance(asf_sg_t *this_ptr) /* {{{ */
 
     HashTable *ht = Z_ARRVAL(regs);
 
-    zend_hash_str_update(ht, "get",     3, get);
-    zend_hash_str_update(ht, "post",    4, post);
-    zend_hash_str_update(ht, "cookie",  6, cookie);
+    zend_hash_str_add_new(ht, "get",     3, get);
+    zend_hash_str_add_new(ht, "post",    4, post);
+    zend_hash_str_add_new(ht, "cookie",  6, cookie);
     
     zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), &regs);
     zval_ptr_dtor(&regs);

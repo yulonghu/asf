@@ -31,29 +31,6 @@
 
 zend_class_entry *asf_route_query_ce;
 
-static void asf_router_parse_parameters_query(zval *params) /* {{{ */
-{
-	HashTable *get_ht = NULL;
-	zval *pzval  = NULL;
-	zend_string *key = NULL;
-	zval value;
-
-	array_init(params);
-	get_ht = Z_ARRVAL_P(&PG(http_globals)[TRACK_VARS_GET]);
-
-	ZEND_HASH_FOREACH_STR_KEY_VAL(get_ht, key, pzval) {
-		if (!key) {
-			continue;
-		}
-
-		ZVAL_DEREF(pzval);
-		Z_TRY_ADDREF_P(pzval);
-		zend_hash_update(Z_ARRVAL_P(params), key, pzval);
-
-	} ZEND_HASH_FOREACH_END();
-}
-/* }}} */
-
 int asf_route_query_set(asf_http_req_t *request, zval *module, zval *service, zval *action) /* {{{ */
 {
 	zend_class_entry *req_ce = Z_OBJCE_P(request);
@@ -73,10 +50,28 @@ int asf_route_query_set(asf_http_req_t *request, zval *module, zval *service, zv
 		zend_update_property(req_ce, request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), action);
 	}
 
+    /* request->getParam(), request->getParams() */
 	zval params;
-	(void)asf_router_parse_parameters_query(&params);
+    HashTable *get_ht = NULL;
+	zval *pzval  = NULL;
+	zend_string *key = NULL;
+
+	array_init(&params);
+	get_ht = Z_ARRVAL_P(&PG(http_globals)[TRACK_VARS_GET]);
+
+	ZEND_HASH_FOREACH_STR_KEY_VAL(get_ht, key, pzval) {
+		if (!key) {
+			continue;
+		}
+
+		ZVAL_DEREF(pzval);
+		Z_TRY_ADDREF_P(pzval);
+		zend_hash_update(Z_ARRVAL(params), key, pzval);
+
+	} ZEND_HASH_FOREACH_END();
+
 	(void)asf_http_req_set_params_multi(request, &params);
-	zval_ptr_dtor(&params);
+    zval_ptr_dtor(&params);
 
 	return 1;
 }

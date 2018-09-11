@@ -116,7 +116,8 @@ _Bool asf_route_pathinfo_run(asf_route_t *route, asf_http_req_t *request) /* {{{
 #define strip_slashs(p) while (*p == ' ' || *p == '/') { ++p; }
         
 		char *uri = ZSTR_VAL(req_uri);
-        char *a, *b = NULL;
+        register char *a = NULL;
+        register char *b = NULL;
 
         a = uri;
 		strip_slashs(a);

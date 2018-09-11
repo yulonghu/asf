@@ -180,7 +180,7 @@ static _Bool asf_application_merge_config(zval *zconfig) /* {{{ */
 
 static _Bool asf_application_instance(zval *self, zval *config, zval *section) /* {{{ */
 {
-    zval zconfig = {{0}},     zrequest = {{0}}, zsg = {{0}};
+    zval zconfig = {{0}},     zrequest = {{0}};
     zval zdispatcher = {{0}}, zloader = {{0}};
 
     (void)asf_absconfig_instance(&zconfig, config, section);
@@ -209,7 +209,7 @@ static _Bool asf_application_instance(zval *self, zval *config, zval *section) /
     zval_ptr_dtor(&zrequest);
     zval_ptr_dtor(&zdispatcher);
 
-    (void)asf_sg_instance(&zsg);
+    (void)asf_sg_instance();
 
     if (ASF_G(local_library)) {
         (void)asf_loader_instance(&zloader, ASF_G(local_library));

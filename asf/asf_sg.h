@@ -21,7 +21,7 @@
 
 #define ASF_SG_PRONAME_VAR  "inputs"
 
-void asf_sg_instance(asf_sg_t *this_ptr);
+void asf_sg_instance();
 
 extern zend_class_entry *asf_sg_ce;
 

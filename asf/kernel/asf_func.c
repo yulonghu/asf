@@ -105,7 +105,7 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
 }
 /* }}} */
 
-void asf_func_shutdown_buffer(_Bool exception) /* {{{ */
+void asf_func_shutdown_buffer(_Bool free_buffer) /* {{{ */
 {
     zend_string *key = NULL;
     zval *entry_1 = NULL, *entry_2 = NULL;
@@ -114,15 +114,12 @@ void asf_func_shutdown_buffer(_Bool exception) /* {{{ */
 
     HashTable *ht = Z_ARRVAL(ASF_G(log_buffer));
 
+    /* ['file_path1' =>  [xx, yyy], 'file_path2' => [xxx, yyy]] */
     ZEND_HASH_FOREACH_STR_KEY_VAL(ht, key, entry_1) {
-        if (!key || IS_ARRAY != Z_TYPE_P(entry_1)) {
+        if (NULL == (stream = asf_func_fopen(ZSTR_VAL(key), ZSTR_LEN(key), NULL, 0))) {
             continue;
         }
-
-        if (NULL == (stream = asf_func_fopen(ZSTR_VAL(key), ZSTR_LEN(key), NULL, exception))) {
-            continue;
-        }
-
+        
         if (zend_hash_num_elements(Z_ARRVAL_P(entry_1)) == 1) { 
             ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(entry_1), entry_2) {
                 php_stream_write(stream, Z_STRVAL_P(entry_2), Z_STRLEN_P(entry_2));
@@ -141,8 +138,10 @@ void asf_func_shutdown_buffer(_Bool exception) /* {{{ */
         stream = NULL;
     } ZEND_HASH_FOREACH_END();
 
-    zval_ptr_dtor(&ASF_G(log_buffer));
-    ZVAL_UNDEF(&ASF_G(log_buffer));
+    if (free_buffer) {
+        zval_ptr_dtor(&ASF_G(log_buffer));
+        ZVAL_UNDEF(&ASF_G(log_buffer));
+    }
 }
 /* }}} */
 

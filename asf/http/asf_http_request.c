@@ -38,7 +38,7 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
 {
     zval params;
     zend_string *settled_uri = NULL;
-    char *method = NULL;
+    char *method = NULL; uint method_len = 0;
     zval *uri = NULL;
 
     if (Z_ISUNDEF_P(this_ptr)) {
@@ -50,14 +50,17 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
     zend_update_property_str(asf_http_request_ce, this_ptr, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), ASF_G(default_action));
 
     if (SG(request_info).request_method) {
-        method = estrndup((char *)SG(request_info).request_method, strlen((char *)SG(request_info).request_method));
+        method_len = strlen((char *)SG(request_info).request_method);
+        method = estrndup((char *)SG(request_info).request_method, method_len);
     } else if (strncmp(sapi_module.name, "cli", 3) == 0) {
-        method = estrndup(sapi_module.name, strlen(sapi_module.name));
+        method_len = strlen(sapi_module.name);
+        method = estrndup(sapi_module.name, method_len);
     } else {
-        method = estrndup("unkonw", 6);
+        method_len = 6;
+        method = estrndup("unkonw", method_len);
     }
 
-    zend_update_property_string(asf_http_request_ce, this_ptr, ZEND_STRL(ASF_HTTP_REQ_PRONAME_METHOD), method);
+    zend_update_property_stringl(asf_http_request_ce, this_ptr, ZEND_STRL(ASF_HTTP_REQ_PRONAME_METHOD), method, method_len);
     efree(method);
 
     do {
@@ -69,7 +72,7 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
 #ifdef PHP_WIN32
         zval *rewrited = NULL;
         /* check this first so IIS will catch */
-        uri = asf_http_req_pg_find_len(_SERVER, "HTTP_X_REWRITE_URL", sizeof("HTTP_X_REWRITE_URL") - 1);
+        uri = asf_http_req_pg_find_len(TRACK_VARS_SERVER, "HTTP_X_REWRITE_URL", sizeof("HTTP_X_REWRITE_URL") - 1);
         if (uri) {
             if (EXPECTED(Z_TYPE_P(uri) == IS_STRING))  {
                 settled_uri = zend_string_copy(Z_STR_P(uri));
@@ -92,26 +95,24 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
         }
 #endif
         uri = asf_http_req_pg_find_len(TRACK_VARS_SERVER, "REQUEST_URI", sizeof("REQUEST_URI") - 1);
-        if (uri) {
-            if (EXPECTED(Z_TYPE_P(uri) == IS_STRING)) {
-                /* Http proxy reqs setup request uri with scheme and host [and port] + the url path,
-                 * only use url path */
-                if (strncasecmp(Z_STRVAL_P(uri), "http", sizeof("http") - 1) == 0) {
-                    php_url *url_info = php_url_parse_ex(Z_STRVAL_P(uri), Z_STRLEN_P(uri));
-                    if (url_info && url_info->path) {
-                        settled_uri = zend_string_init(url_info->path, strlen(url_info->path), 0);
-                    }
-                    php_url_free(url_info);
-                } else {
-                    char *pos = NULL;
-                    if ((pos = strstr(Z_STRVAL_P(uri), "?"))) {
-                        settled_uri = zend_string_init(Z_STRVAL_P(uri), pos - Z_STRVAL_P(uri), 0);
-                    } else {
-                        settled_uri = zend_string_copy(Z_STR_P(uri));
-                    }
+        if (uri && EXPECTED(Z_TYPE_P(uri) == IS_STRING)) {
+            /* Http proxy reqs setup request uri with scheme and host [and port] + the url path,
+             * only use url path */
+            if (strncasecmp(Z_STRVAL_P(uri), "http", sizeof("http") - 1) == 0) {
+                php_url *url_info = php_url_parse_ex(Z_STRVAL_P(uri), Z_STRLEN_P(uri));
+                if (url_info && url_info->path) {
+                    settled_uri = zend_string_init(url_info->path, strlen(url_info->path), 0);
                 }
-                break;
+                php_url_free(url_info);
+            } else {
+                char *pos = NULL;
+                if ((pos = strstr(Z_STRVAL_P(uri), "?"))) {
+                    settled_uri = zend_string_init(Z_STRVAL_P(uri), pos - Z_STRVAL_P(uri), 0);
+                } else {
+                    settled_uri = zend_string_copy(Z_STR_P(uri));
+                }
             }
+            break;
         }
 
         uri = asf_http_req_pg_find_len(TRACK_VARS_SERVER, "PATH_INFO", sizeof("PATH_INFO") - 1);
@@ -128,14 +129,16 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
     } while (0);
 
     if (settled_uri) {
-        char *p = ZSTR_VAL(settled_uri);
+        register char *p = ZSTR_VAL(settled_uri);
 
         while (*p == '/' && *(p + 1) == '/') {
             p++;
         }
 
         if (p != ZSTR_VAL(settled_uri)) {
+            zend_string *garbage = settled_uri;
             settled_uri = zend_string_init(p, ZSTR_LEN(settled_uri) - (p - ZSTR_VAL(settled_uri)), 0);
+            zend_string_release(garbage);
         }
 
         zend_update_property_str(asf_http_request_ce, this_ptr, ZEND_STRL(ASF_HTTP_REQ_PRONAME_URI), settled_uri);
