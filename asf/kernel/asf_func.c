@@ -31,11 +31,13 @@
 
 _Bool asf_func_isempty(const char *s) /* {{{ */
 {
-    while (*s != '\0') {
-        if (!isspace(*s)) {
+    register char *c = s;
+
+    while (*c != '\0') {
+        if (!isspace(*c)) {
             return 0;
         }
-        s++;
+        c++;
     }
     return 1;
 }
@@ -105,12 +107,16 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
 }
 /* }}} */
 
-void asf_func_shutdown_buffer(_Bool free_buffer) /* {{{ */
+_Bool asf_func_shutdown_buffer() /* {{{ */
 {
     zend_string *key = NULL;
     zval *entry_1 = NULL, *entry_2 = NULL;
     php_stream *stream = NULL;
     smart_str buf = {0};
+
+    if (!ASF_G(use_lcache) || IS_ARRAY != Z_TYPE(ASF_G(log_buffer))) {
+        return 0;
+    }
 
     HashTable *ht = Z_ARRVAL(ASF_G(log_buffer));
 
@@ -138,10 +144,10 @@ void asf_func_shutdown_buffer(_Bool free_buffer) /* {{{ */
         stream = NULL;
     } ZEND_HASH_FOREACH_END();
 
-    if (free_buffer) {
-        zval_ptr_dtor(&ASF_G(log_buffer));
-        ZVAL_UNDEF(&ASF_G(log_buffer));
-    }
+    zval_ptr_dtor(&ASF_G(log_buffer));
+    ZVAL_UNDEF(&ASF_G(log_buffer));
+
+    return 1;
 }
 /* }}} */
 

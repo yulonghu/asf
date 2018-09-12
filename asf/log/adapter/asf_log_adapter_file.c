@@ -256,13 +256,11 @@ PHP_METHOD(asf_log_adapter_file, close)
     In most cases on CLI mode */
 PHP_METHOD(asf_log_adapter_file, flushBuffer)
 {
-    if (!ASF_G(use_lcache) || IS_ARRAY != Z_TYPE(ASF_G(log_buffer))) {
-        RETURN_FALSE;
+    if(asf_func_shutdown_buffer()) {
+        RETURN_TRUE;
     }
 
-    (void)asf_func_shutdown_buffer(0);
-
-    RETURN_TRUE;
+    RETURN_FALSE;
 }
 /* }}} */
 

@@ -23,9 +23,8 @@
 #define ASF_FAST_STRING_PTR_DTOR(z) zend_string_release(Z_STR(z))
 
 _Bool asf_func_isempty(const char *s);
-
+_Bool asf_func_shutdown_buffer();
 void asf_func_set_cur_module(char *module);
-void asf_func_shutdown_buffer(_Bool exception);
 
 #define ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, need_refcount) { \
     ASF_FUNC_CALL_PHP_FUNC(this_ptr, "register_shutdown_function", "close", 5, NULL, need_refcount); \

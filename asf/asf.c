@@ -205,11 +205,6 @@ PHP_RSHUTDOWN_FUNCTION(asf)
 
     ASF_G(route) = NULL;
 
-    /* if use.lcache = 1, Exclude throw exception on open a file in PHP function set_exception_handler */
-    if (ASF_G(use_lcache) && IS_ARRAY == Z_TYPE(ASF_G(log_buffer))) {
-        (void)asf_func_shutdown_buffer(1);
-    }
-
     /* four */
     ASF_G(log_sql) = 0;
     ASF_G(log_err) = 0;
@@ -221,6 +216,9 @@ PHP_RSHUTDOWN_FUNCTION(asf)
     if (ASF_G(last_load_err_full_path)) {
         efree(ASF_G(last_load_err_full_path));
     }
+
+    /* Use Logger buffer */
+    (void)asf_func_shutdown_buffer();
 
     return SUCCESS;
 }
