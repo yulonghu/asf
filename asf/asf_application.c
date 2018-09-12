@@ -227,7 +227,7 @@ static _Bool asf_application_instance(zval *self, zval *config, zval *section) /
         return 0;
     }
 
-    if (ASF_G(log_err)) {
+    if (ASF_G(log_err) && ASF_G(log_path)) {
         ASF_FUNC_CALL_PHP_FUNC(self, "set_error_handler", "errorHandler", 12, NULL, 1);
         ASF_FUNC_CALL_PHP_FUNC(self, "set_exception_handler", "exceptionHandler", 16, NULL, 1);
     }
@@ -492,7 +492,7 @@ PHP_METHOD(asf_application, errorHandler)
         return;
     }
 
-    zval *zef = zend_read_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), 1, NULL);
+    zval *fname = zend_read_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), 1, NULL);
 
     switch (_0) {/*{{{*/
         case E_PARSE:
@@ -538,9 +538,7 @@ PHP_METHOD(asf_application, errorHandler)
         errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1);
     }
 
-    zval zlogger = {{0}};
-    (void)asf_log_adapter_create_file_handler(getThis(), &zlogger, Z_STRVAL_P(zef), Z_STRLEN_P(zef));
-    (void)asf_log_adapter_write_file(&zlogger, level, level_len, errmsg, errmsg_len);
+    (void)asf_log_adapter_write_file(Z_STRVAL_P(fname), Z_STRLEN_P(fname), level, level_len, errmsg, errmsg_len);
 
     efree(errmsg);
 

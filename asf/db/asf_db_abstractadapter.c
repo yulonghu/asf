@@ -184,10 +184,12 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
     zval_ptr_dtor(&pdo);
 
     /* create log handler */
+    /*
     if (ASF_G(log_sql)) {
         zval zlogger = {{0}};
         (void)asf_log_adapter_create_file_handler(this_ptr, &zlogger, "Asf_Sql_Log", 11);
     }
+    */
 
     return 1;
 }
@@ -325,16 +327,11 @@ static inline double asf_db_gettimeofday() /* {{{ */
 }
 /* }}} */
 
-static inline void asf_db_write_logsql(asf_db_t *db, zend_string *sql, zval *bind_values, double start_time) /* {{{ */
+static inline void asf_db_write_logsql(zend_string *sql, zval *bind_values, double start_time) /* {{{ */
 {
     php_serialize_data_t var_hash;
     smart_str ins = {0};
-    zval *logger = NULL; char *buffer = NULL; size_t size = 0;
-
-    logger = zend_read_property(Z_OBJCE_P(db), db, ZEND_STRL("_logh"), 1, NULL);
-    if (!logger || Z_ISNULL_P(logger)) {
-        return;
-    }
+    char *buffer = NULL; size_t size = 0;
 
     size = spprintf(&buffer, 0, "(%f) ", (double)((asf_db_gettimeofday() - start_time)));
     smart_str_appendl(&ins, buffer, size);
@@ -349,10 +346,11 @@ static inline void asf_db_write_logsql(asf_db_t *db, zend_string *sql, zval *bin
     }
 
     smart_str_0(&ins);
-    efree(buffer);
 
-    (void)asf_log_adapter_write_file(logger, "info", 4, ZSTR_VAL(ins.s), ZSTR_LEN(ins.s));
+    (void)asf_log_adapter_write_file("Asf_Sql_Log", 11, "info", 4, ZSTR_VAL(ins.s), ZSTR_LEN(ins.s));
+    
     smart_str_free(&ins);
+    efree(buffer);
 }
 /* }}} */
 
@@ -838,7 +836,9 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     }
 
     /* Only record the correct log */
-    (void)asf_db_write_logsql(self, sql, bind_value, start_time);
+    if (ASF_G(log_sql) && ASF_G(log_path)) {
+        (void)asf_db_write_logsql(sql, bind_value, start_time);
+    }
 
     if (ret_obj) {
         ZVAL_COPY_VALUE(return_value, &zret_1);
@@ -1256,7 +1256,7 @@ ASF_INIT_CLASS(db_abstractadapter) /* {{{ */
 
     zend_declare_property_null(asf_absadapter_ce, ZEND_STRL("_type"),  ZEND_ACC_PROTECTED);
     zend_declare_property_null(asf_absadapter_ce, ZEND_STRL("_dbh"),   ZEND_ACC_PROTECTED);
-    zend_declare_property_null(asf_absadapter_ce, ZEND_STRL("_logh"),  ZEND_ACC_PROTECTED);
+    //zend_declare_property_null(asf_absadapter_ce, ZEND_STRL("_logh"),  ZEND_ACC_PROTECTED);
     zend_declare_property_string(asf_absadapter_ce, ZEND_STRL("_table"), "", ZEND_ACC_PROTECTED);
     
     zend_declare_property_string(asf_absadapter_ce, ZEND_STRL("_sql"), "", ZEND_ACC_PROTECTED);

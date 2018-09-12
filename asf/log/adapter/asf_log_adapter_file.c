@@ -241,7 +241,6 @@ PHP_METHOD(asf_log_adapter_file, close)
     zval *self = getThis();
 
     zval *zstream = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_STREAM), 1, NULL);
-
     if (IS_RESOURCE == Z_TYPE_P(zstream)) {
         php_stream_from_zval(stream, zstream);
         ret = php_stream_close(stream);
@@ -256,11 +255,7 @@ PHP_METHOD(asf_log_adapter_file, close)
     In most cases on CLI mode */
 PHP_METHOD(asf_log_adapter_file, flushBuffer)
 {
-    if(asf_func_shutdown_buffer()) {
-        RETURN_TRUE;
-    }
-
-    RETURN_FALSE;
+    RETURN_BOOL(asf_func_shutdown_buffer());
 }
 /* }}} */
 
