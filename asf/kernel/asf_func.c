@@ -58,7 +58,7 @@ void asf_func_set_cur_module(char *module) /* {{{ */
 }
 /* }}} */
 
-php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpath, _Bool exception) /* {{{ */
+php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpath) /* {{{ */
 {
     zval exists_flag;
     char *dirname = NULL;
@@ -84,6 +84,7 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
     }
 
     if (!ret) {
+        asf_trigger_error(ASF_ERR_LOGGER_STREAM_ERROR, "Directory mkdir failed: %s", fpath);
         return NULL;
     }
 
@@ -99,7 +100,7 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
 
     php_stream *stream = php_stream_fopen(fpath, mode, NULL);
 
-    if (NULL == stream && !exception) {
+    if (NULL == stream) {
         asf_trigger_error(ASF_ERR_LOGGER_STREAM_ERROR, "File open failed: %s", fpath);
     }
 
@@ -122,7 +123,7 @@ _Bool asf_func_shutdown_buffer() /* {{{ */
 
     /* ['file_path1' =>  [xx, yyy], 'file_path2' => [xxx, yyy]] */
     ZEND_HASH_FOREACH_STR_KEY_VAL(ht, key, entry_1) {
-        if (NULL == (stream = asf_func_fopen(ZSTR_VAL(key), ZSTR_LEN(key), NULL, 0))) {
+        if (NULL == (stream = asf_func_fopen(ZSTR_VAL(key), ZSTR_LEN(key), NULL))) {
             continue;
         }
         

@@ -46,26 +46,6 @@ ZEND_BEGIN_ARG_INFO_EX(asf_log_adapter_inter_arginfo, 0, 0, 2)
 ZEND_END_ARG_INFO()
 /* }}}*/
 
-void asf_log_adapter_create_file_handler(zval *this_ptr, zval *return_value, const char *filename, uint filesize) /* {{{ */
-{
-    zval *logger = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL("_logh"), 1, NULL);
-
-    if (!Z_ISNULL_P((logger))) {
-        return_value = logger;
-        //ZVAL_COPY_VALUE(return_value, logger);
-        return;
-    }
-
-    zend_string *sql_name = zend_string_init(filename, filesize, 0);
-
-    (void)asf_log_adapter_file_instance(return_value, sql_name, NULL);
-    zend_update_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL("_logh"), return_value);
-
-    zval_ptr_dtor(return_value);
-    zend_string_release(sql_name);
-}
-/* }}} */
-
 void asf_log_adapter_write_file(const char *fname, size_t fname_len, const char *method, uint method_len, const char *msg, size_t msg_len) /* {{{ */
 {
     zval zmn_1, args[1], ret;
@@ -78,11 +58,11 @@ void asf_log_adapter_write_file(const char *fname, size_t fname_len, const char 
     zend_string *s_fname = zend_string_init(fname, fname_len, 0);
     (void)asf_log_adapter_file_instance(&logger, s_fname, NULL);
     
+    /* The ret result type is a boolean */
     call_user_function_ex(&Z_OBJCE(logger)->function_table, &logger, &zmn_1, &ret, 1, args, 1, NULL);
 
     ASF_FAST_STRING_PTR_DTOR(zmn_1);
     ASF_FAST_STRING_PTR_DTOR(args[0]);
-    zval_ptr_dtor(&ret);
     zend_string_release(s_fname);
     zval_ptr_dtor(&logger);
 }

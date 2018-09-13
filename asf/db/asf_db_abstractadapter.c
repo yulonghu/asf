@@ -183,14 +183,6 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
     zend_update_property(ce, this_ptr, ZEND_STRL("_dbh"), &pdo);
     zval_ptr_dtor(&pdo);
 
-    /* create log handler */
-    /*
-    if (ASF_G(log_sql)) {
-        zval zlogger = {{0}};
-        (void)asf_log_adapter_create_file_handler(this_ptr, &zlogger, "Asf_Sql_Log", 11);
-    }
-    */
-
     return 1;
 }
 /* }}} */

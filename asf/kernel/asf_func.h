@@ -49,7 +49,7 @@ void asf_func_set_cur_module(char *module);
     ASF_FAST_STRING_PTR_DTOR(zmn); \
 } while(0)
 
-php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpath, _Bool exception);
+php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpath);
 
 int asf_func_array_isset(const zval *arr, const zval *index);
 int asf_func_array_del(const zval *arr, const zval *index);

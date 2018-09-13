@@ -58,14 +58,17 @@ void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_nam
         object_init_ex(this_ptr, asf_log_adapter_file_ce);
     }
 
-    if (!ASF_G(log_path) && !file_path) {
+    zend_string *s_path = file_path ? file_path : ASF_G(log_path);
+
+    if (!s_path) {
         asf_trigger_error(ASF_ERR_NOTFOUND_LOGGER_PATH, "Parameter 'file_path/asf.log_path' must be a string");
         return;
     }
 
     zend_update_property_str(asf_log_adapter_file_ce, this_ptr
-            , ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_PATH), file_path ? file_path : ASF_G(log_path));
-    zend_update_property_str(asf_log_adapter_file_ce, this_ptr, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_NAME), file_name);
+            , ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_PATH), s_path);
+    zend_update_property_str(asf_log_adapter_file_ce, this_ptr
+            , ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_NAME), file_name);
 
     /* load local file */
     if (!ASF_G(use_lcache)) {
@@ -74,26 +77,21 @@ void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_nam
         int fpath_len = 0;
         zval zstream;
 
-        if (file_path == NULL) {
-            fpath_len = spprintf(&fpath, 0, "%s%c%s", ZSTR_VAL(ASF_G(log_path)), DEFAULT_SLASH, ZSTR_VAL(file_name));
-            stream = asf_func_fopen(fpath, fpath_len, ASF_G(log_path), 1);
-        } else {
-            fpath_len = spprintf(&fpath, 0, "%s%c%s", ZSTR_VAL(file_path), DEFAULT_SLASH, ZSTR_VAL(file_name));
-            stream = asf_func_fopen(fpath, fpath_len, file_path, 1);
-        }
+        fpath_len = spprintf(&fpath, 0, "%s%c%s", ZSTR_VAL(s_path), DEFAULT_SLASH, ZSTR_VAL(file_name));
+        stream = asf_func_fopen(fpath, fpath_len, s_path);
 
         if (stream) {
             php_stream_to_zval(stream, &zstream);
             zend_update_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_STREAM), &zstream);
+            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, 1);
         }
-
-        ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, 1);
 
         efree(fpath);
     }
 }
 /* }}} */
 
+/* [full_path1 => data, full_path2 => data] */
 static _Bool asf_func_buffer_cache(zval *data, const char *path, const char *fname) /* {{{ */
 {
     zval *zbuf = NULL;
@@ -103,34 +101,26 @@ static _Bool asf_func_buffer_cache(zval *data, const char *path, const char *fna
 
     fpath_len = spprintf(&fpath, 0, "%s%c%s", path, DEFAULT_SLASH, fname);
 
-    if (IS_ARRAY != Z_TYPE(ASF_G(log_buffer))) {
-        array_init(&new_array);
-        Z_TRY_ADDREF_P(data);
-        add_next_index_zval(&new_array, data);
-        
-        array_init(&ASF_G(log_buffer));
-        Z_TRY_ADDREF(new_array);
+    do {
+        if (IS_ARRAY != Z_TYPE(ASF_G(log_buffer))) {
+            array_init(&ASF_G(log_buffer));
+            break;
+        }
 
-        add_assoc_zval_ex(&ASF_G(log_buffer), fpath, fpath_len, &new_array);
-    } else {
-        //zend_hash_str_find_ptr
         if ((zbuf = zend_hash_str_find_ptr(Z_ARRVAL(ASF_G(log_buffer)), fpath, fpath_len)) != NULL) {
             Z_TRY_ADDREF_P(data);
             add_next_index_zval((void *)&zbuf, data);
-        } else {
-            array_init(&new_array);
-            Z_TRY_ADDREF_P(data);
-            add_next_index_zval(&new_array, data);
-
-            Z_TRY_ADDREF(new_array);
-            add_assoc_zval_ex(&ASF_G(log_buffer), fpath, fpath_len, &new_array);
+            efree(fpath);
+            return 1;
         }
-    }
+    } while(0);
 
-    if (IS_ARRAY == Z_TYPE(new_array)) {
-        zval_ptr_dtor(&new_array);
-    }
-
+    array_init(&new_array);
+    Z_TRY_ADDREF_P(data);
+    
+    add_next_index_zval(&new_array, data);
+    add_assoc_zval_ex(&ASF_G(log_buffer), fpath, fpath_len, &new_array);
+    
     efree(fpath);
 
     return 1;
