@@ -165,17 +165,13 @@ static _Bool asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval
     if (http_opts && Z_TYPE_P(http_opts) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(http_opts))) {
         zend_ulong id = 0; zval *entry = NULL;
         ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(http_opts), id, entry) {
-            if (!id || !entry) {
+            if (!id) {
                 continue;
             }
 
             ZVAL_DEREF(entry);
-            if (Z_TYPE_P(entry) == IS_LONG || Z_TYPE_P(entry) == IS_TRUE || Z_TYPE_P(entry) == IS_FALSE) {
-                add_index_long(&opts, id, zend_is_true(entry));
-            } else {
-                Z_TRY_ADDREF_P(entry);
-                add_index_zval(&opts, id, entry);
-            }
+            Z_TRY_ADDREF_P(entry);
+            add_index_zval(&opts, id, entry);
         } ZEND_HASH_FOREACH_END();
     }
 
