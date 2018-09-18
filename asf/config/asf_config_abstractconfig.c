@@ -213,6 +213,9 @@ PHP_METHOD(asf_absconfig, get)
         double dval = 0;
 
         properties = zend_read_property(asf_absconfig_ce, getThis(), ZEND_STRL(ASF_ABSCONFIG_PROPERTY_NAME), 1, NULL);
+        if (Z_TYPE_P(properties) == IS_NULL) {
+            RETURN_FALSE;
+        }
         hash  = Z_ARRVAL_P(properties);
 
         if (is_numeric_string(ZSTR_VAL(name), ZSTR_LEN(name), &lval, &dval, 0) != IS_LONG) {

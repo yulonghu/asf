@@ -50,7 +50,6 @@ zval *asf_config_ini_instance(zval *this_ptr, zval *file_path, zval *section) /*
     zend_call_method(NULL, NULL, NULL, ASF_CONFIG_INI_PARSE_NAME, ASF_CONFIG_INI_PARSE_NAME_LEN, &retval, 2, file_path, &arg2);
 
     if (Z_ISUNDEF(retval) || Z_TYPE(retval) != IS_ARRAY) {
-        zval_ptr_dtor(&arg2);
         return NULL;
     }
 
@@ -58,7 +57,6 @@ zval *asf_config_ini_instance(zval *this_ptr, zval *file_path, zval *section) /*
         zval *section_val = NULL;
         if ((section_val = zend_symtable_find(Z_ARRVAL(retval), Z_STR_P(section))) == NULL) {
             zval_ptr_dtor(&retval);
-            zval_ptr_dtor(&arg2);
             asf_trigger_error(E_ERROR, "There is no section '%s' in '%s'", Z_STRVAL_P(section), file_path);
             return NULL;
         }
@@ -79,7 +77,6 @@ zval *asf_config_ini_instance(zval *this_ptr, zval *file_path, zval *section) /*
     zend_update_property(asf_config_ini_ce, this_ptr, ZEND_STRL(ASF_ABSCONFIG_PROPERTY_NAME), &retval);
 
     zval_ptr_dtor(&retval);
-    zval_ptr_dtor(&arg2);
 
     return this_ptr;
 }
