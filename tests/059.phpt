@@ -72,7 +72,7 @@ bool(true)
 bool(true)
 bool(true)
 ------log function-------
-NULL
+bool(false)
 bool(true)
 bool(true)
 ------close log-------

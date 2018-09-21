@@ -139,11 +139,10 @@ PHP_METHOD(asf_log_adapter_syslog, doLog)
     zval_ptr_dtor(&zret_1);
     zval_ptr_dtor(&zmn_2);
 
-    if (IS_STRING != Z_TYPE(zret_2)) {
-        RETURN_FALSE;
-    }
+    zend_string *str = zval_get_string(&zret_2);
+    php_syslog(LOG_INFO, "%s", ZSTR_VAL(str));
 
-    php_syslog(LOG_INFO, "%s", Z_STRVAL(zret_2));
+    zend_string_release(str);
     zval_ptr_dtor(&zret_2);
 
     RETURN_TRUE;

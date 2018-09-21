@@ -53,14 +53,18 @@ PHP_METHOD(asf_log_formatter_file, format)
     }
 
     char *str_df = "d-M-Y H:i:s e", *str_ret = NULL;
-    zend_string *str_date = NULL;
+    zend_string *str_date = NULL, *str_msg = NULL;
     zval *self = getThis();
+    size_t str_ret_len = 0;
 
     str_date = php_format_date(str_df, strlen(str_df), time, 1);
-    spprintf(&str_ret, 0, "%s [%s] %s %s", str_date->val, Z_STRVAL_P(level), Z_STRVAL_P(message), PHP_EOL); 
-
+    str_msg = zval_get_string(message);
+    str_ret_len = spprintf(&str_ret, 0, "%s [%s] %s %s", str_date->val, Z_STRVAL_P(level), ZSTR_VAL(str_msg), PHP_EOL); 
+    
+    zend_string_release(str_msg);
     zend_string_release(str_date);
-    ZVAL_STRING(return_value, str_ret);
+
+    ZVAL_STRINGL(return_value, str_ret, str_ret_len);
     efree(str_ret);
 }
 /* }}} */

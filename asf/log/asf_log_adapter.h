@@ -26,21 +26,19 @@ PHP_METHOD(asf_log_adapter, mname) \
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|a", &message, &context) == FAILURE) { \
         return; \
     } \
-    zval ret, zlevel, zmn_1, args[3]; \
+    zval zlevel, zmn_1, args[3]; \
     ZVAL_STRINGL(&zmn_1, "log", 3); \
     ZVAL_STRING(&zlevel, #mname_upper); \
     ZVAL_COPY_VALUE(&args[0], &zlevel); \
     ZVAL_COPY_VALUE(&args[1], message); \
     if (context) { \
         ZVAL_COPY_VALUE(&args[2], context); \
-        call_user_function_ex(&(Z_OBJCE_P(getThis()))->function_table, getThis(), &zmn_1, &ret, 3, args, 1, NULL); \
+        call_user_function_ex(&(Z_OBJCE_P(getThis()))->function_table, getThis(), &zmn_1, return_value, 3, args, 1, NULL); \
     } else { \
-        call_user_function_ex(&(Z_OBJCE_P(getThis()))->function_table, getThis(), &zmn_1, &ret, 2, args, 1, NULL); \
+        call_user_function_ex(&(Z_OBJCE_P(getThis()))->function_table, getThis(), &zmn_1, return_value, 2, args, 1, NULL); \
     } \
     zval_ptr_dtor(&zmn_1); \
     zval_ptr_dtor(&zlevel); \
-    zend_bool i = Z_TYPE(ret) == IS_TRUE ? 1 : 0; \
-    RETURN_BOOL(i); \
 }
 
 #define ASF_LOG_ADAPTER_PRONAME_FORMATTER "_formatter"

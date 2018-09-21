@@ -30,6 +30,7 @@ class IndexService extends Asf_AbstractService
 
         $logger = Asf_Logger::adapter(1, 'biz-dd_log');
         $logger->info('Asf_Logger message');
+        $logger->info(222);
         $logger = NULL;
 
         try {

@@ -70,38 +70,32 @@ void asf_log_adapter_write_file(const char *fname, size_t fname_len, const char 
 
 static void asf_log_adapter_extract_message(zval *return_value, zval *logger, zval *message, zval *context) /* {{{ */
 {
-    if (Z_TYPE_P(message) == IS_ARRAY || Z_TYPE_P(message) == IS_OBJECT ||
-            Z_TYPE_P(message) == IS_LONG || Z_TYPE_P(message) == IS_NULL) {
+    zend_uchar mtype = Z_TYPE_P(message);
+    zval ztmp;
+
+    if (mtype == IS_ARRAY || mtype == IS_OBJECT || mtype == IS_RESOURCE) {
         smart_str buf = {0};
 
         php_var_export_ex(message, 1, &buf);
-
         smart_str_0(&buf);
-        ZVAL_STR_COPY(return_value, buf.s);
-        smart_str_free(&buf);
+
+        ZVAL_NEW_STR(&ztmp, buf.s);
     } else {
-        ZVAL_COPY(return_value, message);
+        ZVAL_DUP(&ztmp, message);
     }
 
     if (context && IS_ARRAY == Z_TYPE_P(context)) {
-        zval zret_1, zmn_1, args[2];
+        zval zmn_1, args[2];
 
         ZVAL_STRING(&zmn_1, "interpolate");
-        ZVAL_COPY_VALUE(&args[0], return_value);
+        ZVAL_COPY_VALUE(&args[0], &ztmp);
         ZVAL_COPY_VALUE(&args[1], context);
 
-        if (call_user_function_ex(&Z_OBJCE_P(logger)->function_table, logger, &zmn_1, &zret_1, 2, args, 1, NULL) == FAILURE) {
-            zval_ptr_dtor(&zmn_1);
-            return;
-        }
-
-        zval_ptr_dtor(return_value);
-        ZVAL_NULL(return_value);
-
-        ZVAL_COPY(return_value, &zret_1);
-
+        call_user_function_ex(&Z_OBJCE_P(logger)->function_table, logger, &zmn_1, return_value, 2, args, 1, NULL);
         zval_ptr_dtor(&zmn_1);
-        zval_ptr_dtor(&zret_1);
+        zval_ptr_dtor(&ztmp);
+    } else {
+        ZVAL_COPY_VALUE(return_value, &ztmp);
     }
 }
 /* }}} */
@@ -111,29 +105,27 @@ static void asf_log_adapter_extract_message(zval *return_value, zval *logger, zv
 PHP_METHOD(asf_log_adapter, log)
 {
     zval *message = NULL, *context = NULL, *level = NULL;
-    _Bool valid = 1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz|a", &level, &message, &context) == FAILURE) {
         return;
     }
 
     if (IS_STRING != Z_TYPE_P(level)) {
-        return;
+        RETURN_FALSE;
     }
 
     zval *self = getThis();
 
     /* format string */
     zval retval;
-
+ 
     (void)asf_log_adapter_extract_message(&retval, self, message, context);
 
     /* $this->doLog */
-    zval ret, zmn_1;
+    zval ret, zmn_1, args[3];
     zend_class_constant *constant = NULL;
-    zval args[3];
-
     time_t curtime;
+
     time(&curtime);
 
     if ((constant = zend_hash_find_ptr(&asf_log_level_ce->constants_table, Z_STR_P(level))) == NULL) {
@@ -142,26 +134,14 @@ PHP_METHOD(asf_log_adapter, log)
     }
 
     ZVAL_STRING(&zmn_1, "doLog");
-
     ZVAL_COPY_VALUE(&args[0], level);
     ZVAL_LONG(&args[1], curtime);
-    ZVAL_COPY(&args[2], &retval);
+    ZVAL_COPY_VALUE(&args[2], &retval);
 
-    zval_ptr_dtor(&retval);
-
-    if (call_user_function_ex(&(asf_log_adapter_ce)->function_table, self, &zmn_1, &ret, 3, args, 1, NULL) == FAILURE) {
-        zval_ptr_dtor(&zmn_1);
-        return;
-    }
+    call_user_function_ex(&(asf_log_adapter_ce)->function_table, self, &zmn_1, return_value, 3, args, 1, NULL);
 
     zval_ptr_dtor(&zmn_1);
-    zval_ptr_dtor(&args[2]);
-
-    if (Z_TYPE(ret) != IS_TRUE) {
-        valid = 0;
-    }
-
-    RETURN_BOOL(valid);
+    zval_ptr_dtor(&retval);
 }
 /* }}} */
 

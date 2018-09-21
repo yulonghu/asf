@@ -61,6 +61,7 @@ var_dump($logger->debug('xxxxx'));
 
 echo '------replace output-------', PHP_EOL;
 var_dump($logger->info('xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
+var_dump($logger->info(array('xxxx{xy}y{yz}zz'), array('xy' => 'AA', 'yz' => 'MM')));
 var_dump($logger->emergency('xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
 var_dump($logger->alert('xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
 var_dump($logger->critical('xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
@@ -114,8 +115,9 @@ bool(true)
 bool(true)
 bool(true)
 bool(true)
+bool(true)
 ------log function-------
-NULL
+bool(false)
 bool(true)
 bool(true)
 

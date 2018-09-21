@@ -202,10 +202,6 @@ PHP_METHOD(asf_log_adapter_file, doLog)
     zval_ptr_dtor(&zret_1);
     zval_ptr_dtor(&zmn_2);
 
-    if (IS_STRING != Z_TYPE(zret_2)) {
-        RETURN_FALSE;
-    }
-
     if (ASF_G(use_lcache)) {
         ret = asf_func_buffer_cache(&zret_2, Z_STRVAL_P(path), Z_STRVAL_P(fname));
     } else {
