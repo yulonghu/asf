@@ -31,7 +31,7 @@
 
 _Bool asf_func_isempty(const char *s) /* {{{ */
 {
-    register char *c = s;
+    register const char *c = s;
 
     while (*c != '\0') {
         if (!isspace(*c)) {
