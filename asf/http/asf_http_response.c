@@ -204,6 +204,13 @@ void asf_http_rep_display_success(asf_http_rep_t *response) /* {{{ */
 
 void asf_http_rep_display_error(size_t code, zval *errmsg) /* {{{ */
 {
+    zval msg;
+
+    if (errmsg == NULL) {
+        ZVAL_NULL(&msg);
+        errmsg = & msg;
+    }
+
     (void)asf_http_response_display(NULL, code, errmsg);
 }
 /* }}} */

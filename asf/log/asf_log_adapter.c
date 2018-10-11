@@ -81,6 +81,7 @@ static void asf_log_adapter_extract_message(zval *return_value, zval *logger, zv
 
         ZVAL_NEW_STR(&ztmp, buf.s);
     } else {
+        /* message interned string */
         ZVAL_DUP(&ztmp, message);
     }
 
@@ -100,7 +101,7 @@ static void asf_log_adapter_extract_message(zval *return_value, zval *logger, zv
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Log_Adapter::log(int $level, mixed $message [, array $content]) 
+/* {{{ proto bool Asf_Log_Adapter::log(string $level, mixed $message [, array $content]) 
 */
 PHP_METHOD(asf_log_adapter, log)
 {
@@ -110,7 +111,8 @@ PHP_METHOD(asf_log_adapter, log)
         return;
     }
 
-    if (IS_STRING != Z_TYPE_P(level)) {
+    if (Z_TYPE_P(level) != IS_STRING) {
+        zend_error(E_WARNING, "Invalid level, must be a string");
         RETURN_FALSE;
     }
 
@@ -118,20 +120,14 @@ PHP_METHOD(asf_log_adapter, log)
 
     /* format string */
     zval retval;
- 
+
     (void)asf_log_adapter_extract_message(&retval, self, message, context);
 
     /* $this->doLog */
     zval ret, zmn_1, args[3];
-    zend_class_constant *constant = NULL;
     time_t curtime;
 
     time(&curtime);
-
-    if ((constant = zend_hash_find_ptr(&asf_log_level_ce->constants_table, Z_STR_P(level))) == NULL) {
-        asf_trigger_error(ASF_ERR_NOTFOUND_LOGGER_LEVEL, "Level '%s' is invalid", Z_STRVAL_P(level));
-        return;
-    }
 
     ZVAL_STRING(&zmn_1, "doLog");
     ZVAL_COPY_VALUE(&args[0], level);

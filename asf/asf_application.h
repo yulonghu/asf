@@ -33,6 +33,8 @@
 #define ASF_APP_PROPNAME_RUN        "_run"
 /* app.errfname */
 #define ASF_APP_PRONAME_ERR_FNAME   "_ef"
+/* app.errhandler */
+#define ASF_APP_PRONAME_ERR_HANDLER "_eh"
 
 #define ASF_APPLICATION_CONS_BOOT(asfg_name, err_name, find_name_uf, find_name_lc, zret) \
     zend_string *path = NULL; \

@@ -73,9 +73,11 @@ var_dump($logger->debug('xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
 
 echo '------log function-------', PHP_EOL;
 
-var_dump($logger->log(1, json_encode(array("aaa", 'bbb'))));
 var_dump($logger->log('INFO', json_encode(array("aaa", 'bbb'))));
 var_dump($logger->log('INFO', 'xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
+
+error_reporting(0);
+var_dump($logger->log(1, json_encode(array("aaa", 'bbb'))));
 
 shutdown();
 
@@ -117,7 +119,7 @@ bool(true)
 bool(true)
 bool(true)
 ------log function-------
+bool(true)
+bool(true)
 bool(false)
-bool(true)
-bool(true)
 

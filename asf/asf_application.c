@@ -487,6 +487,7 @@ PHP_METHOD(asf_application, errorHandler)
     char *errmsg = NULL, *errtype = NULL, *level = NULL;
     uint level_len = 6;
     size_t errmsg_len = 0;
+    _Bool _999 = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "lSSl|z", &_0, &_2, &_3, &_1, &_4) == FAILURE) {
         return;
@@ -501,7 +502,7 @@ PHP_METHOD(asf_application, errorHandler)
         case E_COMPILE_ERROR:
         case E_USER_ERROR:
             errtype = "Fatal Error";
-            level = "error"; level_len = 5;
+            level = "error"; level_len = 5; _999 = 1;
             break;
         case E_WARNING:
         case E_USER_WARNING:
@@ -509,7 +510,7 @@ PHP_METHOD(asf_application, errorHandler)
         case E_COMPILE_WARNING:
         case E_RECOVERABLE_ERROR:
             errtype = "Warning";
-            level = "warning";
+            level = "warning"; level_len = 7;
             break;
         case E_NOTICE:
         case E_USER_NOTICE:
@@ -527,7 +528,7 @@ PHP_METHOD(asf_application, errorHandler)
             break;
         default:
             errtype = "Unknown Error";
-            level = "error";
+            level = "error"; level_len = 5;
             break;
     }/*}}}*/
 
@@ -542,6 +543,25 @@ PHP_METHOD(asf_application, errorHandler)
 
     efree(errmsg);
 
+    zval *error_handler = zend_read_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), 1, NULL);
+    if (Z_TYPE_P(error_handler) != IS_NULL) {
+        zval error_retval, params[4];
+        /* params[4] = { $errno, $errstr, $errfile, $errline } */
+        ZVAL_LONG(&params[0], _0);
+        ZVAL_STR_COPY(&params[1], _2);
+        ZVAL_STR_COPY(&params[2], _3);
+        ZVAL_LONG(&params[3], _1);
+        if (call_user_function_ex(CG(function_table), NULL, error_handler, &error_retval, 4, params, 1, NULL) == SUCCESS) {
+            zval_ptr_dtor(&error_retval);
+        }
+        zval_ptr_dtor(&params[1]);
+        zval_ptr_dtor(&params[2]);
+    }
+
+    if (_999) {
+        (void)asf_http_rep_display_error(999, NULL);
+    }
+
     RETURN_TRUE;
 }
 /* }}} */
@@ -553,7 +573,7 @@ PHP_METHOD(asf_application, exceptionHandler)
     zval *_0 = NULL, _1, *_2 = NULL, *_3 = NULL;
     char *errmsg = NULL;
     uint errmsg_len = 0;
-    zval args[5], zparam;
+    zval args[5];
     zend_class_entry *ce = NULL;
     zend_long _4 = 0, _5 = 0;
     zval trace;
@@ -587,9 +607,6 @@ PHP_METHOD(asf_application, exceptionHandler)
     if (Z_TYPE(trace) != IS_FALSE) {
         zval_ptr_dtor(&trace);
     }
-
-    ZVAL_NULL(&zparam);
-    (void)asf_http_rep_display_error(999, &zparam);
 }
 /* }}} */
 
@@ -610,7 +627,33 @@ PHP_METHOD(asf_application, setLogErrFileName)
     zend_update_property_str(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), fname);
 
     RETURN_TRUE;
-}/*}}}*/
+}
+/* }}} */
+
+PHP_METHOD(asf_application, setErrorHandler) /* {{{ */
+{
+    zval *error_handler = NULL;
+    zend_string *error_handler_name = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &error_handler) == FAILURE) {
+        return;
+    }
+
+    if (Z_TYPE_P(error_handler) != IS_NULL) {
+        if (!zend_is_callable(error_handler, 0, &error_handler_name)) {
+            zend_error(E_WARNING, "%s() expects the argument (%s) to be a valid callback",
+                    get_active_function_name(), error_handler_name?ZSTR_VAL(error_handler_name):"unknown");
+            zend_string_release(error_handler_name);
+            return;
+        }
+        zend_string_release(error_handler_name);
+    }
+
+    zend_update_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), error_handler);
+
+    RETURN_TRUE;
+}
+/* }}} */
 
 /* {{{ asf_application_methods[]
 */
@@ -634,6 +677,7 @@ zend_function_entry asf_application_methods[] = {
     PHP_ME(asf_application, __construct,        asf_app_construct_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(asf_application, errorHandler,       asf_app_errorhandler_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_application, exceptionHandler,   asf_app_exceptionhandler_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_application, setErrorHandler,    asf_app_errorhandler_arginfo, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 /* }}} */
@@ -649,6 +693,8 @@ ASF_INIT_CLASS(application) /* {{{ */
     zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
     zend_declare_property_long(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_MODE), 0, ZEND_ACC_PROTECTED);
     zend_declare_property_stringl(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), "Asf_Err_Log", 11, ZEND_ACC_PROTECTED);
+
+    zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), ZEND_ACC_PROTECTED);
 
     return SUCCESS;
 }
