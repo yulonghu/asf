@@ -83,7 +83,7 @@ static _Bool asf_ensure_write_stdout(char *class_name, size_t class_name_len, ze
         return 0;
     }
 
-    if (retval == NULL || Z_TYPE_P(retval) != IS_STRING) {
+    if (Z_TYPE_P(retval) != IS_STRING) {
         asf_trigger_error(ASF_ERR_NOTFOUND_CONSTANTS_PROP, "Class Properties %s::$%s[%d] value is must be string",
                 class_name, ASF_CONSTANTS_ERR_PROPERTY_NAME, code);
         return 0;
