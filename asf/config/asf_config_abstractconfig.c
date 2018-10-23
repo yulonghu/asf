@@ -146,12 +146,13 @@ zval *asf_absconfig_instance(zval *this_ptr, zval *arg1, zval *arg2) /* {{{ */
 {
     zval *instance = NULL, *pzval = NULL;
     time_t cur_time = time(NULL);
+    zend_uchar uc_arg1 = Z_TYPE_P(arg1);
 
-    if (UNEXPECTED(!arg1 || (Z_TYPE_P(arg1) != IS_ARRAY && Z_TYPE_P(arg1) != IS_STRING))) {
+    if (UNEXPECTED(!arg1 || (uc_arg1 != IS_ARRAY && uc_arg1 != IS_STRING))) {
         return NULL;
     }
 
-    if (Z_TYPE_P(arg1) == IS_ARRAY) {
+    if (uc_arg1 == IS_ARRAY) {
         instance = asf_config_simple_instance(this_ptr, arg1);
         return instance;
     }
