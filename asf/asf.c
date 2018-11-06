@@ -44,6 +44,7 @@
 #include "kernel/asf_func.h"
 #include "asf_util.h"
 #include "debug/asf_debug_dump.h"
+#include "asf_cache.h"
 
 ZEND_DECLARE_MODULE_GLOBALS(asf)
 
@@ -103,6 +104,7 @@ PHP_MINIT_FUNCTION(asf)
     ASF_INIT(Db);
     ASF_INIT(util);
     ASF_INIT(debug_dump);
+    ASF_INIT(cache);
 
     return SUCCESS;
 }

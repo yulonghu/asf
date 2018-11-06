@@ -87,5 +87,6 @@ if test "$PHP_ASF" != "no"; then
       debug/dump/asf_debug_dump_abstractdump.c \
       debug/dump/asf_debug_dump_cli.c \
       debug/dump/asf_debug_dump_html.c \
+      asf_cache.c \
       , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 fi
