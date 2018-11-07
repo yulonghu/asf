@@ -1162,30 +1162,11 @@ PHP_METHOD(asf_absadapter, __call)
     zval *dbh = zend_read_property(asf_absadapter_ce, self, ZEND_STRL("_dbh"), 1, NULL);
 
     if (IS_OBJECT != Z_TYPE_P(dbh)) {
-        return;
+        RETURN_FALSE;
     }
 
     size_t arg_count = zend_hash_num_elements(Z_ARRVAL_P(args));
-    zval params[arg_count];
-
-    if (arg_count) {
-        zval *entry = NULL;
-        size_t i = 0;
-        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(args), entry) {
-            ZVAL_DEREF(entry);
-            ZVAL_COPY_VALUE(&params[i++], entry);
-        } ZEND_HASH_FOREACH_END();
-    }
-
-    call_user_function_ex(&Z_OBJCE_P(dbh)->function_table, dbh, function_name, return_value, arg_count, params, 1, NULL);
-
-    if (UNEXPECTED(EG(exception))) {
-        RETURN_FALSE;
-    }
-
-    if (!return_value || Z_TYPE_P(return_value) == IS_UNDEF) {
-        RETURN_FALSE;
-    }
+    call_user_function_ex(&Z_OBJCE_P(dbh)->function_table, dbh, function_name, return_value, arg_count, args, 1, NULL);
 }
 /* }}} */
 

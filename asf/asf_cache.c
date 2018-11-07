@@ -28,6 +28,9 @@
 #include "asf_cache.h"
 #include "asf_exception.h"
 
+#include "cache/asf_cache_abstractadapter.h"
+#include "cache/adapter/asf_cache_adapter_redis.h"
+
 zend_class_entry *asf_cache_ce;
 
 /* {{{ ARG_INFO
@@ -53,6 +56,14 @@ ZEND_END_ARG_INFO()
 */
 PHP_METHOD(asf_cache, init)
 {
+    zval *options = NULL;
+    zend_string *name =  NULL;
+    _Bool force = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|Sb", &options, &name, &force) == FAILURE) {
+        return;
+    }
+
     RETURN_FALSE;
 }
 /* }}} */
@@ -131,6 +142,9 @@ zend_function_entry asf_cache_methods[] = {
 ASF_INIT_CLASS(cache) /* {{{ */
 {
     ASF_REGISTER_CLASS_PARENT(asf_cache, Asf_Cache, Asf\\Cache, ZEND_ACC_FINAL);
+
+    ASF_INIT(cache_absadapter);
+    ASF_INIT(cache_adapter_redis);
 
     return SUCCESS;
 }

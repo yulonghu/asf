@@ -25,6 +25,7 @@
 _Bool asf_func_isempty(const char *s);
 _Bool asf_func_shutdown_buffer();
 void asf_func_set_cur_module(char *module);
+zend_class_entry *asf_find_driver(const char *class_name, unsigned int class_name_len);
 
 #define ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, need_refcount) { \
     ASF_FUNC_CALL_PHP_FUNC(this_ptr, "register_shutdown_function", "close", 5, NULL, need_refcount); \

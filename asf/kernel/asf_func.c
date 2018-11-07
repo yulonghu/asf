@@ -245,6 +245,18 @@ zval *asf_func_array_fetch(const zval *arr, const zval *index) /* {{{ */
 }
 /* }}} */
 
+zend_class_entry *asf_find_driver(const char *class_name, unsigned int class_name_len) /*{{{*/
+{
+    zend_class_entry *ce = NULL;
+
+    if (UNEXPECTED((ce = zend_hash_str_find_ptr(CG(class_table), class_name, class_name_len)) == NULL)) {
+        asf_trigger_error(ASF_ERR_CACHE_MODULE, "Class '%s' not found", class_name);
+        return NULL;
+    }
+
+    return ce;
+}/*}}}*/
+
 /*
  * Local variables:
  * tab-width: 4

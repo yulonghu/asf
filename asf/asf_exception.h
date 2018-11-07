@@ -59,6 +59,12 @@
 #define ASF_ERR_CONFIG_PARAM            529
 #define ASF_ERR_COOKIE_PUBLIC           530
 
+/* cache */
+#define ASF_ERR_CACHE_MODULE            531
+#define ASF_ERR_CACHE_OPTIONS           532
+#define ASF_ERR_CACHE_AUTH              533
+#define ASF_ERR_CACHE_OTHERS            534
+
 extern zend_class_entry *asf_exception_ce;
 
 void asf_trigger_error(int code, char *format, ...);
