@@ -68,16 +68,14 @@ ZEND_END_ARG_INFO()
 PHP_METHOD(asf_cache_adapter_redis, __construct)
 {
     zval *options = NULL;
-    zval redis;
-
-    zval *host = NULL, *port = NULL, *auth = NULL, *timeout = NULL, *select = NULL, *persistent = NULL;
-    zend_long l_port = 0, l_timeout = 1, l_select = 0;
-    zval retval;
-    zval args[4];
-
+    
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "a", &options) == FAILURE) {
         return;
     }
+
+    zval *host = NULL, *port = NULL, *password = NULL, *timeout = NULL, *select = NULL, *persistent = NULL;
+    zend_long l_port = 0, l_timeout = 1, l_select = 0;
+    zval retval, args[4], redis;
 
     HashTable *ht = Z_ARRVAL_P(options);
 
@@ -86,30 +84,18 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
         return;
     }
 
-    /* port = 6379 OR port = '6379' */
-    if (UNEXPECTED((port = zend_hash_str_find(ht, "port", 4)) == NULL)) {
-        asf_trigger_error(ASF_ERR_CACHE_OPTIONS, "The options 'port' not found");
-        return;
-    }
+    /* port = 6379 OR port = '6379', we don't check less than 1 */
+    port = zend_hash_str_find(ht, "port", 4);
+    l_port = (port != NULL) ? zval_get_long(port) : 6379;
 
-    /* timeout = 1 (default) */
-    if ((timeout = zend_hash_str_find(ht, "timeout", 7)) != NULL) {
-        l_timeout = zval_get_long(timeout);
-        if (UNEXPECTED(l_timeout < 1)) {
-            l_timeout = 1;
-        }
-    }
+    /* timeout = 1 (default), we don't check less than 1 */
+    timeout = zend_hash_str_find(ht, "timeout", 7);
+    l_timeout = (timeout != NULL) ? zval_get_long(timeout) : 1;
 
-    /* select DB = 0 (default) */
-    if ((select = zend_hash_str_find(ht, "select", 6)) != NULL) {
-        l_select = zval_get_long(select);
-        if (UNEXPECTED(l_select < 0 || l_select > 32)) {
-            l_select = 0;
-        }
-    }
+    /* select DB = 0 (default), we don't check less than 0 */
+    select = zend_hash_str_find(ht, "select", 6);
+    l_select = (select != NULL) ? zval_get_long(select) : 0;
 
-    l_port = zval_get_long(port);
-        
     zend_class_entry *driver = asf_find_driver("redis", 5);
     if (UNEXPECTED(driver == NULL)) {
         return;
@@ -135,40 +121,40 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
     }
 
     if (Z_TYPE(retval) == IS_FALSE) {
+        zval_ptr_dtor(&redis);
         asf_trigger_error(ASF_ERR_CACHE_OTHERS, "Connection failed, %s:"ZEND_LONG_FMT"", Z_STRVAL_P(host), l_port);
         return;
     }
 
-    auth = zend_hash_str_find(ht, "auth", 4);
-    if (UNEXPECTED(auth != NULL)) {
-        zend_call_method_with_1_params(&redis, Z_OBJCE(redis), NULL, "auth", &retval, auth);
+    password = zend_hash_str_find(ht, "password", 8);
+    if (UNEXPECTED(password != NULL)) {
+        zend_call_method_with_1_params(&redis, Z_OBJCE(redis), NULL, "auth", &retval, password);
         if (Z_TYPE(retval) == IS_FALSE) {
+            zval_ptr_dtor(&redis);
             asf_trigger_error(ASF_ERR_CACHE_AUTH, "Authentication failed, %s:"ZEND_LONG_FMT"", Z_STRVAL_P(host), l_port);
             return;
         }
     }
 
-    if (select) {
+    if (l_select > 0) {
         zend_call_method_with_1_params(&redis, Z_OBJCE(redis), NULL, "select", &retval, select);
         if (Z_TYPE(retval) == IS_FALSE) {
+            zval_ptr_dtor(&redis);
             asf_trigger_error(ASF_ERR_CACHE_OTHERS, "Select DB failed, %s:"ZEND_LONG_FMT"", Z_STRVAL_P(host), l_port);
             return;
         }
     }
 
-    zend_update_property(asf_cache_adapter_redis_ce, getThis(), ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), &redis);
+    zval *self = getThis();
+
+    zend_update_property(asf_cache_adapter_redis_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), &redis);
+    zend_update_property(asf_cache_adapter_redis_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_CONNECT_INFO), options);
 
     zval_ptr_dtor(&redis);
+
+    RETURN_ZVAL(self, 1, 0);
 }
 /* }}} */
-
-static inline void asf_cache_adapter_redis_req(zval *self, uint32_t param_count, zval params[],
-        const char *method, const uint method_len, zval *retval) /*{{{*/
-{
-    zval *redis = zend_read_property(asf_cache_adapter_redis_ce, self,
-            ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL);
-    ASF_CALL_USER_FUNCTION_EX(redis, method, method_len, retval, param_count, params);
-}/*}}}*/
 
 /* {{{ proto bool Asf_Cache_Adapter_Redis::has(mixed $key)
 */
@@ -180,7 +166,7 @@ PHP_METHOD(asf_cache_adapter_redis, has)
         return;
     }
 
-    (void)asf_cache_adapter_redis_req(getThis(), 1, key, "exists", 6, return_value);
+    (void)asf_cache_adapter_handler_req(getThis(), 1, key, "exists", 6, return_value);
 }
 /* }}} */
 
@@ -194,7 +180,7 @@ PHP_METHOD(asf_cache_adapter_redis, get)
         return;
     }
 
-    (void)asf_cache_adapter_redis_req(getThis(), 1, key, "get", 3, return_value);
+    (void)asf_cache_adapter_handler_req(getThis(), 1, key, "get", 3, return_value);
 }
 /* }}} */
 
@@ -212,7 +198,7 @@ PHP_METHOD(asf_cache_adapter_redis, set)
     ZVAL_COPY_VALUE(&args[0], key);
     ZVAL_COPY_VALUE(&args[1], value);
 
-    (void)asf_cache_adapter_redis_req(getThis(), 2, args, "set", 3, return_value);
+    (void)asf_cache_adapter_handler_req(getThis(), 2, args, "set", 3, return_value);
 }
 /* }}} */
 
@@ -236,7 +222,7 @@ PHP_METHOD(asf_cache_adapter_redis, incr)
     ZVAL_COPY_VALUE(&args[0], key);
     ZVAL_COPY_VALUE(&args[1], step);
 
-    (void)asf_cache_adapter_redis_req(getThis(), 2, args, "incrby", 6, return_value);
+    (void)asf_cache_adapter_handler_req(getThis(), 2, args, "incrby", 6, return_value);
 }
 /* }}} */
 
@@ -260,7 +246,7 @@ PHP_METHOD(asf_cache_adapter_redis, decr)
     ZVAL_COPY_VALUE(&args[0], key);
     ZVAL_COPY_VALUE(&args[1], step);
 
-    (void)asf_cache_adapter_redis_req(getThis(), 2, args, "decrby", 6, return_value);
+    (void)asf_cache_adapter_handler_req(getThis(), 2, args, "decrby", 6, return_value);
 }
 /* }}} */
 
@@ -278,7 +264,7 @@ PHP_METHOD(asf_cache_adapter_redis, clear)
 PHP_METHOD(asf_cache_adapter_redis, __call)
 {
     zval *function_name = NULL;
-    zval *args = NULL;
+    zval *args = NULL, *real_args = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "za", &function_name, &args) == FAILURE) {
         return;
@@ -289,21 +275,26 @@ PHP_METHOD(asf_cache_adapter_redis, __call)
         RETURN_FALSE;   
     }
 
-    size_t arg_count = zend_hash_num_elements(Z_ARRVAL_P(args));
-    call_user_function_ex(&Z_OBJCE_P(redis)->function_table, redis, function_name, return_value, arg_count, args, 1, NULL);
+    size_t arg_count = 0;
+    (void)asf_func_format_args(args, &real_args, &arg_count);
+
+    call_user_function_ex(&Z_OBJCE_P(redis)->function_table, redis, function_name, return_value, arg_count, real_args, 1, NULL);
+    if (arg_count > 0) {
+        efree(real_args);
+    }
 }
 /* }}} */
 
 /* {{{ asf_cache_adapter_redis_methods[]
 */
 zend_function_entry asf_cache_adapter_redis_methods[] = {
-    PHP_ME(asf_cache_adapter_redis, __construct, asf_cache_redis_init_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(asf_cache_adapter_redis, has, asf_cache_redis_has_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_cache_adapter_redis, get, asf_cache_redis_get_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_cache_adapter_redis, set, asf_cache_redis_set_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_cache_adapter_redis, incr, asf_cache_redis_incr_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_cache_adapter_redis, decr, asf_cache_redis_decr_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_cache_adapter_redis, __call, asf_cache_redis_call_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_cache_adapter_redis, __construct, asf_cache_init_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    PHP_ME(asf_cache_adapter_redis, has, asf_cache_has_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_cache_adapter_redis, get, asf_cache_get_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_cache_adapter_redis, set, asf_cache_set_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_cache_adapter_redis, incr, asf_cache_incr_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_cache_adapter_redis, decr, asf_cache_decr_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_cache_adapter_redis, __call, asf_cache_call_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_cache_adapter_redis, clear,  NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
@@ -312,8 +303,6 @@ zend_function_entry asf_cache_adapter_redis_methods[] = {
 ASF_INIT_CLASS(cache_adapter_redis) /* {{{ */
 {
     ASF_REGISTER_CLASS_INTERNAL(asf_cache_adapter_redis, Asf_Cache_Adapter_Redis, Asf\\Cache\\Adapter\\Redis, asf_cache_absadapter_ce, asf_cache_adapter_redis_methods);
-
-    zend_declare_property_null(asf_cache_adapter_redis_ce, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), ZEND_ACC_PROTECTED);
 
     return SUCCESS;
 }

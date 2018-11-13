@@ -19,21 +19,44 @@
 #ifndef ASF_CACHE_ABSADAPTER_H
 #define ASF_CACHE_ABSADAPTER_H
 
-//#define ASF_DB_TYPE_MYSQL	 "mysql"  // adapter_id=0
-//#define ASF_DB_TYPE_SQLTILE  "sqlite" // adapter_id=1
-//#define ASF_DB_TYPE_PGSQL	 "pgsql"  // adapter_id=2
+#define ASF_CACHE_PRONAME_HANDLER "_handler"
+#define ASF_CACHE_PRONAME_CONSUME "_consume"
+#define ASF_CACHE_PRONAME_CONNECT_INFO "_connect_info"
 
 /* {{{ ARG_INFO
- */
-/*
-ZEND_BEGIN_ARG_INFO_EX(asf_absadapter_call_arginfo, 0, 0, 2)
+*/
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_init_arginfo, 0, 0, 1)
+	ZEND_ARG_ARRAY_INFO(0, options, 0)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_has_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_get_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_del_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_set_arginfo, 0, 0, 2)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_incr_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, step)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_decr_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, step)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_call_arginfo, 0, 0, 2)
     ZEND_ARG_INFO(0, function_name)
     ZEND_ARG_ARRAY_INFO(0, arguments, 1)
 ZEND_END_ARG_INFO()
-*/
 /* }}} */
 
-//_Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *configs);
+void asf_cache_adapter_handler_req(zval *self, uint32_t param_count, zval params[],
+        const char *method, const uint method_len, zval *retval);
 
 extern zend_class_entry *asf_cache_absadapter_ce;
 

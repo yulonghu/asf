@@ -64,6 +64,7 @@
 #define ASF_ERR_CACHE_OPTIONS           532
 #define ASF_ERR_CACHE_AUTH              533
 #define ASF_ERR_CACHE_OTHERS            534
+#define ASF_ERR_CACHE_CONNECT           535
 
 extern zend_class_entry *asf_exception_ce;
 

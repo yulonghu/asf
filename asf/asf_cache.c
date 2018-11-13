@@ -25,54 +25,35 @@
 
 #include "php_asf.h"
 #include "kernel/asf_namespace.h"
+#include "kernel/asf_func.h"
 #include "asf_cache.h"
 #include "asf_exception.h"
 
 #include "cache/asf_cache_abstractadapter.h"
 #include "cache/adapter/asf_cache_adapter_redis.h"
+#include "cache/adapter/asf_cache_adapter_memcached.h"
 
 zend_class_entry *asf_cache_ce;
 
 /* {{{ ARG_INFO
 */
-ZEND_BEGIN_ARG_INFO_EX(asf_cache_init_arginfo, 0, 0, 1)
-    ZEND_ARG_ARRAY_INFO(0, options, 0)
-    ZEND_ARG_INFO(0, name)
-    ZEND_ARG_INFO(0, force)
-ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_cache_setconf_arginfo, 0, 0, 1)
     ZEND_ARG_ARRAY_INFO(0, configs, 0)
 ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_cache_store_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
-ZEND_BEGIN_ARG_INFO_EX(asf_cache_call_arginfo, 0, 0, 2)
-    ZEND_ARG_INFO(0, function_name)
-    ZEND_ARG_ARRAY_INFO(0, arguments, 1)
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_clean_arginfo, 0, 0, 1)
+    ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
-/* }}} */
-
-/* {{{ proto object Asf_Cache::init(array $options [, string $name = 'default' [, $force = 1]])
-*/
-PHP_METHOD(asf_cache, init)
-{
-    zval *options = NULL;
-    zend_string *name =  NULL;
-    _Bool force = 0;
-
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|Sb", &options, &name, &force) == FAILURE) {
-        return;
-    }
-
-    RETURN_FALSE;
-}
 /* }}} */
 
 /* {{{ proto array Asf_Cache::getConfig(void)
 */
 PHP_METHOD(asf_cache, getConfig)
 {
-    RETURN_FALSE;
+    ZVAL_COPY(return_value,
+            zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_CONF), 1));
 }
 /* }}} */
 
@@ -80,7 +61,14 @@ PHP_METHOD(asf_cache, getConfig)
 */
 PHP_METHOD(asf_cache, setConfig)
 {
-    RETURN_FALSE;
+    zval *config = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "a", &config) == FAILURE) {
+        return;
+    }
+
+    zend_update_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_CONF), config);
+    RETURN_TRUE;
 }
 /* }}} */
 
@@ -88,7 +76,8 @@ PHP_METHOD(asf_cache, setConfig)
 */
 PHP_METHOD(asf_cache, getLinks)
 {
-    RETURN_FALSE;
+    ZVAL_COPY(return_value,
+            zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), 1));
 }
 /* }}} */
 
@@ -96,45 +85,146 @@ PHP_METHOD(asf_cache, getLinks)
 */
 PHP_METHOD(asf_cache, store)
 {
+    zval *name = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &name) == FAILURE) {
+        return;
+    }
+
+    zval *config = zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_CONF), 1);
+    if (UNEXPECTED(Z_TYPE_P(config) != IS_ARRAY)) {
+        asf_trigger_error(ASF_ERR_CACHE_OTHERS, "Please Cache::setConfig() on the first");
+        return;
+    }
+
+    if (Z_TYPE_P(name) != IS_STRING && Z_TYPE_P(name) != IS_LONG) {
+        asf_trigger_error(ASF_ERR_CACHE_OTHERS, "Parameter 'name' only support int and string");
+        return;
+    }
+
+    zend_string *tmp_name = zval_get_string(name);
+    zval *find_conf = zend_symtable_find(Z_ARRVAL_P(config), tmp_name);
+    if (UNEXPECTED(find_conf == NULL)) {
+        zend_string_release(tmp_name);
+        asf_trigger_error(ASF_ERR_CACHE_OTHERS, "Parameter 'name' not found in Cache::$_config[]");
+        return;
+    }
+
+    /* found name in Cache::$_ins[name] */
+    zval *ins = zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), 1);
+    zval *find = NULL;
+    if (Z_TYPE_P(ins) != IS_NULL && (find = zend_symtable_find(Z_ARRVAL_P(ins), tmp_name))) {
+        zend_string_release(tmp_name);
+        RETURN_ZVAL(find, 1, 0);
+    }
+
+    /* found name.type */
+    if (UNEXPECTED(((find = zend_hash_str_find(Z_ARRVAL_P(find_conf), "type", 4)) == NULL) || Z_TYPE_P(find) != IS_STRING)) {
+        zend_string_release(tmp_name);
+        asf_trigger_error(ASF_ERR_CACHE_OTHERS, "'type.type' not found in Cache::$_config[]");
+        return;
+    }
+
+    const char *str = Z_STRVAL_P(find);
+    zval redis;
+
+    do {
+        if (strncasecmp("redis", str, 5) == 0) {
+            object_init_ex(&redis, asf_cache_adapter_redis_ce);
+            zend_call_method_with_1_params(&redis, asf_cache_adapter_redis_ce, NULL, "__construct", return_value, find_conf);
+            zval_ptr_dtor(&redis);
+            ZVAL_UNDEF(&redis);
+            break;
+        }
+
+        if (strncasecmp("memcached", str, 9) == 0) {
+        }
+    } while (0);
+
+    if (Z_TYPE_P(return_value) == IS_OBJECT) {
+        if (Z_ISNULL_P(ins)) {
+            array_init(&redis);
+            add_assoc_zval_ex(&redis, ZSTR_VAL(tmp_name), ZSTR_LEN(tmp_name), return_value);
+            zend_update_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), &redis);
+            zval_ptr_dtor(&redis);
+
+            zval handler;
+            array_init(&handler);
+            add_index_str(&handler, 0, asf_cache_ce->name);
+            add_index_stringl(&handler, 1, "cleanAll", 8);
+            zend_call_method_with_1_params(NULL, NULL, NULL, "register_shutdown_function", NULL, &handler);
+            zval_ptr_dtor(&handler);
+        } else {
+            zend_hash_add(Z_ARRVAL_P(ins), tmp_name, return_value);
+            zend_update_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), ins);
+        }
+        Z_TRY_ADDREF_P(return_value);
+    }
+
+    zend_string_release(tmp_name);
+}
+/* }}} */
+
+/* {{{ proto bool Asf_Cache::clean(string $name)
+*/
+PHP_METHOD(asf_cache, clean)
+{
+    zval *name = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &name) == FAILURE) {
+        return;
+    }
+
+    zend_string *tmp_name = zval_get_string(name);
+
+    /* found name in Cache::$_ins[name] */
+    zval *ins = zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), 1);
+    zval *find = NULL;
+
+    if (Z_TYPE_P(ins) != IS_NULL && (find = zend_symtable_find(Z_ARRVAL_P(ins), tmp_name))) {
+        ASF_CALL_USER_FUNCTION_EX(find, "close", 5, return_value, 0, NULL);
+        zend_hash_del(Z_ARRVAL_P(ins), tmp_name);
+        zend_string_release(tmp_name);
+        return;
+    }
+    zend_string_release(tmp_name);
+
     RETURN_FALSE;
 }
 /* }}} */
 
-/* {{{ proto object Asf_Cache::close(void)
+/* {{{ proto bool Asf_Cache::cleanAll(string $name)
 */
-PHP_METHOD(asf_cache, close)
+PHP_METHOD(asf_cache, cleanAll)
 {
-    RETURN_FALSE;
-}
-/* }}} */
+    /* found name in Cache::$_ins[name] */
+    zval *ins = zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), 1);
+    zval *find = NULL;
 
-/* {{{ proto object Asf_Cache::closeAll(void)
-*/
-PHP_METHOD(asf_cache, closeAll)
-{
-    RETURN_FALSE;
-}
-/* }}} */
+    if (Z_TYPE_P(ins) == IS_NULL) {
+        RETURN_FALSE;
+    }
 
-/* {{{ proto mixed Asf_Cache::__callStatic(string $function_name, array $args)
-*/
-PHP_METHOD(asf_cache, __callStatic)
-{
-    RETURN_FALSE;
+    zval *entry = NULL;
+
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(ins), entry) {
+        ZVAL_DEREF(entry);
+        ASF_CALL_USER_FUNCTION_EX(entry, "close", 5, return_value, 0, NULL);
+    } ZEND_HASH_FOREACH_END();
+
+    zend_update_static_property_null(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS));
 }
 /* }}} */
 
 /* {{{ asf_cache_methods[]
 */
 zend_function_entry asf_cache_methods[] = {
-    PHP_ME(asf_cache, init,         asf_cache_init_arginfo,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_cache, getConfig,    NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_cache, setConfig,    asf_cache_setconf_arginfo,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_cache, getLinks,     NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_cache, store,        asf_cache_store_arginfo,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-    PHP_ME(asf_cache, close,        NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-    PHP_ME(asf_cache, closeAll,     NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-    PHP_ME(asf_cache, __callStatic, asf_cache_call_arginfo,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_cache, clean,        asf_cache_clean_arginfo,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_cache, cleanAll,     NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_FE_END
 };
 /* }}} */
@@ -143,8 +233,12 @@ ASF_INIT_CLASS(cache) /* {{{ */
 {
     ASF_REGISTER_CLASS_PARENT(asf_cache, Asf_Cache, Asf\\Cache, ZEND_ACC_FINAL);
 
+    zend_declare_property_null(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_CONF), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
+    zend_declare_property_null(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
+
     ASF_INIT(cache_absadapter);
     ASF_INIT(cache_adapter_redis);
+    ASF_INIT(cache_adapter_memcached);
 
     return SUCCESS;
 }

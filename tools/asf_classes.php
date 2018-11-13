@@ -529,3 +529,40 @@ class Asf_Debug_Dump
 }
 /* }}} Asf_Debug_Dump */
 
+/* {{{ Asf_Cache */
+final class Asf_Cache
+{
+    public static function getConfig(void)
+    public static function setConfig(array $config)
+    public static function getLinks(void)
+    public static function store(string $name)
+    public static function clean(string $name)
+    public static function cleanAll(void)
+}
+/* }}} Asf_Cache */
+
+/* {{{ Asf_Cache_AbstractAdapter */
+abstract class Asf_Cache_AbstractAdapter
+{
+    public function getConnectInfo(void)
+    public function getHandler(void)
+    public function __construct(array $options)
+    public function has(mixed $key)
+    public function get(mixed $key)
+    public function set(mixed $key, mixed $value)
+    public function incr(mixed $key [, uint $step = 1])
+    public function decr(mixed $key [, uint $step = 1])
+    public function clear(void)
+}
+
+final class asf_Cache_Adapter_Redis extends Asf_Cache_Abstractadapter
+{
+    public function __call(string $function_name, array $args)
+}
+
+final class asf_Cache_Adapter_Memcached extends Asf_Cache_Abstractadapter
+{
+    public function __call(string $function_name, array $args)
+}
+/* }}} Asf_Cache_AbstractAdapter */
+

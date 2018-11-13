@@ -19,6 +19,9 @@
 #ifndef ASF_CACHED_H
 #define ASF_CACHED_H
 
+#define ASF_CACHE_PRONAME_CONF "_conf"
+#define ASF_CACHE_PRONAME_INS "_ins"
+
 extern zend_class_entry *asf_cache_ce;
 
 ASF_INIT_CLASS(cache);

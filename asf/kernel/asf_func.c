@@ -257,6 +257,23 @@ zend_class_entry *asf_find_driver(const char *class_name, unsigned int class_nam
     return ce;
 }/*}}}*/
 
+void asf_func_format_args(zval *args, zval **retval, size_t *arg_count) /*{{{*/
+{
+    HashTable *ht = Z_ARRVAL_P(args);
+    *arg_count = zend_hash_num_elements(ht);
+
+    if (*arg_count > 0) {
+        zval *param = NULL;
+        int i = 0;
+        
+        *retval = safe_emalloc(sizeof(zval), *arg_count, 0);
+        ZEND_HASH_FOREACH_VAL(ht, param) {
+            ZVAL_DEREF(param);
+            ZVAL_COPY_VALUE(&((*retval)[i++]), param);
+        } ZEND_HASH_FOREACH_END();
+    }
+}/*}}}*/
+
 /*
  * Local variables:
  * tab-width: 4

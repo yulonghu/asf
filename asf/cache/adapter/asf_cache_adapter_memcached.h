@@ -16,12 +16,12 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef ASF_CACHE_ADAPTER_REDIS_H
-#define ASF_CACHE_ADAPTER_REDIS_H
+#ifndef ASF_CACHE_ADAPTER_MEMCACHED_H
+#define ASF_CACHE_ADAPTER_MEMCACHED_H
 
-extern zend_class_entry *asf_cache_adapter_redis_ce;
+extern zend_class_entry *asf_cache_adapter_memcached_ce;
 
-ASF_INIT_CLASS(cache_adapter_redis);
+ASF_INIT_CLASS(cache_adapter_memcached);
 
 #endif
 

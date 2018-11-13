@@ -249,7 +249,7 @@ ASF_DB_QB_METHOD(delete, qbd)
 PHP_METHOD(asf_Db, __callStatic)
 {
     zval *function_name = NULL;
-    zval *args = NULL;
+    zval *args = NULL, *real_args = NULL;
 
     ZEND_PARSE_PARAMETERS_START(2, 2)
         Z_PARAM_ZVAL_DEREF(function_name)
@@ -262,19 +262,13 @@ PHP_METHOD(asf_Db, __callStatic)
         RETURN_FALSE;
     }
 
-    size_t arg_count = zend_hash_num_elements(Z_ARRVAL_P(args));
-    zval params[arg_count];
+    size_t arg_count = 0;
+    (void)asf_func_format_args(args, &real_args, &arg_count);
 
-    if (arg_count) {
-        zval *entry = NULL;
-        size_t i = 0;
-        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(args), entry) {
-            ZVAL_DEREF(entry);
-            ZVAL_COPY_VALUE(&params[i++], entry);
-        } ZEND_HASH_FOREACH_END();
+    call_user_function_ex(&Z_OBJCE_P(cur_link)->function_table, cur_link, function_name, return_value, arg_count, real_args, 1, NULL);
+    if (arg_count > 0) {
+        efree(real_args);
     }
-
-    call_user_function_ex(&Z_OBJCE_P(cur_link)->function_table, cur_link, function_name, return_value, arg_count, params, 1, NULL);
 
     /* If the method not found in class */
     if (!return_value || Z_TYPE_P(return_value) == IS_UNDEF) {

@@ -1152,7 +1152,7 @@ PHP_METHOD(asf_absadapter, getLastSql)
 PHP_METHOD(asf_absadapter, __call)
 {
     zval *function_name = NULL;
-    zval *args = NULL;
+    zval *args = NULL, *real_args = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "za", &function_name, &args) == FAILURE) {
         return;
@@ -1165,8 +1165,13 @@ PHP_METHOD(asf_absadapter, __call)
         RETURN_FALSE;
     }
 
-    size_t arg_count = zend_hash_num_elements(Z_ARRVAL_P(args));
-    call_user_function_ex(&Z_OBJCE_P(dbh)->function_table, dbh, function_name, return_value, arg_count, args, 1, NULL);
+    size_t arg_count = 0;
+    (void)asf_func_format_args(args, &real_args, &arg_count);
+
+    call_user_function_ex(&Z_OBJCE_P(dbh)->function_table, dbh, function_name, return_value, arg_count, real_args, 1, NULL);
+    if (arg_count > 0) {
+        efree(real_args);
+    }
 }
 /* }}} */
 
