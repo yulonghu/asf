@@ -166,6 +166,7 @@ zend_function_entry asf_cache_adapter_memcached_methods[] = {
     PHP_ME(asf_cache_adapter_memcached, __construct, asf_cache_init_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(asf_cache_adapter_memcached, has, asf_cache_has_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_cache_adapter_memcached, get, asf_cache_get_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_cache_adapter_memcached, del, asf_cache_get_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_cache_adapter_memcached, set, asf_cache_set_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_cache_adapter_memcached, incr, asf_cache_incr_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_cache_adapter_memcached, decr, asf_cache_decr_arginfo, ZEND_ACC_PUBLIC)
