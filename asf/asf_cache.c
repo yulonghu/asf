@@ -126,27 +126,31 @@ PHP_METHOD(asf_cache, store)
     }
 
     const char *str = Z_STRVAL_P(find);
-    zval redis;
+    zval connect;
 
     do {
         if (strncasecmp("redis", str, 5) == 0) {
-            object_init_ex(&redis, asf_cache_adapter_redis_ce);
-            zend_call_method_with_1_params(&redis, asf_cache_adapter_redis_ce, NULL, "__construct", return_value, find_conf);
-            zval_ptr_dtor(&redis);
-            ZVAL_UNDEF(&redis);
+            object_init_ex(&connect, asf_cache_adapter_redis_ce);
+            zend_call_method_with_1_params(&connect, asf_cache_adapter_redis_ce, NULL, "__construct", return_value, find_conf);
+            zval_ptr_dtor(&connect);
+            ZVAL_UNDEF(&connect);
             break;
         }
 
         if (strncasecmp("memcached", str, 9) == 0) {
+            object_init_ex(&connect, asf_cache_adapter_memcached_ce);
+            zend_call_method_with_1_params(&connect, asf_cache_adapter_memcached_ce, NULL, "__construct", return_value, find_conf);
+            zval_ptr_dtor(&connect);
+            ZVAL_UNDEF(&connect);
         }
     } while (0);
 
     if (Z_TYPE_P(return_value) == IS_OBJECT) {
         if (Z_ISNULL_P(ins)) {
-            array_init(&redis);
-            add_assoc_zval_ex(&redis, ZSTR_VAL(tmp_name), ZSTR_LEN(tmp_name), return_value);
-            zend_update_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), &redis);
-            zval_ptr_dtor(&redis);
+            array_init(&connect);
+            add_assoc_zval_ex(&connect, ZSTR_VAL(tmp_name), ZSTR_LEN(tmp_name), return_value);
+            zend_update_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), &connect);
+            zval_ptr_dtor(&connect);
 
             zval handler;
             array_init(&handler);
