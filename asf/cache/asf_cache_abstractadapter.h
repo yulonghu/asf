@@ -37,6 +37,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_cache_set_arginfo, 0, 0, 2)
 	ZEND_ARG_INFO(0, key)
 	ZEND_ARG_INFO(0, value)
+	ZEND_ARG_INFO(0, expiration)
 ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_cache_incr_arginfo, 0, 0, 1)
 	ZEND_ARG_INFO(0, key)
@@ -63,12 +64,12 @@ PHP_METHOD(name, has) \
         return; \
     } \
     (void)asf_cache_adapter_handler_req(getThis(), 1, key, func_name, func_name_len, &retval); \
-    RETURN_BOOL(&retval); \
+    RETURN_BOOL((Z_TYPE(retval) == IS_FALSE) ? 0 : 1); \
 } \
 /*}}}*/
 
-#define ASF_CACHE_ADAPTER_METHOD_GET(name, func_name, func_name_len) /*{{{*/ \
-PHP_METHOD(name, get) \
+#define ASF_CACHE_ADAPTER_METHOD_GET_DEL(name, method_name, func_name, func_name_len) /*{{{*/ \
+PHP_METHOD(name, method_name) \
 { \
     zval *key = NULL; \
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &key) == FAILURE) { \
@@ -81,14 +82,18 @@ PHP_METHOD(name, get) \
 #define ASF_CACHE_ADAPTER_METHOD_SET(name, func_name, func_name_len) /*{{{*/ \
 PHP_METHOD(name, set) \
 { \
-    zval *key = NULL, *value = NULL; \
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz", &key, &value) == FAILURE) { \
+    zval *key = NULL, *value = NULL, *expiration = NULL; \
+    int num_args = ZEND_NUM_ARGS(); \
+    if (zend_parse_parameters(num_args, "zz|z", &key, &value, &expiration) == FAILURE) { \
         return; \
     } \
-    zval args[2]; \
+    zval args[3]; \
     ZVAL_COPY_VALUE(&args[0], key); \
     ZVAL_COPY_VALUE(&args[1], value); \
-    (void)asf_cache_adapter_handler_req(getThis(), 2, args, func_name, func_name_len, return_value); \
+    if (expiration) { \
+        ZVAL_COPY_VALUE(&args[2], expiration); \
+    } \
+    (void)asf_cache_adapter_handler_req(getThis(), num_args, args, func_name, func_name_len, return_value); \
 } \
 /*}}}*/
 

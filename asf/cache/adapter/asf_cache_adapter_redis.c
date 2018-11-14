@@ -133,10 +133,10 @@ ASF_CACHE_ADAPTER_METHOD_HAS(asf_cache_adapter_redis, "exists", 6);
 
 /* {{{ proto mixed Asf_Cache_Adapter_Redis::get(mixed $key)
 */
-ASF_CACHE_ADAPTER_METHOD_GET(asf_cache_adapter_redis, "get", 3);
+ASF_CACHE_ADAPTER_METHOD_GET_DEL(asf_cache_adapter_redis, get, "get", 3);
 /* }}} */
 
-/* {{{ proto bool Asf_Cache_Adapter_Redis::set(mixed $key, mixed $value)
+/* {{{ proto bool Asf_Cache_Adapter_Redis::set(mixed $key, mixed $value [, int $expiration])
 */
 ASF_CACHE_ADAPTER_METHOD_SET(asf_cache_adapter_redis, "set", 3);
 /* }}} */
