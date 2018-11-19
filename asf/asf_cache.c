@@ -43,7 +43,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_cache_store_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
-ZEND_BEGIN_ARG_INFO_EX(asf_cache_clean_arginfo, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(asf_cache_close_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 /* }}} */
@@ -152,12 +152,8 @@ PHP_METHOD(asf_cache, store)
             zend_update_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), &connect);
             zval_ptr_dtor(&connect);
 
-            zval handler;
-            array_init(&handler);
-            add_index_str(&handler, 0, asf_cache_ce->name);
-            add_index_stringl(&handler, 1, "cleanAll", 8);
-            zend_call_method_with_1_params(NULL, NULL, NULL, "register_shutdown_function", NULL, &handler);
-            zval_ptr_dtor(&handler);
+            /* close redis_sock */
+            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION(asf_cache_ce->name, "closeAll", 8);
         } else {
             zend_hash_add(Z_ARRVAL_P(ins), tmp_name, return_value);
             zend_update_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), ins);
@@ -169,9 +165,9 @@ PHP_METHOD(asf_cache, store)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Cache::clean(string $name)
+/* {{{ proto bool Asf_Cache::close(string $name)
 */
-PHP_METHOD(asf_cache, clean)
+PHP_METHOD(asf_cache, close)
 {
     zval *name = NULL;
 
@@ -197,9 +193,9 @@ PHP_METHOD(asf_cache, clean)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Cache::cleanAll(string $name)
+/* {{{ proto bool Asf_Cache::closeAll(string $name)
 */
-PHP_METHOD(asf_cache, cleanAll)
+PHP_METHOD(asf_cache, closeAll)
 {
     /* found name in Cache::$_ins[name] */
     zval *ins = zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), 1);
@@ -227,8 +223,8 @@ zend_function_entry asf_cache_methods[] = {
     PHP_ME(asf_cache, setConfig,    asf_cache_setconf_arginfo,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_cache, getLinks,     NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_cache, store,        asf_cache_store_arginfo,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-    PHP_ME(asf_cache, clean,        asf_cache_clean_arginfo,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-    PHP_ME(asf_cache, cleanAll,     NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_cache, close,        asf_cache_close_arginfo,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_cache, closeAll,     NULL,                       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_FE_END
 };
 /* }}} */

@@ -51,6 +51,15 @@ void asf_func_format_args(zval *args, zval **retval, size_t *arg_count);
     ASF_FAST_STRING_PTR_DTOR(zmn); \
 } while(0)
 
+#define ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION(class_name, method, method_len) do { \
+    zval handler; \
+    array_init(&handler); \
+    add_index_str(&handler, 0, class_name); \
+    add_index_stringl(&handler, 1, method, method_len); \
+    zend_call_method_with_1_params(NULL, NULL, NULL, "register_shutdown_function", NULL, &handler); \
+    zval_ptr_dtor(&handler); \
+} while (0)
+
 php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpath);
 
 int asf_func_array_isset(const zval *arr, const zval *index);

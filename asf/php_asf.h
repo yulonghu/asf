@@ -61,6 +61,17 @@ extern zend_module_entry asf_module_entry;
 #define asf_http_req_t	zval
 #define asf_http_rep_t	zval
 
+enum logger_type {
+    ASF_LOGGER_FILE,
+    ASF_LOGGER_SYSLOG,
+};
+
+enum db_type {
+    ASF_DB_MYSQL,
+    ASF_DB_SQLITE,
+    ASF_DB_PGSQL,
+};
+
 ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_string *root_path;
 	zend_string *log_path;

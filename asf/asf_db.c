@@ -52,7 +52,6 @@ ZEND_BEGIN_ARG_INFO_EX(asf_Db_init_arginfo, 0, 0, 1)
     ZEND_ARG_ARRAY_INFO(0, configs, 1)
     ZEND_ARG_INFO(0, adapter_id)
     ZEND_ARG_INFO(0, reset)
-    ZEND_ARG_INFO(0, self)
 ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(asf_Db_initmysql_arginfo, 0, 0, 1)
     ZEND_ARG_ARRAY_INFO(0, configs, 1)
@@ -70,14 +69,12 @@ PHP_METHOD(asf_Db, init)
     zval *configs = NULL;
     zend_long adapter_id = 0;
     zend_bool reset = 0;
-    zval *self = NULL;
 
     ZEND_PARSE_PARAMETERS_START(1, 4)
         Z_PARAM_ARRAY(configs)
         Z_PARAM_OPTIONAL
         Z_PARAM_LONG(adapter_id)
         Z_PARAM_BOOL(reset)
-        Z_PARAM_OBJECT(self)
     ZEND_PARSE_PARAMETERS_END();
 
     zval pdo, *cpdo = NULL;
@@ -87,7 +84,7 @@ PHP_METHOD(asf_Db, init)
     unsigned char digest[16];
     PHP_MD5_CTX context;
 
-    /* get instance */
+    /* Get instance */
     md5str[0] = '\0'; digest[0] = '\0';
     smart_str_append_long(&ins, adapter_id);
     smart_str_appendc(&ins, '_');
@@ -128,9 +125,9 @@ PHP_METHOD(asf_Db, init)
     /* Connect/ReConnect DB */
     char *type = NULL;
     switch (adapter_id) {
-        case 0: (void)asf_db_adapter_mysql_instance(&pdo); type = ASF_DB_TYPE_MYSQL; break;
-        case 1: (void)asf_db_adapter_sqlite_instance(&pdo); type = ASF_DB_TYPE_SQLTILE; break;
-        case 2: (void)asf_db_adapter_pgsql_instance(&pdo); type = ASF_DB_TYPE_PGSQL; break;
+        case ASF_DB_MYSQL: (void)asf_db_adapter_mysql_instance(&pdo); type = ASF_DB_TYPE_MYSQL; break;
+        case ASF_DB_SQLITE: (void)asf_db_adapter_sqlite_instance(&pdo); type = ASF_DB_TYPE_SQLTILE; break;
+        case ASF_DB_PGSQL: (void)asf_db_adapter_pgsql_instance(&pdo); type = ASF_DB_TYPE_PGSQL; break;
         default: (void)asf_db_adapter_mysql_instance(&pdo); type = ASF_DB_TYPE_MYSQL; break;
     }
 
@@ -149,14 +146,8 @@ PHP_METHOD(asf_Db, init)
         zend_update_static_property(asf_Db_ce, ZEND_STRL(LINKS), &executor);
         zval_ptr_dtor(&executor);
 
-        /* Free Resource, Fix leak in PHP 7.2.0 (cli)(NTS DEBUG) */
-        if (self && Z_TYPE_P(self) == IS_OBJECT) {
-            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(self, 1);
-        } else {
-            zval this_ptr;
-            object_init_ex(&this_ptr, asf_Db_ce);
-            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(&this_ptr, 0);
-        }
+        /* Free static property, Fix leak in PHP 7.2.0 (cli)(NTS DEBUG) */
+        ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION(asf_Db_ce->name, "close", 5);
     } else {
         zend_hash_str_add(Z_ARRVAL_P(zlinks), md5str, 32, &pdo);
         zend_update_static_property(asf_Db_ce, ZEND_STRL(LINKS), zlinks);
@@ -179,7 +170,7 @@ PHP_METHOD(asf_Db, initMysql)
         Z_PARAM_BOOL(reset)
     ZEND_PARSE_PARAMETERS_END();
 
-    zval args[4], zmn_1;
+    zval args[3], zmn_1;
     asf_db_t this_ptr;
 
     object_init_ex(&this_ptr, asf_Db_ce);
@@ -188,9 +179,8 @@ PHP_METHOD(asf_Db, initMysql)
     ZVAL_COPY_VALUE(&args[0], configs);
     ZVAL_LONG(&args[1], 0);
     ZVAL_BOOL(&args[2], reset);
-    ZVAL_OBJ(&args[3], Z_OBJ(this_ptr));
 
-    call_user_function_ex(&asf_Db_ce->function_table, &this_ptr, &zmn_1, return_value, 4, args, 1, NULL);
+    call_user_function_ex(&asf_Db_ce->function_table, &this_ptr, &zmn_1, return_value, 3, args, 1, NULL);
     if (UNEXPECTED(EG(exception) && strcasecmp(ZSTR_VAL(EG(exception)->ce->name), "PDOException") == 0)) {
         zval exception_object;
         ZVAL_OBJ(&exception_object, EG(exception));
@@ -257,8 +247,8 @@ PHP_METHOD(asf_Db, __callStatic)
     ZEND_PARSE_PARAMETERS_END();
 
     zval *cur_link = zend_read_static_property(asf_Db_ce, ZEND_STRL(CLINK), 1);
-
-    if (!cur_link || IS_OBJECT != Z_TYPE_P(cur_link)) {
+    
+    if (IS_OBJECT != Z_TYPE_P(cur_link)) {
         RETURN_FALSE;
     }
 
@@ -316,8 +306,8 @@ ASF_INIT_CLASS(Db) /* {{{ */
 {
     ASF_REGISTER_CLASS_PARENT(asf_Db, Asf_Db, Asf\\Db, ZEND_ACC_FINAL);
 
-    zend_declare_property_null(asf_Db_ce, ZEND_STRL(LINKS),     ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
-    zend_declare_property_null(asf_Db_ce, ZEND_STRL(CLINK),     ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
+    zend_declare_property_null(asf_Db_ce, ZEND_STRL(LINKS), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
+    zend_declare_property_null(asf_Db_ce, ZEND_STRL(CLINK), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
 
     ASF_INIT(db_adapterinterface);
     ASF_INIT(db_abstractadapter);

@@ -54,6 +54,11 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
         return;
     }
 
+    if (UNEXPECTED(Z_TYPE_P(host) != IS_STRING)) {
+        asf_trigger_error(ASF_ERR_CACHE_OPTIONS, "The options 'host' must be string");
+        return;                         
+    }
+
     /* port = 6379 OR port = '6379', we don't check less than 1 */
     port = zend_hash_str_find(ht, "port", 4);
     l_port = (port != NULL) ? zval_get_long(port) : 6379;

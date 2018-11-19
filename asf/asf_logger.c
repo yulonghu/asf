@@ -42,11 +42,6 @@
 
 zend_class_entry *asf_logger_ce;
 
-enum logger_type {
-    ASF_LOGGER_FILE,
-    ASF_LOGGER_SYSLOG,
-};
-
 /* {{{ ARG_INFO
 */
 ZEND_BEGIN_ARG_INFO_EX(asf_logger_adapter_arginfo, 0, 0, 2)
