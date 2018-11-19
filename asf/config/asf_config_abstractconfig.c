@@ -67,7 +67,7 @@ static zend_string *asf_absconfig_cache_str_persistent(const char *str, const si
     zend_string *new_key = zend_string_init(str, len, 1);
 
     if (UNEXPECTED(new_key == NULL)) {
-        zend_out_of_memory();
+        zend_error(E_ERROR, "Out of memory\n");
     }
 
     return new_key;
