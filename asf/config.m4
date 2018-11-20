@@ -68,9 +68,6 @@ if test "$PHP_ASF" != "no"; then
       log/asf_log_adapter.c \
       log/adapter/asf_log_adapter_file.c \
       log/adapter/asf_log_adapter_syslog.c \
-      log/asf_log_formatterinterface.c \
-      log/formatter/asf_log_formatter_file.c \
-      log/formatter/asf_log_formatter_syslog.c \
       asf_db.c \
       db/asf_db_adapterinterface.c \
       db/asf_db_abstractadapter.c \

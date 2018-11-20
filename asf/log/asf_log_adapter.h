@@ -19,18 +19,17 @@
 #ifndef ASF_LOG_ADAPTER_H
 #define ASF_LOG_ADAPTER_H
 
-#define ASF_LOG_ADAPTER_METHOD(mname, mname_upper) \
+#define ASF_LOG_ADAPTER_METHOD(mname, mname_upper, mname_upper_len) \
 PHP_METHOD(asf_log_adapter, mname) \
 { \
-    zval *message = NULL, *context = NULL; \
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|a", &message, &context) == FAILURE) { \
+    zend_string *message = NULL; zval *context = NULL; \
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|a", &message, &context) == FAILURE) { \
         return; \
     } \
-    zval zlevel, zmn_1, args[3]; \
+    zval zmn_1, args[3]; \
     ZVAL_STRINGL(&zmn_1, "log", 3); \
-    ZVAL_STRING(&zlevel, #mname_upper); \
-    ZVAL_COPY_VALUE(&args[0], &zlevel); \
-    ZVAL_COPY_VALUE(&args[1], message); \
+    ZVAL_STRINGL(&args[0], mname_upper, mname_upper_len); \
+    ZVAL_STR(&args[1], message); \
     if (context) { \
         ZVAL_COPY_VALUE(&args[2], context); \
         call_user_function_ex(&(Z_OBJCE_P(getThis()))->function_table, getThis(), &zmn_1, return_value, 3, args, 1, NULL); \
@@ -38,10 +37,8 @@ PHP_METHOD(asf_log_adapter, mname) \
         call_user_function_ex(&(Z_OBJCE_P(getThis()))->function_table, getThis(), &zmn_1, return_value, 2, args, 1, NULL); \
     } \
     zval_ptr_dtor(&zmn_1); \
-    zval_ptr_dtor(&zlevel); \
+    zval_ptr_dtor(&args[0]); \
 }
-
-#define ASF_LOG_ADAPTER_PRONAME_FORMATTER "_formatter"
 
 /* PHP 7.2 zend_class_constant */
 #ifndef zend_class_constant

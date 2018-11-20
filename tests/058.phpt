@@ -24,11 +24,11 @@ class IndexService extends Asf_AbstractService
         $logger->close();
         $logger = NULL;
 
-        $logger = Asf_Logger::adapter(0, 'biz-dd_log');
+        $logger = Asf_Logger::adapter(ASF_LOGGER_FILE, 'biz-dd_log');
         $logger->info('Asf_Logger');
         $logger = NULL;
 
-        $logger = Asf_Logger::adapter(1, 'biz-dd_log');
+        $logger = Asf_Logger::adapter(ASF_LOGGER_SYSLOG, 'biz-dd_log');
         $logger->info('Asf_Logger message');
         $logger->info(222);
         $logger = NULL;

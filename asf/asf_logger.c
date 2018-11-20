@@ -36,10 +36,6 @@
 #include "log/adapter/asf_log_adapter_file.h"
 #include "log/adapter/asf_log_adapter_syslog.h"
 
-#include "log/asf_log_formatterinterface.h"
-#include "log/formatter/asf_log_formatter_file.h"
-#include "log/formatter/asf_log_formatter_syslog.h"
-
 zend_class_entry *asf_logger_ce;
 
 /* {{{ ARG_INFO
@@ -104,9 +100,6 @@ ASF_INIT_CLASS(logger) /* {{{ */
     ASF_INIT(log_adapter);
     ASF_INIT(log_adapter_file);
     ASF_INIT(log_adapter_syslog);
-    ASF_INIT(log_formatterinterface);
-    ASF_INIT(log_formatter_file);
-    ASF_INIT(log_formatter_syslog);
 
     return SUCCESS;
 }

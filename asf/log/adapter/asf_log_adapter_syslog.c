@@ -31,7 +31,6 @@
 #include "asf_log_adapter_syslog.h"
 #include "log/asf_log_adapter.h"
 #include "log/asf_log_level.h"
-#include "log/formatter/asf_log_formatter_syslog.h"
 #include "kernel/asf_func.h"
 
 zend_class_entry *asf_log_adapter_syslog_ce;
@@ -92,58 +91,21 @@ PHP_METHOD(asf_log_adapter_syslog, __construct)
 */
 PHP_METHOD(asf_log_adapter_syslog, getFormatter)
 {
-    zval *zformatter = zend_read_property(asf_log_adapter_syslog_ce, getThis(), ZEND_STRL(ASF_LOG_ADAPTER_PRONAME_FORMATTER), 1, NULL);
-
-    if (IS_OBJECT == Z_TYPE_P(zformatter)) {
-        RETURN_ZVAL(zformatter, 1, 0);
-    }
-
-    object_init_ex(return_value, asf_log_formatter_syslog_ce);
-
-    zend_update_property(asf_log_adapter_syslog_ce, getThis(), ZEND_STRL(ASF_LOG_ADAPTER_PRONAME_FORMATTER), return_value);
+    RETURN_FALSE;
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Log_Adapter_Syslog::doLog(string $level, int time, string $message)
+/* {{{ proto bool Asf_Log_Adapter_Syslog::doLog(string $message)
 */
 PHP_METHOD(asf_log_adapter_syslog, doLog)
 {
-    zval *message = NULL, *level = NULL;
-    zend_long time = 0;
+    zend_string *message = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "zlz", &level, &time, &message) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &message) == FAILURE) {
         return;
     }
 
-    zval *self = getThis();
-    zval zret_1, zret_2;
-    zval zmn_1, zmn_2;
-    zval args[3];
-
-    ZVAL_STRING(&zmn_1, "getFormatter");
-    call_user_function_ex(&(asf_log_adapter_syslog_ce)->function_table, self, &zmn_1, &zret_1, 0, 0, 1, NULL);
-
-    zval_ptr_dtor(&zmn_1);
-
-    if (IS_OBJECT != Z_TYPE(zret_1)) {
-        RETURN_FALSE;
-    }
-
-    ZVAL_STRING(&zmn_2, "format");
-    ZVAL_COPY_VALUE(&args[0], level);
-    ZVAL_LONG(&args[1], time);
-    ZVAL_COPY_VALUE(&args[2], message);
-
-    call_user_function_ex(&Z_OBJCE(zret_1)->function_table, &zret_1, &zmn_2, &zret_2, 3, args, 1, NULL);
-
-    zval_ptr_dtor(&zret_1);
-    zval_ptr_dtor(&zmn_2);
-
-    zend_string *str = zval_get_string(&zret_2);
-    php_syslog(LOG_INFO, "%s", ZSTR_VAL(str));
-
-    zend_string_release(str);
-    zval_ptr_dtor(&zret_2);
+    php_syslog(LOG_INFO, "%s", ZSTR_VAL(message));
 
     RETURN_TRUE;
 }

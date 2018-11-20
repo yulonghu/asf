@@ -113,15 +113,15 @@ abstract class Asf_Router_AbstractRoute
 /* {{{ logger */
 interface Asf_Log_LoggerInterface
 {
-    public function emergency(mixed $message, array $content = array())
-    public function alert(mixed $message, array $content = array())
-    public function critical(mixed $message, array $content = array())
-    public function error(mixed $message, array $content = array())
-    public function warning(mixed $message, array $content = array())
-    public function notice(mixed $message, array $content = array())
-    public function info(mixed $message, array $content = array())
-    public function debug(mixed $message, array $content = array())
-    public function log(int $level = 8, mixed $message, array $content = array())
+    public function emergency(string $message, array $content = array())
+    public function alert(string $message, array $content = array())
+    public function critical(string $message, array $content = array())
+    public function error(string $message, array $content = array())
+    public function warning(string $message, array $content = array())
+    public function notice(string $message, array $content = array())
+    public function info(string $message, array $content = array())
+    public function debug(string $message, array $content = array())
+    public function log(string $level, string $message, array $content = array())
 }
 
 final class Asf_Log_Level

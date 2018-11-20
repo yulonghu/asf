@@ -6,12 +6,12 @@ Check for Asf_Logger_Formatter_File
 asf.use_namespace=0
 --FILE--
 <?php
+/*
 $formatter = new Asf_Log_Formatter_File();
 
 $data = $formatter->format('info', time(), 'This is test');
 $data = trim($data);
 var_dump($data);
-
+*/
 ?>
 --EXPECTF--
-string(%d) "%s"

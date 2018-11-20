@@ -15,7 +15,6 @@ $logger = new Asf_Log_Adapter_Syslog('biz-dd_log');
 echo '------normal output-------', PHP_EOL;
 var_dump($logger->info('xxxxx'));
 
-var_dump($logger->info(array('a', 'b', 'c' => 123)));
 var_dump($logger->info(json_encode(array('a', 'b', 'c' => 123))));
 var_dump($logger->emergency('xxxxx'));
 var_dump($logger->alert('xxxxx'));
@@ -40,8 +39,6 @@ var_dump($logger->debug('xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
 echo '------log function-------', PHP_EOL;
 var_dump($logger->log('INFO', json_encode(array("aaa", 'bbb'))));
 var_dump($logger->log('INFO', 'xxxx{xy}y{yz}zz', array('xy' => 'AA', 'yz' => 'MM')));
-
-error_reporting(0);
 var_dump($logger->log(1, json_encode(array("aaa", 'bbb'))));
 
 echo '------close log-------', PHP_EOL;
@@ -52,7 +49,6 @@ shutdown();
 ?>
 --EXPECT--
 ------normal output-------
-bool(true)
 bool(true)
 bool(true)
 bool(true)
@@ -76,7 +72,7 @@ bool(true)
 ------log function-------
 bool(true)
 bool(true)
-bool(false)
+bool(true)
 ------close log-------
 bool(true)
 

@@ -34,7 +34,6 @@
 #include "asf_exception.h"
 #include "asf_log_adapter_file.h"
 #include "log/asf_log_adapter.h"
-#include "log/formatter/asf_log_formatter_file.h"
 #include "kernel/asf_func.h"
 
 zend_class_entry *asf_log_adapter_file_ce;
@@ -92,7 +91,7 @@ void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_nam
 /* }}} */
 
 /* [full_path1 => data, full_path2 => data] */
-static _Bool asf_func_buffer_cache(zval *data, const char *path, const char *fname) /* {{{ */
+static _Bool asf_func_buffer_cache(zend_string *message, const char *path, const char *fname) /* {{{ */
 {
     zval *zbuf = NULL;
     zval new_array;
@@ -108,17 +107,15 @@ static _Bool asf_func_buffer_cache(zval *data, const char *path, const char *fna
         }
 
         if ((zbuf = zend_hash_str_find_ptr(Z_ARRVAL(ASF_G(log_buffer)), fpath, fpath_len)) != NULL) {
-            Z_TRY_ADDREF_P(data);
-            add_next_index_zval((void *)&zbuf, data);
+            add_next_index_stringl((void *)&zbuf, ZSTR_VAL(message), ZSTR_LEN(message));
             efree(fpath);
             return 1;
         }
     } while(0);
 
     array_init(&new_array);
-    Z_TRY_ADDREF_P(data);
     
-    add_next_index_zval(&new_array, data);
+    add_next_index_stringl(&new_array, ZSTR_VAL(message), ZSTR_LEN(message));
     add_assoc_zval_ex(&ASF_G(log_buffer), fpath, fpath_len, &new_array);
     
     efree(fpath);
@@ -145,75 +142,41 @@ PHP_METHOD(asf_log_adapter_file, __construct)
 */
 PHP_METHOD(asf_log_adapter_file, getFormatter)
 {
-    zval *zformatter = zend_read_property(asf_log_adapter_file_ce, getThis(), ZEND_STRL(ASF_LOG_ADAPTER_PRONAME_FORMATTER), 1, NULL);
-
-    if (IS_OBJECT == Z_TYPE_P(zformatter)) {
-        RETURN_ZVAL(zformatter, 1, 0);
-    }
-
-    object_init_ex(return_value, asf_log_formatter_file_ce);
-
-    zend_update_property(asf_log_adapter_file_ce, getThis(), ZEND_STRL(ASF_LOG_ADAPTER_PRONAME_FORMATTER), return_value);
+    RETURN_FALSE;
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Log_Adapter_File::doLog(string $level, int time, string $message)
+/* {{{ proto bool Asf_Log_Adapter_File::doLog(string $message)
 */
 PHP_METHOD(asf_log_adapter_file, doLog)
 {
-    zval *message = NULL, *level = NULL;
-    zend_long time = 0;
-
+    zend_string *message = NULL;
     _Bool ret = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "zlz", &level, &time, &message) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &message) == FAILURE) {
         return;
     }
 
     zval *self = getThis();
 
-    zval *path = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_PATH), 1, NULL);
-    zval *fname = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_NAME), 1, NULL);
-
-    /* Fix file_name is empty issue */
-    if (Z_ISNULL_P(fname)) {
-        RETURN_FALSE;
-    }
-
-    zval zmn_1, zret_1;
-    ZVAL_STRING(&zmn_1, "getFormatter");
-
-    call_user_function_ex(&(asf_log_adapter_file_ce)->function_table, self, &zmn_1, &zret_1, 0, 0, 1, NULL);
-    zval_ptr_dtor(&zmn_1);
-
-    if (IS_OBJECT != Z_TYPE(zret_1)) {
-        RETURN_FALSE;
-    }
-
-    zval args[3], zret_2, zmn_2;
-
-    ZVAL_STRING(&zmn_2, "format");
-    ZVAL_COPY_VALUE(&args[0], level);
-    ZVAL_LONG(&args[1], time);
-    ZVAL_COPY_VALUE(&args[2], message);
-
-    call_user_function_ex(&Z_OBJCE(zret_1)->function_table, &zret_1, &zmn_2, &zret_2, 3, args, 1, NULL);
-
-    zval_ptr_dtor(&zret_1);
-    zval_ptr_dtor(&zmn_2);
-
     if (ASF_G(use_lcache)) {
-        ret = asf_func_buffer_cache(&zret_2, Z_STRVAL_P(path), Z_STRVAL_P(fname));
+        zval *path = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_PATH), 1, NULL);
+        zval *fname = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_NAME), 1, NULL);
+
+        /* Fix file_name is empty issue */
+        if (UNEXPECTED(Z_ISNULL_P(fname))) {
+            RETURN_FALSE;
+        }
+        ret = asf_func_buffer_cache(message, Z_STRVAL_P(path), Z_STRVAL_P(fname));
     } else {
         php_stream *stream = NULL;
         zval *zstream = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_STREAM), 1, NULL);
         if (IS_RESOURCE == Z_TYPE_P(zstream)) {
             php_stream_from_zval(stream, zstream);
-            ret = php_stream_write(stream, Z_STRVAL(zret_2), Z_STRLEN(zret_2));
+            ret = php_stream_write(stream, ZSTR_VAL(message), ZSTR_LEN(message));
         }
     }
 
-    zval_ptr_dtor(&zret_2);
     RETURN_BOOL(ret);
 }
 /* }}} */
