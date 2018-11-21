@@ -138,14 +138,6 @@ PHP_METHOD(asf_log_adapter_file, __construct)
 }
 /* }}} */
 
-/* {{{ proto object Asf_Log_Adapter_File::getFormatter(void)
-*/
-PHP_METHOD(asf_log_adapter_file, getFormatter)
-{
-    RETURN_FALSE;
-}
-/* }}} */
-
 /* {{{ proto bool Asf_Log_Adapter_File::doLog(string $message)
 */
 PHP_METHOD(asf_log_adapter_file, doLog)
@@ -212,10 +204,9 @@ PHP_METHOD(asf_log_adapter_file, flushBuffer)
 */
 zend_function_entry asf_log_adapter_file_methods[] = {
     PHP_ME(asf_log_adapter_file, __construct,  asf_log_adapter_file_construct_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(asf_log_adapter_file, close,		   NULL, ZEND_ACC_PUBLIC)
     PHP_ME(asf_log_adapter_file, flushBuffer,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(asf_log_adapter_file, doLog,		   asf_log_adapter_file_dolog_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_log_adapter_file, getFormatter, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_log_adapter_file, close,		   NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 /* }}} */

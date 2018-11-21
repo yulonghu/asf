@@ -140,33 +140,31 @@ final class Asf_Log_Level
 
 abstract class Asf_Log_AbstractLogger implements Asf_Log_LoggerInterface
 {
-    public function emergency(mixed $message, array $content = array())
-    public function alert(mixed $message, array $content = array())
-    public function critical(mixed $message, array $content = array())
-    public function error(mixed $message, array $content = array())
-    public function warning(mixed $message, array $content = array())
-    public function notice(mixed $message, array $content = array())
-    public function info(mixed $message, array $content = array())
-    public function debug(mixed $message, array $content = array())
-    public function log(string $level = 'info', mixed $message, array $content = array())
+    public function emergency(string $message, array $content = array())
+    public function alert(string $message, array $content = array())
+    public function critical(string $message, array $content = array())
+    public function error(string $message, array $content = array())
+    public function warning(string $message, array $content = array())
+    public function notice(string $message, array $content = array())
+    public function info(string $message, array $content = array())
+    public function debug(string $message, array $content = array())
+    public function log(string $level = 'info', string $message, array $content = array())
     public function getFormatter(void)
-    public function doLog(string $level, int time, string $message)
+    public function doLog(string $message)
 }
 
 final class Asf_Log_Adapter_File extends Asf_Log_AbstractLogger
 {
     public function __construct(string $file_name, string $file_path = '')
-    public function close()
-    public function getFormatter(void)
-    public function doLog(string $level, int time, string $message)
+    public function doLog(string $message)
+    public function close(void)
 }
 
 final class Asf_Log_Adapter_Syslog extends Asf_Log_AbstractLogger
 {
     public function __construct(string $ident, int $options = LOG_PID, int $facility = LOG_LOCAL0)
+    public function doLog(string $message)
     public function close(void)
-    public function getFormatter(void)
-    public function doLog(string $level, int time, string $message)
 }
 
 interface Asf_Log_FormatterInterface
@@ -190,6 +188,8 @@ final class Asf_Log_Formatter_Syslog implements Asf_Log_FormatterInterface
 final class Asf_Logger extends Asf_Log_AbstractLogger
 {
     public static function adapter(int $adapter_id, string $file_name)
+    public static function init(string $full_path)
+    public static function getHandles(void)
 }
 /* }}} logger */
 

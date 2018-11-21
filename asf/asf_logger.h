@@ -19,6 +19,8 @@
 #ifndef ASF_LOGGER_H
 #define ASF_LOGGER_H
 
+#define ASF_LOGGER_PRONAME_INS "_ins"
+
 extern zend_class_entry *asf_logger_ce;
 
 void asf_logger_instance(asf_logger_t *this_ptr, zend_string *file_name, zend_string *file_path);

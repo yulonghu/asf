@@ -88,16 +88,8 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
         return NULL;
     }
 
-    ZVAL_UNDEF(&exists_flag);
-    php_stat(fpath, fpath_len, FS_IS_FILE, &exists_flag);
-
-    char *mode = NULL;
-    if (Z_TYPE(exists_flag) == IS_FALSE) {
-        mode = "wb";
-    } else {
-        mode = "ab";
-    }
-
+    /* If the file does not exist, attempt to create it. */
+    const char *mode = "ab";
     php_stream *stream = php_stream_fopen(fpath, mode, NULL);
 
     if (NULL == stream) {

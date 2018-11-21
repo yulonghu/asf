@@ -222,14 +222,6 @@ PHP_METHOD(asf_log_adapter, interpolate)
 }
 /* }}} */
 
-/* {{{ proto object Asf_Log_Adapter::getFormatter(void)
-*/
-PHP_METHOD(asf_log_adapter, getFormatter)
-{
-    return;
-}
-/* }}} */
-
 /* {{{ proto bool Asf_Log_Adapter::doLog(string $level, int time, string $message)
 */
 PHP_METHOD(asf_log_adapter, doLog)
@@ -251,7 +243,6 @@ zend_function_entry asf_log_adapter_methods[] = {
     PHP_ME(asf_log_adapter, debug,		   asf_log_loggerinterface_common_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_log_adapter, log,		   asf_log_loggerinterface_log_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_log_adapter, interpolate,   asf_log_adapter_inter_arginfo, ZEND_ACC_PUBLIC)
-    PHP_ME(asf_log_adapter, getFormatter,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(asf_log_adapter, doLog,		   NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };

@@ -72,7 +72,7 @@ PHP_METHOD(asf_cache, setConfig)
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Cache::getLinks(void)
+/* {{{ proto mixed Asf_Cache::getLinks(void)
 */
 PHP_METHOD(asf_cache, getLinks)
 {

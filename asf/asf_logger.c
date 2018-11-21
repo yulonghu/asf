@@ -22,6 +22,7 @@
 
 #include "php.h"
 #include "Zend/zend_interfaces.h"
+#include "ext/standard/php_string.h" /* for php_basename */
 
 #include "php_asf.h"
 #include "kernel/asf_namespace.h"
@@ -83,10 +84,79 @@ PHP_METHOD(asf_logger, adapter)
 }
 /* }}} */
 
+/* {{{ proto object Asf_Logger::init(string $full_path)
+*/
+PHP_METHOD(asf_logger, init)
+{
+    zend_string *full_path = NULL;
+    zval *self = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &full_path) == FAILURE) {
+        return;
+    }
+
+    /* The empty filename is meaningless */
+    if (asf_func_isempty(ZSTR_VAL(full_path))) {
+        php_error_docref(NULL, E_WARNING, "The parameter expected a string");
+        RETURN_FALSE;
+    }
+
+    size_t path_len = ZSTR_LEN(full_path);
+    if (ZSTR_VAL(full_path)[0] != '/' || ZSTR_VAL(full_path)[path_len - 1] == '/') {
+        php_error_docref(NULL, E_WARNING, "The parameter expected the full path");
+        RETURN_FALSE;   
+    }
+
+    zval *find = NULL;
+    zval *ins = zend_read_static_property(asf_logger_ce, ZEND_STRL(ASF_LOGGER_PRONAME_INS), 1);
+    if (Z_TYPE_P(ins) != IS_NULL && (find = zend_symtable_find(Z_ARRVAL_P(ins), full_path))) {
+        RETURN_ZVAL(find, 1, 0);
+    }
+
+    zend_string *file_name = php_basename(ZSTR_VAL(full_path), path_len, NULL, 0);
+    if (!ZSTR_LEN(file_name)) {
+        zend_string_release(file_name);
+        RETURN_FALSE;
+    }
+
+    zend_string *dir_path = zend_string_truncate(full_path, path_len - ZSTR_LEN(file_name), 0);
+    ZSTR_VAL(dir_path)[ZSTR_LEN(dir_path)] = '\0';
+
+    (void)asf_logger_instance(return_value, file_name, dir_path);
+    zend_string_release(file_name);
+    zend_string_release(dir_path);
+
+    if (Z_TYPE_P(return_value) == IS_OBJECT) {
+        zval connect;
+        if (Z_ISNULL_P(ins)) {
+            array_init(&connect);
+            add_assoc_zval_ex(&connect, ZSTR_VAL(full_path), ZSTR_LEN(full_path), return_value);
+            zend_update_static_property(asf_logger_ce, ZEND_STRL(ASF_LOGGER_PRONAME_INS), &connect);
+            zval_ptr_dtor(&connect);
+        } else {
+            zend_hash_add(Z_ARRVAL_P(ins), full_path, return_value);
+            zend_update_static_property(asf_logger_ce, ZEND_STRL(ASF_LOGGER_PRONAME_INS), ins);
+        }
+        Z_TRY_ADDREF_P(return_value);
+    }
+}
+/* }}} */
+
+/* {{{ proto mixed Asf_Logger::getHandles(void)
+*/
+PHP_METHOD(asf_logger, getHandles)
+{
+    ZVAL_COPY(return_value,
+            zend_read_static_property(asf_logger_ce, ZEND_STRL(ASF_LOGGER_PRONAME_INS), 1));
+}
+/* }}} */
+
 /* {{{ asf_logger_methods[]
 */
 zend_function_entry asf_logger_methods[] = {
     PHP_ME(asf_logger, adapter, asf_logger_adapter_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_logger, init, asf_logger_adapter_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_logger, getHandles, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_FE_END
 };
 /* }}} */
@@ -94,6 +164,8 @@ zend_function_entry asf_logger_methods[] = {
 ASF_INIT_CLASS(logger) /* {{{ */
 {
     ASF_REGISTER_CLASS_PARENT(asf_logger, Asf_Logger, Asf\\Logger, ZEND_ACC_FINAL);
+
+    zend_declare_property_null(asf_logger_ce, ZEND_STRL(ASF_LOGGER_PRONAME_INS), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
 
     ASF_INIT(log_level);
     ASF_INIT(log_loggerinterface);

@@ -10,11 +10,11 @@
 
 $gTotal = 10000;
 $gMsg = 'Hello World';
-$gFullPath0 = './asf_logger.0.log';
-$gFullPath1 = './asf_logger.1.log';
-$gFullPath2 = './asf_logger.2.log';
-$gFullPath3 = './asf_logger.3.log';
-$gFullPath4 = './asf_logger.4.log';
+$gFullPath0 = __DIR__ . '/asf_logger.0.log';
+$gFullPath1 = __DIR__ . '/asf_logger.1.log';
+$gFullPath2 = __DIR__ . '/asf_logger.2.log';
+$gFullPath3 = __DIR__ . '/asf_logger.3.log';
+$gFullPath4 = __DIR__ . '/asf_logger.4.log';
 $gCounter = 0;
 $gConsume = 0;
 $gRepeat = 40;
@@ -26,7 +26,17 @@ function testAsfLogger()
     global $gTotal, $gMsg, $gFullPath0;
     $i = 0;
 
-    $logger = new Asf\Log\Adapter\File('asf_logger.0.log', __DIR__);
+    while($i++ < $gTotal) {
+        Asf\Logger::init($gFullPath0)->info($gMsg);
+    }
+}
+
+function testAsfLogAdapterFile()
+{
+    global $gTotal, $gMsg;
+    $i = 0;
+
+    $logger = new Asf\Log\Adapter\File('asf_logger.5.log', __DIR__);
 
     while($i++ < $gTotal) {
         $logger->info($gMsg);
@@ -147,6 +157,10 @@ function total()
 startTime();
 testAsfLogger();
 resultTime('testAsfLogger');
+//-------------------------------------Asf\Log\Adapter\File
+startTime();
+testAsfLogAdapterFile();
+resultTime('testAsfLogAdapterFile');
 //-------------------------------------file_put_contents
 startTime();
 testFilePutContents();
