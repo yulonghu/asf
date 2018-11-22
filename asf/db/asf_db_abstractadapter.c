@@ -827,6 +827,7 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
         array_init(&line);
 
         add_assoc_str_ex(&line, "s", 1, sql);
+        zend_string_addref(sql);
         if (bind_value) {
             Z_TRY_ADDREF_P(bind_value);
             add_assoc_zval_ex(&line, "v", 1, bind_value);
