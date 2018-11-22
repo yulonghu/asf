@@ -307,25 +307,13 @@ static inline void asf_db_findby(asf_db_t *db, zval *pairs, zval *fields_name, z
 }
 /* }}} */
 
-static inline double asf_db_gettimeofday() /* {{{ */
-{
-    struct timeval tp = {0};
-
-    if (gettimeofday(&tp, NULL)) {
-        return 0;
-    }
-
-    return (double)(tp.tv_sec + tp.tv_usec / 1000000.00);
-}
-/* }}} */
-
-static inline void asf_db_write_logsql(zend_string *sql, zval *bind_values, double start_time) /* {{{ */
+static inline void asf_db_write_logsql(zend_string *sql, zval *bind_values, double exec_time) /* {{{ */
 {
     php_serialize_data_t var_hash;
     smart_str ins = {0};
     char *buffer = NULL; size_t size = 0;
 
-    size = spprintf(&buffer, 0, "(%f) ", (double)((asf_db_gettimeofday() - start_time)));
+    size = spprintf(&buffer, 0, "(%f) ", exec_time);
     smart_str_appendl(&ins, buffer, size);
 
     smart_str_append(&ins, sql);
@@ -782,7 +770,7 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     zval *dbh = NULL, *self = NULL;
     zval zsql, sth, zret_1, zret_2, zmn_1, zmn_2, args[1];
     uint count = 0;
-    double start_time = asf_db_gettimeofday();
+    double start_time = asf_func_gettimeofday();
 
     self   = getThis();
     dbh    = zend_read_property(asf_absadapter_ce, self, ZEND_STRL("_dbh"), 1, NULL);
@@ -827,9 +815,30 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
         return;
     }
 
+    double exec_time = (double)((asf_func_gettimeofday() - start_time));
+
+    /* Turn on trace log */
+    if (ASF_G(trace_enable)) {
+        if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) {
+            array_init(&ASF_G(trace_buf));
+        }
+
+        zval line;
+        array_init(&line);
+
+        add_assoc_str_ex(&line, "s", 1, sql);
+        if (bind_value) {
+            Z_TRY_ADDREF_P(bind_value);
+            add_assoc_zval_ex(&line, "v", 1, bind_value);
+        }
+        add_assoc_double_ex(&line, "t", 1, exec_time);
+        add_assoc_zval_ex(&line, "r", 1, &zret_2); /* bool */
+        add_next_index_zval(&ASF_G(trace_buf), &line);
+    }
+
     /* Only record the correct log */
     if (ASF_G(log_sql) && ASF_G(log_path)) {
-        (void)asf_db_write_logsql(sql, bind_value, start_time);
+        (void)asf_db_write_logsql(sql, bind_value, exec_time);
     }
 
     if (ret_obj) {

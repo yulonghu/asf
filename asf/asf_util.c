@@ -130,6 +130,7 @@ static _Bool asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval
 {
     /* Check for CURL extension */
     if (!zend_hash_str_exists(EG(function_table), "curl_init", 9)) {
+        php_error_docref(NULL, E_WARNING, "The 'curl' not supported");
         return 0;
     }
     

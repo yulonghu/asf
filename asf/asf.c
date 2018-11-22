@@ -44,6 +44,7 @@
 #include "kernel/asf_func.h"
 #include "asf_util.h"
 #include "debug/asf_debug_dump.h"
+#include "debug/asf_debug_trace.h"
 #include "asf_cache.h"
 
 ZEND_DECLARE_MODULE_GLOBALS(asf)
@@ -63,6 +64,8 @@ PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("asf.ctype_id",            "5", PHP_INI_ALL, OnUpdateLong, ctype_id, zend_asf_globals, asf_globals)
     STD_PHP_INI_ENTRY("asf.cache_config_enable", "0", PHP_INI_ALL, OnUpdateBool, cache_config_enable, zend_asf_globals, asf_globals)
     STD_PHP_INI_ENTRY("asf.cache_config_expire", "300", PHP_INI_ALL, OnUpdateLong, cache_config_expire, zend_asf_globals, asf_globals)
+
+    STD_PHP_INI_BOOLEAN("asf.trace_enable","0", PHP_INI_ALL, OnUpdateBool, trace_enable, zend_asf_globals, asf_globals)
 PHP_INI_END()
 /* }}} */
 
@@ -114,6 +117,7 @@ PHP_MINIT_FUNCTION(asf)
     ASF_INIT(Db);
     ASF_INIT(util);
     ASF_INIT(debug_dump);
+    ASF_INIT(debug_trace);
     ASF_INIT(cache);
 
     return SUCCESS;
@@ -189,20 +193,9 @@ PHP_RSHUTDOWN_FUNCTION(asf)
     }
 
     /* two */
-    if (ASF_G(default_module)) {
-        zend_string_release(ASF_G(default_module));
-        ASF_G(default_module) = NULL;
-    }
-
-    if (ASF_G(default_service)) {
-        zend_string_release(ASF_G(default_service));
-        ASF_G(default_service) = NULL;
-    }
-
-    if (ASF_G(default_action)) {
-        zend_string_release(ASF_G(default_action));
-        ASF_G(default_action) = NULL;
-    }
+    zend_string_release(ASF_G(default_module));
+    zend_string_release(ASF_G(default_service));
+    zend_string_release(ASF_G(default_action));
 
     if (ASF_G(local_library)) {
         zend_string_release(ASF_G(local_library));
@@ -221,8 +214,12 @@ PHP_RSHUTDOWN_FUNCTION(asf)
     ASF_G(log_sql) = 0;
     ASF_G(log_err) = 0;
 
-    /* Reset debug_dump */
+    /* Reset debug, trace log */
     ASF_G(debug_dump) = 0;
+    if (Z_TYPE(ASF_G(trace_buf)) == IS_ARRAY) {
+        zval_ptr_dtor(&ASF_G(trace_buf));
+        ZVAL_UNDEF(&ASF_G(trace_buf));
+    }
 
     /* Loader */
     if (ASF_G(last_load_err_full_path)) {

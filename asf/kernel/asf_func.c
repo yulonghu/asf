@@ -242,7 +242,7 @@ zend_class_entry *asf_find_driver(const char *class_name, unsigned int class_nam
     zend_class_entry *ce = NULL;
 
     if (UNEXPECTED((ce = zend_hash_str_find_ptr(CG(class_table), class_name, class_name_len)) == NULL)) {
-        asf_trigger_error(ASF_ERR_CACHE_MODULE, "Class '%s' not found", class_name);
+        asf_trigger_error(ASF_ERR_CACHE_MODULE, "The '%s' not supported", class_name);
         return NULL;
     }
 
@@ -265,6 +265,43 @@ void asf_func_format_args(zval *args, zval **retval, size_t *arg_count) /*{{{*/
         } ZEND_HASH_FOREACH_END();
     }
 }/*}}}*/
+
+double asf_func_gettimeofday() /* {{{ */
+{
+    struct timeval tp = {0};
+
+    if (gettimeofday(&tp, NULL)) {
+        return 0;
+    }
+
+    return (double)(tp.tv_sec + tp.tv_usec / 1000000.00);
+}
+/* }}} */
+
+void asf_func_add_trace() /*{{{*/
+{
+    /*
+    if (ASF_G(trace_enable)) {
+        if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) {
+            array_init(&ASF_G(trace_buf));
+        }
+
+        zval line;
+        array_init(&line);
+
+        add_assoc_str_ex(&line, "s", 1, sql);
+        if (bind_value) {
+            Z_TRY_ADDREF_P(bind_value);
+            add_assoc_zval_ex(&line, "v", 1, bind_value);
+        }
+        add_assoc_double_ex(&line, "t", 1, exec_time);
+        add_assoc_zval_ex(&line, "r", 1, &zret_2); 
+        add_next_index_zval(&ASF_G(trace_buf), &line);
+    }
+*/
+}
+/* }}} */
+
 
 /*
  * Local variables:

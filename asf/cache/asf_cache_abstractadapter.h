@@ -54,7 +54,7 @@ ZEND_END_ARG_INFO()
 /* }}} */
 
 void asf_cache_adapter_handler_req(zval *self, uint32_t param_count, zval params[],
-        const char *method, const uint method_len, zval *retval);
+        char *method, uint method_len, zval *retval);
 
 #define ASF_CACHE_ADAPTER_METHOD_HAS(name, func_name, func_name_len) /*{{{*/ \
 PHP_METHOD(name, has) \

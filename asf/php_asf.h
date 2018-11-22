@@ -113,9 +113,11 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_ulong cache_config_expire;
 	zend_ulong cache_config_mtime;
 	zend_bool  cache_config_enable;
-
-	/* Debug_Dump */
+	
+	/* Dump. trace */
 	zend_bool debug_dump;
+	zend_bool trace_enable;
+	zval trace_buf;
 ZEND_END_MODULE_GLOBALS(asf)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(asf);

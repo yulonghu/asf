@@ -31,11 +31,42 @@
 zend_class_entry *asf_cache_absadapter_ce;
 
 void asf_cache_adapter_handler_req(zval *self, uint32_t param_count, zval params[],
-        const char *method, const uint method_len, zval *retval) /*{{{*/
+        char *method, uint method_len, zval *retval) /*{{{*/
 {
     zval *handler = zend_read_property(Z_OBJCE_P(self), self,
             ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL);
+
+    /* trace log */
+    double start_time = 0.0;
+    if (ASF_G(trace_enable)) {
+        start_time = asf_func_gettimeofday();
+    }
+
     ASF_CALL_USER_FUNCTION_EX(handler, method, method_len, retval, param_count, params);
+
+    /* trace log */
+    if (ASF_G(trace_enable)) {
+        double exec_time = (double)((asf_func_gettimeofday() - start_time));
+
+        if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) {
+            array_init(&ASF_G(trace_buf));
+        }
+
+        zval line;
+        array_init(&line);
+
+        add_assoc_stringl_ex(&line, "s", 1, method, method_len);
+        /*
+        if (bind_value) {
+            Z_TRY_ADDREF_P(bind_value);
+            add_assoc_zval_ex(&line, "v", 1, bind_value);
+        }
+        */
+        add_assoc_double_ex(&line, "t", 1, exec_time);
+        Z_TRY_ADDREF_P(retval);
+        add_assoc_zval_ex(&line, "r", 1, retval);
+        add_next_index_zval(&ASF_G(trace_buf), &line);
+    }
 }/*}}}*/
 
 /* {{{ proto mixed Asf_Cache_AbstractAdapter::getConnectInfo(void)
