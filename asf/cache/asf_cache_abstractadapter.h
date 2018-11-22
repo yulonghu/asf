@@ -130,7 +130,28 @@ PHP_METHOD(name, __call) \
     } \
     size_t arg_count = 0; \
     (void)asf_func_format_args(args, &real_args, &arg_count); \
+    /* trace log */ \
+    double start_time = 0.0; \
+    if (ASF_G(trace_enable)) { \
+        start_time = asf_func_gettimeofday(); \
+    } \
     call_user_function_ex(&Z_OBJCE_P(handler)->function_table, handler, function_name, return_value, arg_count, real_args, 1, NULL); \
+    if (ASF_G(trace_enable)) { /*{{{*/ \
+        double exec_time = (double)((asf_func_gettimeofday() - start_time)); \
+        if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) { \
+            array_init(&ASF_G(trace_buf)); \
+        } \
+        zval line; \
+        array_init(&line); \
+        Z_TRY_ADDREF_P(return_value); \
+        Z_TRY_ADDREF_P(function_name); \
+        Z_TRY_ADDREF_P(args); \
+        add_assoc_zval_ex(&line, "s", 1, function_name); \
+        add_assoc_zval_ex(&line, "v", 1, args); \
+        add_assoc_double_ex(&line, "t", 1, exec_time); \
+        add_assoc_zval_ex(&line, "r", 1, return_value); \
+        add_next_index_zval(&ASF_G(trace_buf), &line); \
+    }/*}}}*/ \
     if (arg_count > 0) { \
         efree(real_args); \
     } \

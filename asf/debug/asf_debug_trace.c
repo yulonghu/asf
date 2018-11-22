@@ -70,8 +70,6 @@ PHP_METHOD(asf_debug_trace, log)
 }
 /* }}} */
 
-
-
 /* {{{ asf_debug_trace_methods[]
 */
 zend_function_entry asf_debug_trace_methods[] = {

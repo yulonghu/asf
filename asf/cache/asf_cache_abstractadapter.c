@@ -45,7 +45,7 @@ void asf_cache_adapter_handler_req(zval *self, uint32_t param_count, zval params
     ASF_CALL_USER_FUNCTION_EX(handler, method, method_len, retval, param_count, params);
 
     /* trace log */
-    if (ASF_G(trace_enable)) {
+    if (ASF_G(trace_enable)) {/*{{{*/
         double exec_time = (double)((asf_func_gettimeofday() - start_time));
 
         if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) {
@@ -56,17 +56,20 @@ void asf_cache_adapter_handler_req(zval *self, uint32_t param_count, zval params
         array_init(&line);
 
         add_assoc_stringl_ex(&line, "s", 1, method, method_len);
-        /*
-        if (bind_value) {
-            Z_TRY_ADDREF_P(bind_value);
-            add_assoc_zval_ex(&line, "v", 1, bind_value);
+        if (param_count > 0) {
+            zval regs; uint i = 0;
+            
+            array_init(&regs);
+            while (param_count--) {
+                zend_hash_next_index_insert_new(Z_ARRVAL(regs), &params[i++]);
+            }
+            add_assoc_zval_ex(&line, "v", 1, &regs);
         }
-        */
         add_assoc_double_ex(&line, "t", 1, exec_time);
         Z_TRY_ADDREF_P(retval);
         add_assoc_zval_ex(&line, "r", 1, retval);
         add_next_index_zval(&ASF_G(trace_buf), &line);
-    }
+    }/*}}}*/
 }/*}}}*/
 
 /* {{{ proto mixed Asf_Cache_AbstractAdapter::getConnectInfo(void)
