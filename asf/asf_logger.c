@@ -119,8 +119,10 @@ PHP_METHOD(asf_logger, init)
         RETURN_FALSE;
     }
 
-    zend_string *dir_path = zend_string_truncate(full_path, path_len - ZSTR_LEN(file_name), 0);
-    ZSTR_VAL(dir_path)[ZSTR_LEN(dir_path)] = '\0';
+    size_t dir_path_len = path_len - ZSTR_LEN(file_name);
+    zend_string *dir_path = zend_string_alloc(dir_path_len, 0);
+    memcpy(ZSTR_VAL(dir_path), ZSTR_VAL(full_path), dir_path_len);
+    ZSTR_VAL(dir_path)[dir_path_len] = '\0';
 
     (void)asf_logger_instance(return_value, file_name, dir_path);
     zend_string_release(file_name);
