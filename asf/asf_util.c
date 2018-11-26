@@ -126,15 +126,17 @@ static inline void asf_util_filterxss_callback(zval **cb, char *default_charset)
 }
 /* }}} */
 
-static _Bool asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval *http_data, zval *http_opts, zval *return_value) /* {{{ */
+static void asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval *http_data, zval *http_opts, zval *return_value) /* {{{ */
 {
     /* Check for CURL extension */
     if (!zend_hash_str_exists(EG(function_table), "curl_init", 9)) {
-        return 0;
+        php_error_docref(NULL, E_WARNING, "Can't find 'curl' extension");
+        RETURN_FALSE;
     }
     
     if (UNEXPECTED(!http_url || asf_func_isempty(ZSTR_VAL(http_url)))) {
-        return 0;
+        php_error_docref(NULL, E_WARNING, "Expect a string 'url'");
+        return;
     }
 
     zval url;
@@ -143,7 +145,8 @@ static _Bool asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval
     ZVAL_STR(&url, http_url);
     zend_call_method_with_1_params(NULL, NULL, NULL, "curl_init", &curl_init, &url);
     if (Z_TYPE(curl_init) == IS_FALSE) {
-        return 0;
+        php_error_docref(NULL, E_WARNING, "Call the function 'curl_init' failure");
+        return;
     }
 
     array_init(&opts);
@@ -178,8 +181,12 @@ static _Bool asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval
     zend_call_method_with_2_params(NULL, NULL, NULL, "curl_setopt_array", &opts_retval, &curl_init, &opts);
     if (Z_TYPE(opts_retval) == IS_FALSE) {
         zend_call_method_with_1_params(NULL, NULL, NULL, "curl_close", NULL, &curl_init);
-        return 0;
+        php_error_docref(NULL, E_WARNING, "Call the function 'curl_setopt_array' failure");
+        return;
     }
+
+    /* set default value */
+    ZVAL_FALSE(return_value);
 
     /* execute */
     zend_call_method_with_1_params(NULL, NULL, NULL, "curl_exec", return_value, &curl_init);
@@ -191,14 +198,11 @@ static _Bool asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval
         add_assoc_long_ex(return_value, "errno", 5, Z_LVAL(error));
         zend_call_method_with_1_params(NULL, NULL, NULL, "curl_error", &error, &curl_init);
         add_assoc_zval_ex(return_value, "error", 5, &error);
-        zval_ptr_dtor(&error);
     }
 
     zval_ptr_dtor(&opts);
     zend_call_method_with_1_params(NULL, NULL, NULL, "curl_close", NULL, &curl_init);
     zval_ptr_dtor(&curl_init);
-
-    return 1;
 }
 /* }}} */
 

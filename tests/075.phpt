@@ -57,7 +57,7 @@ var_dump(Asf_Util::filterXss('<a href="data:text/html;base64, PGltZyBzcmM9eCBvbm
 
 echo '---------------------getUrl', PHP_EOL;
 /* (compatibility) Some versions have no value */
-
+error_reporting(0);
 gettype(Asf_Util::getUrl("http://www.box3.cn", array('a', 'b' => 'a')));
 gettype(Asf_Util::postUrl("http://www.box3.cn", array('user' => 'zhangsan', 'code' => 999999)));
 gettype(Asf_Util::getUrl("https://10111.11.11.11/index.php"));
