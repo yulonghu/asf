@@ -29,6 +29,7 @@ zend_class_entry *asf_find_driver(const char *class_name, unsigned int class_nam
 void asf_func_format_args(zval *args, zval **retval, size_t *arg_count);
 void asf_func_config_persistent_hash_destroy(HashTable *ht);
 double asf_func_gettimeofday();
+void asf_func_add_trace(double start_time, zval *name, uint32_t param_count, zval params[], zval *retval);
 
 #define ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, need_refcount) { \
     ASF_FUNC_CALL_PHP_FUNC(this_ptr, "register_shutdown_function", "close", 5, NULL, need_refcount); \

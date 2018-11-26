@@ -85,6 +85,14 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
 
     persistent = zend_hash_str_find(ht, "persistent", 10);
 
+    /* trace log */
+    /*
+    double start_time = 0.0;
+    if (ASF_G(trace_enable)) {
+        start_time = asf_func_gettimeofday();
+    }
+    */
+
     if (persistent && zend_is_true(persistent)) {
         char persistent_id[7] = {0};
         sprintf(persistent_id, "%s%d", "id_", l_select);
@@ -94,6 +102,9 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
     } else {
         ASF_CALL_USER_FUNCTION_EX(&redis, "connect", 7, &retval, 3, args);
     }
+
+    /* trace log */
+    //(void)asf_func_add_trace(start_time, &args, &retval);
 
     if (Z_TYPE(retval) == IS_FALSE) {
         zval_ptr_dtor(&redis);
