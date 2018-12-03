@@ -81,30 +81,23 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
     ZVAL_COPY_VALUE(&args[0], host);
     ZVAL_LONG(&args[1], l_port);
     ZVAL_LONG(&args[2], l_timeout);
-    ZVAL_LONG(&args[3], l_select);
 
     persistent = zend_hash_str_find(ht, "persistent", 10);
 
     /* trace log */
-    /*
-    double start_time = 0.0;
-    if (ASF_G(trace_enable)) {
-        start_time = asf_func_gettimeofday();
-    }
-    */
+    double start_time = asf_func_trace_gettime();
 
     if (persistent && zend_is_true(persistent)) {
         char persistent_id[7] = {0};
         sprintf(persistent_id, "%s%d", "id_", l_select);
         ZVAL_STRING(&args[3], persistent_id);
         ASF_CALL_USER_FUNCTION_EX(&redis, "pconnect", 8, &retval, 4, args);
+        (void)asf_func_trace_str_add(start_time, "pconnect", 8, 4, args, &retval);
         ASF_FAST_STRING_PTR_DTOR(args[3]);
     } else {
         ASF_CALL_USER_FUNCTION_EX(&redis, "connect", 7, &retval, 3, args);
+        (void)asf_func_trace_str_add(start_time, "connect", 7, 3, args, &retval);
     }
-
-    /* trace log */
-    //(void)asf_func_add_trace(start_time, &args, &retval);
 
     if (Z_TYPE(retval) == IS_FALSE) {
         zval_ptr_dtor(&redis);
@@ -179,7 +172,7 @@ PHP_METHOD(asf_cache_adapter_redis, clear)
 
 /* {{{ proto mixed Asf_Cache_Adapter_Redis::__call(string $function_name, array $args)
 */
-ASF_CACHE_ADAPTER_METHOD_CALL(asf_cache_adapter_redis);
+ASF_METHOD_CALL(asf_cache_adapter_redis, ASF_CACHE_PRONAME_HANDLER)
 /* }}} */
 
 /* {{{ asf_cache_adapter_redis_methods[]

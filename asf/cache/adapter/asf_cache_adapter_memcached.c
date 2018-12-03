@@ -87,8 +87,12 @@ PHP_METHOD(asf_cache_adapter_memcached, __construct)
         asf_trigger_error(ASF_ERR_CACHE_OPTIONS, "The options 'host' not found");
         return;
     }
-
+    
+    /* trace log */
+    double start_time = asf_func_trace_gettime();
     ASF_CALL_USER_FUNCTION_EX(&memcached, "addservers", 10, &retval, 1, host);
+    (void)asf_func_trace_str_add(start_time, "addServers", 18, 1, host, &retval);
+
     if (Z_TYPE(retval) == IS_FALSE) {
         asf_trigger_error(ASF_ERR_CACHE_CONNECT, "Memcached addServers failed");
         return;
@@ -157,7 +161,7 @@ PHP_METHOD(asf_cache_adapter_memcached, clear)
 
 /* {{{ proto mixed Asf_Cache_Adapter_Memcached::__call(string $function_name, array $args)
 */
-ASF_CACHE_ADAPTER_METHOD_CALL(asf_cache_adapter_memcached);
+ASF_METHOD_CALL(asf_cache_adapter_memcached, ASF_CACHE_PRONAME_HANDLER)
 /* }}} */
 
 /* {{{ asf_cache_adapter_memcached_methods[]

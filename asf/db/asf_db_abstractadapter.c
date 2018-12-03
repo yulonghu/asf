@@ -158,8 +158,11 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
         asf_trigger_error(ASF_ERR_DB_OPTIONS_DSN, "Object init pdo falied");
         return 0;
     }
-
+    
+    /* trace log */
+    double start_time = asf_func_trace_gettime();
     call_user_function_ex(&Z_OBJCE(pdo)->function_table, &pdo, &zmn_1, &zret_1, args_i, args, 1, NULL);
+    (void)asf_func_trace_str_add(start_time, "__construct", 11, args_i, args, NULL);
 
     efree(data_source);
     ASF_FAST_STRING_PTR_DTOR(args[0]);
@@ -169,6 +172,7 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
         zval_ptr_dtor(&options_2);
     }
 
+    /* If get value, the result is NULL in most cases */
     if (!Z_ISUNDEF(zret_1)) {
         zval_ptr_dtor(&zret_1);
     }
@@ -770,7 +774,6 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     zval *dbh = NULL, *self = NULL;
     zval zsql, sth, zret_1, zret_2, zmn_1, zmn_2, args[1];
     uint count = 0;
-    double start_time = asf_func_gettimeofday();
 
     self   = getThis();
     dbh    = zend_read_property(asf_absadapter_ce, self, ZEND_STRL("_dbh"), 1, NULL);
@@ -800,9 +803,14 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     /* Add Debug value information */
     zend_update_property(asf_absadapter_ce, self, ZEND_STRL("_value"), &args[0]);
 
+    /* trace log */
+    double start_time = asf_func_trace_gettime();
+
     ZVAL_STRINGL(&zmn_2, "execute", 7);
     call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, &zret_2, count, args, 1, NULL);
     ASF_FAST_STRING_PTR_DTOR(zmn_2);
+
+    (void)asf_func_trace_str_add(start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), count, bind_value, NULL);
 
     if (EG(exception)) {
         zval_ptr_dtor(&zret_1);
@@ -815,31 +823,9 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
         return;
     }
 
-    double exec_time = (double)((asf_func_gettimeofday() - start_time));
-
-    /* Turn on trace log */
-    if (ASF_G(trace_enable)) {
-        if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) {
-            array_init(&ASF_G(trace_buf));
-        }
-
-        zval line;
-        array_init(&line);
-
-        add_assoc_str_ex(&line, "s", 1, sql);
-        zend_string_addref(sql);
-        if (bind_value) {
-            Z_TRY_ADDREF_P(bind_value);
-            add_assoc_zval_ex(&line, "v", 1, bind_value);
-        }
-        add_assoc_double_ex(&line, "t", 1, exec_time);
-        add_assoc_zval_ex(&line, "r", 1, &zret_2); /* bool */
-        add_next_index_zval(&ASF_G(trace_buf), &line);
-    }
-
     /* Only record the correct log */
     if (ASF_G(log_sql) && ASF_G(log_path)) {
-        (void)asf_db_write_logsql(sql, bind_value, exec_time);
+        (void)asf_db_write_logsql(sql, bind_value, start_time);
     }
 
     if (ret_obj) {
@@ -1159,30 +1145,7 @@ PHP_METHOD(asf_absadapter, getLastSql)
 
 /* {{{ proto mixed Asf_Db_AbstractAdapter::__call(string $function_name, array $args)
 */
-PHP_METHOD(asf_absadapter, __call)
-{
-    zval *function_name = NULL;
-    zval *args = NULL, *real_args = NULL;
-
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "za", &function_name, &args) == FAILURE) {
-        return;
-    }
-
-    zval *self = getThis();
-    zval *dbh = zend_read_property(asf_absadapter_ce, self, ZEND_STRL("_dbh"), 1, NULL);
-
-    if (IS_OBJECT != Z_TYPE_P(dbh)) {
-        RETURN_FALSE;
-    }
-
-    size_t arg_count = 0;
-    (void)asf_func_format_args(args, &real_args, &arg_count);
-
-    call_user_function_ex(&Z_OBJCE_P(dbh)->function_table, dbh, function_name, return_value, arg_count, real_args, 1, NULL);
-    if (arg_count > 0) {
-        efree(real_args);
-    }
-}
+ASF_METHOD_CALL(asf_absadapter, "_dbh")
 /* }}} */
 
 /* {{{ proto bool Asf_Db_AbstractAdapter::close(void)
