@@ -814,7 +814,7 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
 
     if (EG(exception)) {
         zval_ptr_dtor(&zret_1);
-        return;
+        RETURN_FALSE;
     }
 
     if (IS_FALSE == Z_TYPE(zret_2)) {
