@@ -311,13 +311,13 @@ static inline void asf_db_findby(asf_db_t *db, zval *pairs, zval *fields_name, z
 }
 /* }}} */
 
-static inline void asf_db_write_logsql(zend_string *sql, zval *bind_values, double exec_time) /* {{{ */
+static inline void asf_db_write_logsql(zend_string *sql, zval *bind_values, double start_time) /* {{{ */
 {
     php_serialize_data_t var_hash;
     smart_str ins = {0};
     char *buffer = NULL; size_t size = 0;
 
-    size = spprintf(&buffer, 0, "(%f) ", exec_time);
+    size = spprintf(&buffer, 0, "(%f) ", (double)((asf_func_gettimeofday() - start_time)));
     smart_str_appendl(&ins, buffer, size);
 
     smart_str_append(&ins, sql);
