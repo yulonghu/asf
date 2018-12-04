@@ -42,18 +42,18 @@ ZEND_END_ARG_INFO()
 
 zval *asf_config_php_instance(zval *this_ptr, zend_string *file_path) /* {{{ */
 {
-    uint retval = 0;
+    _Bool retval = 0;
     zval values;
-
-    if (EXPECTED(Z_ISUNDEF_P(this_ptr))) {
-        object_init_ex(this_ptr, asf_config_php_ce);
-    }
 
     retval = asf_loader_import(file_path, &values);
 
     if (UNEXPECTED(!retval)) {
         asf_trigger_error(ASF_ERR_BOOTSTRAP_FAILED, "No such file %s", ZSTR_VAL(file_path));
         return NULL;
+    }
+
+    if (EXPECTED(Z_ISUNDEF_P(this_ptr))) {
+        object_init_ex(this_ptr, asf_config_php_ce);
     }
 
     if (Z_TYPE(values) == IS_ARRAY) {

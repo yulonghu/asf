@@ -360,38 +360,40 @@ _Bool asf_loader_import(zend_string *path, zval *return_value_ptr) /* {{{ */
     zend_file_handle file_handle;
     zend_op_array *op_array = NULL;
     zval dummy;
-    _Bool ret = 1;
 
     if (UNEXPECTED(php_stream_open_for_zend_ex(ZSTR_VAL(path), &file_handle, USE_PATH|STREAM_OPEN_FOR_INCLUDE) != SUCCESS)) {
         return 0;
     }
 
+    /* Notice: Failure to compile will throw an exception */
     op_array = zend_compile_file(&file_handle, ZEND_INCLUDE);
-    if (op_array) {
-        ZVAL_NULL(&dummy);
-        zend_hash_add(&EG(included_files), path, &dummy);
-    }
     zend_destroy_file_handle(&file_handle);
 
     if (op_array) {
         zval result;
         ZVAL_UNDEF(&result);
+        ZVAL_NULL(&dummy);
 
-        zend_try {
-            zend_execute(op_array, &result);
-            if (return_value_ptr) {
-                ZVAL_DUP(return_value_ptr, &result);
-            }
-            zval_ptr_dtor(&result);
-        } zend_catch {
-            ret = 0;
-        } zend_end_try();
+        zend_hash_add(&EG(included_files), path, &dummy);
+        zend_execute(op_array, &result);
 
         destroy_op_array(op_array);
         efree(op_array);
+
+        if (EG(exception)) {
+            zend_exception_error(EG(exception), E_ERROR);
+            return 0;
+        }
+
+        if (return_value_ptr) {
+            ZVAL_COPY_VALUE(return_value_ptr, &result);
+        } else {
+            zval_ptr_dtor(&result);
+        }
+        return 1;
     }
 
-    return ret;
+    return 0;
 }
 /* }}} */
 
@@ -590,7 +592,7 @@ PHP_METHOD(asf_loader, import)
         RETURN_TRUE;
     }
 
-    ret = asf_loader_import(file_name, 0);
+    ret = asf_loader_import(file_name, NULL);
     if (need_free) {
         zend_string_release(file_name);
     }
