@@ -30,7 +30,7 @@
 
 zend_class_entry *asf_cache_absadapter_ce;
 
-void asf_cache_adapter_handler_req(zval *self, uint32_t param_count, zval params[],
+void asf_cache_adapter_handler_req(uint trace_id, zval *self, uint32_t param_count, zval params[],
         char *method, size_t method_len, zval *retval) /*{{{*/
 {
     zval *handler = zend_read_property(Z_OBJCE_P(self), self,
@@ -39,7 +39,7 @@ void asf_cache_adapter_handler_req(zval *self, uint32_t param_count, zval params
     /* trace log */
     double start_time = asf_func_trace_gettime();
     ASF_CALL_USER_FUNCTION_EX(handler, method, method_len, retval, param_count, params);
-    (void)asf_func_trace_str_add(start_time, method, method_len, param_count, params, retval);
+    (void)asf_func_trace_str_add(trace_id, start_time, method, method_len, param_count, params, retval);
 }/*}}}*/
 
 /* {{{ proto mixed Asf_Cache_AbstractAdapter::getConnectInfo(void)

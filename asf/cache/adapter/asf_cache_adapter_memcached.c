@@ -91,7 +91,7 @@ PHP_METHOD(asf_cache_adapter_memcached, __construct)
     /* trace log */
     double start_time = asf_func_trace_gettime();
     ASF_CALL_USER_FUNCTION_EX(&memcached, "addservers", 10, &retval, 1, host);
-    (void)asf_func_trace_str_add(start_time, "addServers", 18, 1, host, &retval);
+    (void)asf_func_trace_str_add(ASF_TRACE_MEMCACHED, start_time, "addServers", 18, 1, host, &retval);
 
     if (Z_TYPE(retval) == IS_FALSE) {
         asf_trigger_error(ASF_ERR_CACHE_CONNECT, "Memcached addServers failed");
@@ -111,41 +111,44 @@ PHP_METHOD(asf_cache_adapter_memcached, __construct)
 
 /* {{{ proto bool Asf_Cache_Adapter_Memcached::has(mixed $key)
 */
-ASF_CACHE_ADAPTER_METHOD_HAS(asf_cache_adapter_memcached, "get", 3);
+ASF_CACHE_ADAPTER_METHOD_HAS(ASF_TRACE_MEMCACHED, asf_cache_adapter_memcached, "get", 3);
 /* }}} */
 
 /* {{{ proto mixed Asf_Cache_Adapter_Memcached::get(mixed $key)
 */
-ASF_CACHE_ADAPTER_METHOD_GET_DEL(asf_cache_adapter_memcached, get, "get", 3);
+ASF_CACHE_ADAPTER_METHOD_GET_DEL(ASF_TRACE_MEMCACHED, asf_cache_adapter_memcached, get, "get", 3);
 /* }}} */
 
 /* {{{ proto bool Asf_Cache_Adapter_Memcached::set(mixed $key, mixed $value [, int $expiration])
 */
-ASF_CACHE_ADAPTER_METHOD_SET(asf_cache_adapter_memcached, "set", 3);
+ASF_CACHE_ADAPTER_METHOD_SET(ASF_TRACE_MEMCACHED, asf_cache_adapter_memcached, "set", 3);
 /* }}} */
 
 /* {{{ proto int Asf_Cache_Adapter_Memcached::incr(mixed $key [, uint $step = 1])
 */
-ASF_CACHE_ADAPTER_METHOD_DECR_INCR(asf_cache_adapter_memcached, incr, "increment", 9);
+ASF_CACHE_ADAPTER_METHOD_DECR_INCR(ASF_TRACE_MEMCACHED, asf_cache_adapter_memcached, incr, "increment", 9);
 /* }}} */
 
 /* {{{ proto int Asf_Cache_Adapter_Memcached::decr(mixed $key [, uint $step = 1])
 */
-ASF_CACHE_ADAPTER_METHOD_DECR_INCR(asf_cache_adapter_memcached, decr, "decrement", 9);
+ASF_CACHE_ADAPTER_METHOD_DECR_INCR(ASF_TRACE_MEMCACHED, asf_cache_adapter_memcached, decr, "decrement", 9);
 /* }}} */
 
 /* {{{ proto mixed Asf_Cache_Adapter_Memcached::del(mixed $key)
 */
-ASF_CACHE_ADAPTER_METHOD_GET_DEL(asf_cache_adapter_memcached, del, "delete", 6);
+ASF_CACHE_ADAPTER_METHOD_GET_DEL(ASF_TRACE_MEMCACHED, asf_cache_adapter_memcached, del, "delete", 6);
 /* }}} */
 
 /* {{{ proto bool Asf_Cache_Adapter_Memcached::close(void)
 */
 PHP_METHOD(asf_cache_adapter_memcached, close)
 {
+    double start_time = asf_func_trace_gettime();
     zval *memcached = zend_read_property(asf_cache_adapter_memcached_ce,
             getThis(), ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL);
+
     ASF_CALL_USER_FUNCTION_EX(memcached, "quit", 4, return_value, 0, NULL);
+    (void)asf_func_trace_str_add(ASF_TRACE_MEMCACHED, start_time, "quit", 4, 0, NULL, NULL);
 }
 /* }}} */
 
@@ -153,15 +156,18 @@ PHP_METHOD(asf_cache_adapter_memcached, close)
 */
 PHP_METHOD(asf_cache_adapter_memcached, clear)
 {
+    double start_time = asf_func_trace_gettime();
     zval *memcached = zend_read_property(asf_cache_adapter_memcached_ce,
             getThis(), ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL);
+    
     ASF_CALL_USER_FUNCTION_EX(memcached, "flush", 5, return_value, 0, NULL);
+    (void)asf_func_trace_str_add(ASF_TRACE_MEMCACHED, start_time, "flush", 5, 0, NULL, NULL);
 }
 /* }}} */
 
 /* {{{ proto mixed Asf_Cache_Adapter_Memcached::__call(string $function_name, array $args)
 */
-ASF_METHOD_CALL(asf_cache_adapter_memcached, ASF_CACHE_PRONAME_HANDLER)
+ASF_METHOD_CALL(ASF_TRACE_MEMCACHED, asf_cache_adapter_memcached, ASF_CACHE_PRONAME_HANDLER)
 /* }}} */
 
 /* {{{ asf_cache_adapter_memcached_methods[]

@@ -92,11 +92,11 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
         sprintf(persistent_id, "%s%d", "id_", l_select);
         ZVAL_STRING(&args[3], persistent_id);
         ASF_CALL_USER_FUNCTION_EX(&redis, "pconnect", 8, &retval, 4, args);
-        (void)asf_func_trace_str_add(start_time, "pconnect", 8, 4, args, &retval);
+        (void)asf_func_trace_str_add(ASF_TRACE_REDIS, start_time, "pconnect", 8, 4, args, &retval);
         ASF_FAST_STRING_PTR_DTOR(args[3]);
     } else {
         ASF_CALL_USER_FUNCTION_EX(&redis, "connect", 7, &retval, 3, args);
-        (void)asf_func_trace_str_add(start_time, "connect", 7, 3, args, &retval);
+        (void)asf_func_trace_str_add(ASF_TRACE_REDIS, start_time, "connect", 7, 3, args, &retval);
     }
 
     if (Z_TYPE(retval) == IS_FALSE) {
@@ -137,42 +137,45 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
 
 /* {{{ proto bool Asf_Cache_Adapter_Redis::has(mixed $key)
 */
-ASF_CACHE_ADAPTER_METHOD_HAS(asf_cache_adapter_redis, "exists", 6);
+ASF_CACHE_ADAPTER_METHOD_HAS(ASF_TRACE_REDIS, asf_cache_adapter_redis, "exists", 6);
 /* }}} */
 
 /* {{{ proto mixed Asf_Cache_Adapter_Redis::get(mixed $key)
 */
-ASF_CACHE_ADAPTER_METHOD_GET_DEL(asf_cache_adapter_redis, get, "get", 3);
+ASF_CACHE_ADAPTER_METHOD_GET_DEL(ASF_TRACE_REDIS, asf_cache_adapter_redis, get, "get", 3);
 /* }}} */
 
 /* {{{ proto bool Asf_Cache_Adapter_Redis::set(mixed $key, mixed $value [, int $expiration])
 */
-ASF_CACHE_ADAPTER_METHOD_SET(asf_cache_adapter_redis, "set", 3);
+ASF_CACHE_ADAPTER_METHOD_SET(ASF_TRACE_REDIS, asf_cache_adapter_redis, "set", 3);
 /* }}} */
 
 /* {{{ proto int Asf_Cache_Adapter_Redis::incr(mixed $key [, uint $step = 1])
 */
-ASF_CACHE_ADAPTER_METHOD_DECR_INCR(asf_cache_adapter_redis, incr, "incrby", 6);
+ASF_CACHE_ADAPTER_METHOD_DECR_INCR(ASF_TRACE_REDIS, asf_cache_adapter_redis, incr, "incrby", 6);
 /* }}} */
 
 /* {{{ proto int Asf_Cache_Adapter_Redis::decr(mixed $key [, uint $step = 1])
 */
-ASF_CACHE_ADAPTER_METHOD_DECR_INCR(asf_cache_adapter_redis, decr, "decrby", 6);
+ASF_CACHE_ADAPTER_METHOD_DECR_INCR(ASF_TRACE_REDIS, asf_cache_adapter_redis, decr, "decrby", 6);
 /* }}} */
 
 /* {{{ proto bool Asf_Cache_Adapter_Redis::clear(void)
 */
 PHP_METHOD(asf_cache_adapter_redis, clear)
 {
+    double start_time = asf_func_trace_gettime();
     zval *redis = zend_read_property(asf_cache_adapter_redis_ce, getThis(),
             ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL);
+
     ASF_CALL_USER_FUNCTION_EX(redis, "flushDB", 7, return_value, 0, NULL);
+    (void)asf_func_trace_str_add(ASF_TRACE_REDIS, start_time, "flushDB", 7, 0, NULL, NULL);
 }
 /* }}} */
 
 /* {{{ proto mixed Asf_Cache_Adapter_Redis::__call(string $function_name, array $args)
 */
-ASF_METHOD_CALL(asf_cache_adapter_redis, ASF_CACHE_PRONAME_HANDLER)
+ASF_METHOD_CALL(ASF_TRACE_REDIS, asf_cache_adapter_redis, ASF_CACHE_PRONAME_HANDLER)
 /* }}} */
 
 /* {{{ asf_cache_adapter_redis_methods[]

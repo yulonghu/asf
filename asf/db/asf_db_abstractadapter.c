@@ -162,7 +162,7 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
     /* trace log */
     double start_time = asf_func_trace_gettime();
     call_user_function_ex(&Z_OBJCE(pdo)->function_table, &pdo, &zmn_1, &zret_1, args_i, args, 1, NULL);
-    (void)asf_func_trace_str_add(start_time, "__construct", 11, args_i, args, NULL);
+    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, "__construct", 11, args_i, args, NULL);
 
     efree(data_source);
     ASF_FAST_STRING_PTR_DTOR(args[0]);
@@ -810,7 +810,7 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, &zret_2, count, args, 1, NULL);
     ASF_FAST_STRING_PTR_DTOR(zmn_2);
 
-    (void)asf_func_trace_str_add(start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), count, bind_value, NULL);
+    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), count, bind_value, NULL);
 
     if (EG(exception)) {
         zval_ptr_dtor(&zret_1);
@@ -1145,7 +1145,7 @@ PHP_METHOD(asf_absadapter, getLastSql)
 
 /* {{{ proto mixed Asf_Db_AbstractAdapter::__call(string $function_name, array $args)
 */
-ASF_METHOD_CALL(asf_absadapter, "_dbh")
+ASF_METHOD_CALL(ASF_TRACE_MYSQL, asf_absadapter, "_dbh")
 /* }}} */
 
 /* {{{ proto bool Asf_Db_AbstractAdapter::close(void)

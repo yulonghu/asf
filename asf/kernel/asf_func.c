@@ -278,7 +278,8 @@ double asf_func_gettimeofday() /* {{{ */
 }
 /* }}} */
 
-void asf_func_trace_zval_add(double start_time, zval *method, uint32_t param_count, zval params[], zval *retval) /*{{{*/
+void asf_func_trace_zval_add(uint trace_id, double start_time, zval *method,
+        uint32_t param_count, zval params[], zval *retval) /*{{{*/
 {
     if (!ASF_G(trace_enable)) {
         return;
@@ -294,10 +295,19 @@ void asf_func_trace_zval_add(double start_time, zval *method, uint32_t param_cou
     array_init(&line);
     Z_TRY_ADDREF_P(method);
 
+    /**
+     * i => id (enum TRACE_ID)
+     * s => sql
+     * v => value
+     * t => execute_time
+     * r => result
+     */
+    add_assoc_long_ex(&line, "i", 1, trace_id);
     add_assoc_zval_ex(&line, "s", 1, method);
 
     do {
         if (param_count < 1) {
+            add_assoc_null_ex(&line, "v", 1);
             break;
         }
 
@@ -312,13 +322,13 @@ void asf_func_trace_zval_add(double start_time, zval *method, uint32_t param_cou
                 Z_TRY_ADDREF(params[i]);
                 zend_hash_next_index_insert_new(Z_ARRVAL(regs), &params[i]);
                 i++;
-            }  
+            }
         }
         add_assoc_zval_ex(&line, "v", 1, &regs);
     } while (0);
     
     add_assoc_double_ex(&line, "t", 1, exec_time);
-    /* exclude UNKNOWN:0 */
+    /* Exclude 'retval' return value 'UNKNOWN:0' and 'NULL' */
     if (retval && !Z_ISUNDEF_P(retval)) {
         Z_TRY_ADDREF_P(retval);
         add_assoc_zval_ex(&line, "r", 1, retval);
@@ -329,12 +339,13 @@ void asf_func_trace_zval_add(double start_time, zval *method, uint32_t param_cou
 }
 /* }}} */
 
-void asf_func_trace_str_add(double start_time, char *method, size_t method_len, uint32_t param_count, zval params[], zval *retval) /*{{{*/
+void asf_func_trace_str_add(uint trace_id, double start_time, char *method, size_t method_len,
+        uint32_t param_count, zval params[], zval *retval) /*{{{*/
 {
     zval line, name;
 
     ZVAL_STRINGL(&name, method, method_len);
-    asf_func_trace_zval_add(start_time, &name, param_count, params, retval);
+    asf_func_trace_zval_add(trace_id, start_time, &name, param_count, params, retval);
     ASF_FAST_STRING_PTR_DTOR(name);
 }
 /* }}} */
