@@ -136,7 +136,6 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
     *params   = safe_emalloc(sizeof(zval), fptr->common.num_args, 0);
 
     for (current = 0; current < fptr->common.num_args; current++, arg_info++) {
-
         cinfo = ZSTR_VAL(arg_info->name); cinfo2 = cinfo + 2;
         cinfo2_len = ZSTR_LEN(arg_info->name) - 2;
         arg = NULL;
@@ -153,12 +152,6 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
                 break;
             }
 
-            /* Search key in $_GET */
-            if (php_memnstr(cinfo, (char *)"g_", 2, cinfo2)) {
-                arg = zend_hash_str_find(params_ht, cinfo2, cinfo2_len);
-                is_gpc = 1;
-                break;
-            }
 
             /* Search key in $_COOKIE */
             if (php_memnstr(cinfo, (char *)"c_", 2, cinfo2)) {
@@ -167,9 +160,18 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
                 break;
             }
 
-            /* If the paramters prefix not found, Default is $_GET, exclude gpc the way */
-            if (!is_gpc) {
-                arg = zend_hash_find(params_ht, arg_info->name);
+            /** 
+             * If the paramters prefix not found. Search key in $_GET And params_ht (restful).
+             * Fix: When use 'restful', need to get value in $_GET
+             *      curl -d "user=puser" domain/index/index/pass/123456?user=guser
+             */
+            if (php_memnstr(cinfo, (char *)"g_", 2, cinfo2)) {
+                arg = asf_http_req_pg_find_len(TRACK_VARS_GET, cinfo2, cinfo2_len);
+                if (arg == NULL) {
+                    arg = zend_hash_str_find(params_ht, cinfo2, cinfo2_len);
+                }
+                is_gpc = 1;
+                break;
             }
         } while(0);
 
