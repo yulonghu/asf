@@ -126,7 +126,7 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
     zend_arg_info   *arg_info;
     HashTable       *params_ht = NULL;
     char *cinfo = NULL, *cinfo2 = NULL;
-    int cinfo2_len = 0;
+    int cinfo_len = 0, cinfo2_len = 0;
     _Bool is_gpc = 0;
 
     g_args = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_PARAMS), 1, NULL);
@@ -137,10 +137,10 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
 
     for (current = 0; current < fptr->common.num_args; current++, arg_info++) {
         cinfo = ZSTR_VAL(arg_info->name); cinfo2 = cinfo + 2;
-        cinfo2_len = ZSTR_LEN(arg_info->name) - 2;
+        cinfo_len = ZSTR_LEN(arg_info->name);
+        cinfo2_len = cinfo_len - 2;
         arg = NULL;
 
-        /* Integer to meet the search criteria */
         /* Exclude invalid $_g, $_p, $_c */
         is_gpc = 0;
 
@@ -148,14 +148,6 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
             /* Search key in $_POST */
             if (php_memnstr(cinfo, (char *)"p_", 2, cinfo2)) {
                 arg = asf_http_req_pg_find_len(TRACK_VARS_POST, cinfo2, cinfo2_len);
-                is_gpc = 1;
-                break;
-            }
-
-
-            /* Search key in $_COOKIE */
-            if (php_memnstr(cinfo, (char *)"c_", 2, cinfo2)) {
-                arg = asf_http_req_pg_find_len(TRACK_VARS_COOKIE, cinfo2, cinfo2_len);
                 is_gpc = 1;
                 break;
             }
@@ -173,6 +165,22 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
                 is_gpc = 1;
                 break;
             }
+
+            /* Search key in $_COOKIE */
+            if (php_memnstr(cinfo, (char *)"c_", 2, cinfo2)) {
+                arg = asf_http_req_pg_find_len(TRACK_VARS_COOKIE, cinfo2, cinfo2_len);
+                is_gpc = 1;
+                break;
+            }
+
+            /* Eg: function_name($p1, $p2, $p3, ...) */
+            if (!is_gpc) {
+                arg = asf_http_req_pg_find_len(TRACK_VARS_GET, cinfo, cinfo_len);
+                if (arg == NULL) {
+                    arg = zend_hash_str_find(params_ht, cinfo, cinfo_len);
+                }
+                break;
+            }
         } while(0);
 
         /* if not find key, search default value  */
@@ -180,24 +188,21 @@ static void asf_dispatcher_gpc_parse_parameters(asf_http_req_t *request, zend_fu
             arg = _get_recv_op_zval(fptr, current);
         }
 
+        /** 
+         * Filter the space used by php_trim.
+         * arg == INTERNED_STRING or arg == IS_STRING
+         */
         if (arg) {
-            /* Filter the space used by php_trim */
             if (Z_TYPE_P(arg) == IS_STRING) {
                 sarg = php_trim(Z_STR_P(arg), NULL, 0, 3);
                 /* Fix sarg value is empty string, and cancel length judgment */
                 if (Z_STRLEN_P(arg) != ZSTR_LEN(sarg)) {
-                    ZVAL_STR_COPY(arg, sarg);
+                    ZVAL_STR(arg, sarg);
                 }
             }
-
             ZVAL_COPY_VALUE(&((*params)[current]), arg);
         } else {
             ZVAL_NULL(&((*params)[current]));
-        }
-
-        if (sarg) {
-            zend_string_release(sarg);
-            sarg = NULL;
         }
     }
 }

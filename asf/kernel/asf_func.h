@@ -113,6 +113,13 @@ PHP_METHOD(name, __call) \
     if (arg_count > 0) { \
         efree(real_args); \
     } \
+    /* When the method is not found, the result is 'UNKNOWN:0' */ \
+    if (Z_ISUNDEF_P(return_value)) { \
+        zend_string *func = zval_get_string(function_name); \
+        php_error_docref(NULL, E_WARNING, "Method name '%s' not found", ZSTR_VAL(func)); \
+        zend_string_release(func); \
+        ZVAL_FALSE(return_value); \
+    } \
 } \
 /* }}} */
 

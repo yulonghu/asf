@@ -23,6 +23,7 @@
 #include "php.h"
 #include "zend_smart_str.h" /* for smart_str */
 #include "Zend/zend_interfaces.h"
+#include "Zend/zend_exceptions.h" /* zend_exception_error */
 #include "main/php_main.h" /* php_stream_* */
 
 #include "php_asf.h"
