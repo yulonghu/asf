@@ -28,6 +28,7 @@
 #include "ext/standard/php_string.h"
 #include "ext/standard/php_rand.h"
 #include "ext/standard/html.h" /* htmlspecialchars */
+#include "ext/standard/php_array.h" /* php_array_merge */
 
 #include "kernel/asf_namespace.h"
 #include "http/asf_http_request.h"
@@ -167,23 +168,25 @@ static void asf_util_request_url(zend_string *http_url, _Bool http_ispost,
 
     /* From user custom http_opts */
     if (http_opts && Z_TYPE_P(http_opts) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(http_opts))) {
-        zend_ulong id = 0; zval *entry = NULL;
-        ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(http_opts), id, entry) {
-            if (!id) {
-                continue;
+        zval *entry = NULL;
+        zend_ulong option = 0;
+        zend_string *string_key = NULL;
+
+        ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(http_opts), option, string_key, entry) {
+            if (string_key) {
+                php_error_docref(NULL, E_WARNING,
+                        "Array keys must be CURLOPT constants or equivalent integer values");
+                goto CURL_WARN;
             }
 
-            ZVAL_DEREF(entry);
             Z_TRY_ADDREF_P(entry);
-            add_index_zval(&opts, id, entry);
+            add_index_zval(&opts, option, entry);
         } ZEND_HASH_FOREACH_END();
     }
 
     zend_call_method_with_2_params(NULL, NULL, NULL, "curl_setopt_array", &opts_retval, &curl_init, &opts);
     if (Z_TYPE(opts_retval) == IS_FALSE) {
-        zend_call_method_with_1_params(NULL, NULL, NULL, "curl_close", NULL, &curl_init);
-        php_error_docref(NULL, E_WARNING, "Call the function 'curl_setopt_array' failure");
-        return;
+        goto CURL_WARN;
     }
 
     /* set default value */
@@ -208,6 +211,7 @@ static void asf_util_request_url(zend_string *http_url, _Bool http_ispost,
         add_assoc_zval_ex(return_value, "error", 5, &error);
     }
 
+CURL_WARN:
     zval_ptr_dtor(&opts);
     zend_call_method_with_1_params(NULL, NULL, NULL, "curl_close", NULL, &curl_init);
     zval_ptr_dtor(&curl_init);
