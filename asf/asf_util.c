@@ -514,9 +514,21 @@ PHP_METHOD(asf_util, postUrl)
     }
 
     ZVAL_UNDEF(&retval);
-    if (data && Z_TYPE_P(data) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(data))) {
-        zend_call_method_with_1_params(NULL, NULL, NULL, "http_build_query", &retval, data);
-    }
+
+    do {/*{{{*/
+        if (!data) {
+            break;
+        }
+
+        if (Z_TYPE_P(data) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(data))) {
+            zend_call_method_with_1_params(NULL, NULL, NULL, "http_build_query", &retval, data);
+            break;
+        }
+
+        /* Others: String, Int */
+        ZVAL_COPY_VALUE(&retval, data);
+    } while(0);
+    /*}}}*/
 
     if (Z_TYPE(retval) == IS_FALSE) {
         RETURN_FALSE;
