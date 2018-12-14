@@ -28,6 +28,7 @@ enum TRACE_ID {
     ASF_TRACE_MEMCACHED,
     ASF_TRACE_PGSQL,
     ASF_TRACE_SQLITE,
+    ASF_TRACE_CURL,
 };
 
 _Bool asf_func_isempty(const char *s);

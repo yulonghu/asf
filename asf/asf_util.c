@@ -126,7 +126,8 @@ static inline void asf_util_filterxss_callback(zval **cb, char *default_charset)
 }
 /* }}} */
 
-static void asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval *http_data, zval *http_opts, zval *return_value) /* {{{ */
+static void asf_util_request_url(zend_string *http_url, _Bool http_ispost,
+        zval *http_data, zval *http_opts, zval *return_value, char *method, uint method_len) /* {{{ */
 {
     /* Check for CURL extension */
     if (!zend_hash_str_exists(EG(function_table), "curl_init", 9)) {
@@ -188,8 +189,15 @@ static void asf_util_request_url(zend_string *http_url, _Bool http_ispost, zval 
     /* set default value */
     ZVAL_FALSE(return_value);
 
+    /* trace log */
+    double start_time = asf_func_trace_gettime();
+
     /* execute */
     zend_call_method_with_1_params(NULL, NULL, NULL, "curl_exec", return_value, &curl_init);
+
+    /* trace log */
+    (void)asf_func_trace_str_add(ASF_TRACE_CURL, start_time, method, method_len, 1, &opts, return_value);
+
     if (Z_TYPE_P(return_value) == IS_FALSE) {
         /* errno, error */
         zval error;
@@ -498,7 +506,7 @@ PHP_METHOD(asf_util, getUrl)
         return;
     }
 
-    (void)asf_util_request_url(url, 0, NULL, opts, return_value);
+    (void)asf_util_request_url(url, 0, NULL, opts, return_value, "CURL_GET", 8);
 }
 /* }}} */
 
@@ -508,6 +516,7 @@ PHP_METHOD(asf_util, postUrl)
 {
     zend_string *url = NULL;
     zval *data = NULL, *opts = NULL, retval;
+    _Bool is_free = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|zz", &url, &data, &opts) == FAILURE) {
         return;
@@ -522,6 +531,7 @@ PHP_METHOD(asf_util, postUrl)
 
         if (Z_TYPE_P(data) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(data))) {
             zend_call_method_with_1_params(NULL, NULL, NULL, "http_build_query", &retval, data);
+            is_free = 1;
             break;
         }
 
@@ -534,9 +544,11 @@ PHP_METHOD(asf_util, postUrl)
         RETURN_FALSE;
     }
 
-    (void)asf_util_request_url(url, 1, &retval, opts, return_value);
+    (void)asf_util_request_url(url, 1, &retval, opts, return_value, "CURL_POST", 9);
 
-    zval_ptr_dtor(&retval);
+    if (is_free) {
+        zval_ptr_dtor(&retval);
+    }
 }
 /* }}} */
 
