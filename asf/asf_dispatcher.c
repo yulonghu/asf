@@ -229,10 +229,8 @@ static inline zend_class_entry *asf_dispatcher_load_service(zend_string *service
     /* index.php */
     filename = estrndup(ZSTR_VAL(service), ZSTR_LEN(service));
 
-    /* Indexservice.php OR Index.php */
-    if (!ASF_G(lowcase_path)) {
-        *filename = toupper(*filename);
-    }
+    /* Index.php */
+    *filename = toupper(*filename);
 
     if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL
             && asf_internal_autoload(filename, strlen(filename), &path)) {

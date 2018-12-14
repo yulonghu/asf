@@ -55,7 +55,6 @@ PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("asf.env",			  "online", PHP_INI_SYSTEM, OnUpdateString, environ_name, zend_asf_globals, asf_globals)
     STD_PHP_INI_BOOLEAN("asf.use_namespace",  "0", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_asf_globals, asf_globals)
 
-    STD_PHP_INI_BOOLEAN("asf.lowcase_path",   "0", PHP_INI_ALL, OnUpdateBool, lowcase_path, zend_asf_globals, asf_globals)
     STD_PHP_INI_BOOLEAN("asf.use_lcache",     "0", PHP_INI_ALL, OnUpdateBool, use_lcache, zend_asf_globals, asf_globals)
     STD_PHP_INI_BOOLEAN("asf.throw_exception","1", PHP_INI_ALL, OnUpdateBool, throw_exception, zend_asf_globals, asf_globals)
 

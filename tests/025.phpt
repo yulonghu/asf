@@ -1,9 +1,8 @@
 --TEST--
-Check for Asf_Application, and asf.lowcase_path=0 No.1
+Check for Asf_Application No.1
 --SKIPIF--
 <?php if (!extension_loaded("asf")) print "skip"; ?>
 --INI--
-asf.lowcase_path=0
 asf.ctype_id=1
 asf.use_namespace=0
 --FILE--

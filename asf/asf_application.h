@@ -44,9 +44,8 @@
         return; \
     } \
     if (!(ce = zend_hash_str_find_ptr(EG(class_table), ZEND_STRL(find_name_lc)))) { \
-        char *p = ASF_G(lowcase_path) ? find_name_lc : find_name_uf; \
         zend_string *path = ASF_G(asfg_name) ? zend_string_copy(ASF_G(asfg_name)) : \
-        strpprintf(0, "%s%c%s.php", ZSTR_VAL(ASF_G(root_path)), DEFAULT_SLASH, p); \
+        strpprintf(0, "%s%c%s.php", ZSTR_VAL(ASF_G(root_path)), DEFAULT_SLASH, find_name_uf); \
         if (UNEXPECTED(!asf_loader_import(path, NULL))) { \
             asf_trigger_error(ASF_ERR_## err_name ##_FAILED, "No such file %s", ZSTR_VAL(path)); \
             zend_string_release(path); \
@@ -54,7 +53,7 @@
         } \
         if (UNEXPECTED((ce = zend_hash_str_find_ptr(EG(class_table), ZEND_STRL(find_name_lc))) == NULL)) { \
             zend_string_release(path); \
-            asf_trigger_error(ASF_ERR_## err_name ##_FAILED, "Class '%s' not found in %s", p, ZSTR_VAL(path)); \
+            asf_trigger_error(ASF_ERR_## err_name ##_FAILED, "Class '%s' not found in %s", find_name_uf, ZSTR_VAL(path)); \
             RETURN_FALSE; \
         } \
         zend_string_release(path); \

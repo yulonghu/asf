@@ -99,7 +99,6 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 
 	/* ini */
 	char		*environ_name;
-	zend_bool	lowcase_path;
 	zend_bool	use_namespace;
 	zend_ulong	ctype_id;
 	zend_bool	use_lcache;

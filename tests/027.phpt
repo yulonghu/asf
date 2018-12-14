@@ -3,7 +3,6 @@ Check for Asf_Application, get started No.4 for build
 --SKIPIF--
 <?php if (!extension_loaded("asf")) print "skip"; ?>
 --INI--
-asf.lowcase_path=0
 asf.ctype_id=0
 asf.use_namespace=0
 --FILE--

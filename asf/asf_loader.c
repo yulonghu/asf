@@ -186,11 +186,6 @@ _Bool asf_internal_autoload(char *file_name, size_t name_len, char **root_path) 
     smart_str_appendl(&buf, ".php", 4);
     smart_str_0(&buf);
 
-    /* All path changeto lowercase */
-    if (ASF_G(lowcase_path)) {
-        zend_str_tolower(ZSTR_VAL(buf.s) + root_path_len, ZSTR_LEN(buf.s) - root_path_len);
-    }
-
     status = asf_loader_import(buf.s, NULL); 
     /** 
      *  Don't open the comment, it will interrupt spl_autoload_register. 2018-09-04
