@@ -5,7 +5,6 @@ Check for Asf_Application configs loading php file
 --INI--
 asf.lowcase_path=1
 asf.ctype_id=1
-asf.action_suffix=1
 asf.use_namespace=0
 --FILE--
 <?php

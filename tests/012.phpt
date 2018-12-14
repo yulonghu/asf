@@ -1,5 +1,5 @@
 --TEST--
-Check for php.ini to asf.action_suffix settings
+Check for Lowercase method
 --SKIPIF--
 <?php if (!extension_loaded("asf")) print "skip"; ?>
 --INI--
@@ -16,10 +16,6 @@ $configs = array(
 class indexservice
 {
     public function indexaction()
-    {
-        return array('user' => 'zhangsan');
-    }
-    public function index()
     {
         return array('user' => 'zhangsan');
     }

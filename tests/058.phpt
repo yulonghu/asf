@@ -4,7 +4,6 @@ Check for Asf_Logger (extends Asf_AbstractService)
 <?php if (!extension_loaded("asf")) print "skip"; ?>
 --INI--
 asf.ctype_id=0
-asf.action_suffix=1
 asf.use_namespace=0
 --FILE--
 <?php

@@ -5,7 +5,6 @@ Check for Asf_Application && Test Asf_Loader::clean()
 --INI--
 asf.lowcase_path=1
 asf.ctype_id=0
-asf.action_suffix=1
 asf.use_namespace=0
 --FILE--
 <?php

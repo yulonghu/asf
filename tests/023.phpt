@@ -5,7 +5,6 @@ Check for Asf_Ensure, get started No.1 for build
 --INI--
 asf.lowcase_path=0
 asf.ctype_id=1
-asf.action_suffix=1
 asf.use_namespace=0
 --FILE--
 <?php

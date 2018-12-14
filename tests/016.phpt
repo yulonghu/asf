@@ -5,7 +5,6 @@ Check for Asf configs to dispatcher.default_service/default_action
 --INI--
 asf.lowcase_path=0
 asf.ctype_id=1
-asf.action_suffix=1
 asf.use_namespace=0
 --FILE--
 <?php

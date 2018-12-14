@@ -359,9 +359,8 @@ static inline _Bool asf_dispatcher_run(asf_disp_t *dispatcher, asf_http_req_t *r
         zend_call_method_with_0_params(&zservice, ce, NULL, ZEND_CONSTRUCTOR_FUNC_NAME, NULL);
     }
 
-    // xxxAction or xxx
-    func_name = ASF_G(action_suffix) ? strpprintf(0, "%s%s", Z_STRVAL_P(action), "action")
-        : zend_string_init(Z_STRVAL_P(action), Z_STRLEN_P(action), 0);
+    // Only Support xxxAction (>=2.2.3)
+    func_name = strpprintf(0, "%s%s", Z_STRVAL_P(action), "action");
 
     if ((fptr = zend_hash_find_ptr(&((ce)->function_table), func_name)) != NULL) {
         zval *call_args = NULL;

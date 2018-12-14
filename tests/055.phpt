@@ -5,7 +5,6 @@ Check for Asf_Request_Interface
 --INI--
 asf.lowcase_path=0
 asf.ctype_id=0
-asf.action_suffix=1
 asf.use_namespace=0
 --FILE--
 <?php
