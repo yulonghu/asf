@@ -288,14 +288,8 @@ PHP_METHOD(asf_loader, autoload)
         if (asf_loader_is_user_autoload(class_name, class_name_len, ASF_LOADER_LOGIC, ASF_LOADER_LOGIC_LEN)) {
             /* root_path_rel = /project/modules/xxx/logics/ */
             spprintf(&root_path_rel, 0, "%s%c%s", root_path_route, DEFAULT_SLASH, ASF_LOADER_LOGIC_DIRECTORY_NAME);
-
-            if (!ASF_G(file_suffix)) {
-                /* Index.php */
-                file_name_len = class_name_len - ASF_LOADER_LOGIC_LEN;
-            } else {
-                /* IndexLogic.php */
-                file_name_len = class_name_len;
-            }
+            /* Index.php */
+            file_name_len = class_name_len - ASF_LOADER_LOGIC_LEN;
             file_name = estrndup(class_name, file_name_len);
             break;
         }
@@ -303,12 +297,7 @@ PHP_METHOD(asf_loader, autoload)
         if (asf_loader_is_user_autoload(class_name, class_name_len, ASF_LOADER_DAO, ASF_LOADER_DAO_LEN)) {
             /* root_path_rel = /project/modules/xxx/daos/ */
             spprintf(&root_path_rel, 0, "%s%c%s", root_path_route, DEFAULT_SLASH, ASF_LOADER_DAO_DIRECTORY_NAME);
-
-            if (!ASF_G(file_suffix)) {
-                file_name_len = class_name_len - ASF_LOADER_DAO_LEN;
-            } else {
-                file_name_len = class_name_len;
-            }
+            file_name_len = class_name_len - ASF_LOADER_DAO_LEN;
             file_name = estrndup(class_name, file_name_len);
 
             break;
@@ -317,12 +306,7 @@ PHP_METHOD(asf_loader, autoload)
         if (asf_loader_is_user_autoload(class_name, class_name_len, ASF_LOADER_SERVER, ASF_LOADER_SERVER_LEN)) {
             /* root_path_rel= /project/modules/xxx/services/ */
             spprintf(&root_path_rel, 0, "%s%c%s", root_path_route, DEFAULT_SLASH, ASF_LOADER_SERVICE_DIRECTORY_NAME);
-
-            if (!ASF_G(file_suffix)) {
-                file_name_len = class_name_len - ASF_LOADER_SERVER_LEN;
-            } else {
-                file_name_len = class_name_len;
-            }
+            file_name_len = class_name_len - ASF_LOADER_SERVER_LEN;
             file_name = estrndup(class_name, file_name_len);
 
             break;

@@ -5,18 +5,15 @@ Check for php.ini settings
 --INI--
 asf.lowcase_path=0
 asf.env=develop
-asf.file_suffix=0
 asf.ctype_id=1
 --FILE--
 <?php
 var_dump(ini_get('asf.lowcase_path'));
 var_dump(ini_get('asf.env'));
-var_dump(ini_get('asf.file_suffix'));
 var_dump(ini_get('asf.ctype_id'));
 ?>
 --EXPECTF--
 string(%d) "%d"
 string(%d) "%s"
-string(%d) "%d"
 string(%d) "%d"
 

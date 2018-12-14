@@ -226,13 +226,8 @@ static inline zend_class_entry *asf_dispatcher_load_service(zend_string *service
 
     zend_string *lc_class = strpprintf(0, "%s%s", ZSTR_VAL(service), "service"); 
 
-    if (!ASF_G(file_suffix)) {
-        /* index.php */
-        filename = estrndup(ZSTR_VAL(service), ZSTR_LEN(service));
-    } else {
-        /* indexservice.php */
-        filename = estrndup(ZSTR_VAL(lc_class), ZSTR_LEN(lc_class));
-    }
+    /* index.php */
+    filename = estrndup(ZSTR_VAL(service), ZSTR_LEN(service));
 
     /* Indexservice.php OR Index.php */
     if (!ASF_G(lowcase_path)) {

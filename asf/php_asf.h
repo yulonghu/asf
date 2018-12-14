@@ -99,13 +99,12 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 
 	/* ini */
 	char		*environ_name;
-	zend_bool   lowcase_path;
-	zend_bool	file_suffix;
-	zend_bool   action_suffix;
-	zend_bool   use_namespace;
+	zend_bool	lowcase_path;
+	zend_bool	action_suffix;
+	zend_bool	use_namespace;
 	zend_ulong	ctype_id;
 	zend_bool	use_lcache;
-	zend_bool   throw_exception;
+	zend_bool	throw_exception;
 
 	/* Cache Config */
 	HashTable *cache_config_buf;
