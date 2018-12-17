@@ -510,7 +510,7 @@ PHP_METHOD(asf_util, getUrl)
         return;
     }
 
-    (void)asf_util_request_url(url, 0, NULL, opts, return_value, "CURL_GET", 8);
+    (void)asf_util_request_url(url, 0, NULL, opts, return_value, "HTTP_GET", 8);
 }
 /* }}} */
 
@@ -548,7 +548,7 @@ PHP_METHOD(asf_util, postUrl)
         RETURN_FALSE;
     }
 
-    (void)asf_util_request_url(url, 1, &retval, opts, return_value, "CURL_POST", 9);
+    (void)asf_util_request_url(url, 1, &retval, opts, return_value, "HTTP_POST", 9);
 
     if (is_free) {
         zval_ptr_dtor(&retval);

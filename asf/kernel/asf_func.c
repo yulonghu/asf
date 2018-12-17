@@ -27,6 +27,7 @@
 #include "ext/standard/php_filestat.h" /* php_stat */
 #include "zend_smart_str.h" /* smart_str */
 #include "ext/standard/php_string.h" /* php_basename */
+#include "ext/standard/php_math.h" /* _php_math_number_format */
 #include "asf_exception.h"
 
 _Bool asf_func_isempty(const char *s) /* {{{ */
@@ -284,7 +285,7 @@ void asf_func_trace_zval_add(uint trace_id, double start_time, zval *method,
         return;
     }
 
-    double exec_time = (double)((asf_func_gettimeofday() - start_time));
+    double exec_time = asf_func_gettimeofday() - start_time;
 
     if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) {
         array_init(&ASF_G(trace_buf));
@@ -326,7 +327,8 @@ void asf_func_trace_zval_add(uint trace_id, double start_time, zval *method,
         add_assoc_zval_ex(&line, "v", 1, &regs);
     } while (0);
     
-    add_assoc_double_ex(&line, "t", 1, exec_time);
+    /* 6 decimal places */
+    add_assoc_str_ex(&line, "t", 1, _php_math_number_format(exec_time, 5, '.', ' '));
     /* Exclude 'retval' return value 'UNKNOWN:0' and 'NULL' */
     if (retval && !Z_ISUNDEF_P(retval)) {
         Z_TRY_ADDREF_P(retval);

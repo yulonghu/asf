@@ -548,14 +548,12 @@ PHP_METHOD(asf_application, errorHandler)
         zval error_retval, params[4];
         /* params[4] = { $errno, $errstr, $errfile, $errline } */
         ZVAL_LONG(&params[0], _0);
-        ZVAL_STR_COPY(&params[1], _2);
-        ZVAL_STR_COPY(&params[2], _3);
+        ZVAL_STR(&params[1], _2);
+        ZVAL_STR(&params[2], _3);
         ZVAL_LONG(&params[3], _1);
         if (call_user_function_ex(CG(function_table), NULL, error_handler, &error_retval, 4, params, 1, NULL) == SUCCESS) {
             zval_ptr_dtor(&error_retval);
         }
-        zval_ptr_dtor(&params[1]);
-        zval_ptr_dtor(&params[2]);
     }
 
     if (_999) {
