@@ -317,13 +317,13 @@ static inline void asf_db_write_logsql(zend_string *sql, zval *bind_values, doub
     smart_str ins = {0};
     char *buffer = NULL; size_t size = 0;
 
-    size = spprintf(&buffer, 0, "(%f) ", (double)((asf_func_gettimeofday() - start_time)));
+    size = spprintf(&buffer, 0, "%.5f | ", (double)((asf_func_gettimeofday() - start_time)));
     smart_str_appendl(&ins, buffer, size);
 
     smart_str_append(&ins, sql);
 
     if (bind_values && IS_ARRAY == Z_TYPE_P(bind_values)) {
-        smart_str_appendl(&ins, " [:BVALUE] ", 11);
+        smart_str_appendl(&ins, " | ", 3);
         PHP_VAR_SERIALIZE_INIT(var_hash);
         php_var_serialize(&ins, bind_values, &var_hash);
         PHP_VAR_SERIALIZE_DESTROY(var_hash);
@@ -804,7 +804,7 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     zend_update_property(asf_absadapter_ce, self, ZEND_STRL("_value"), &args[0]);
 
     /* trace log */
-    double start_time = asf_func_trace_gettime();
+    double start_time = asf_func_gettimeofday();
 
     ZVAL_STRINGL(&zmn_2, "execute", 7);
     call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, &zret_2, count, args, 1, NULL);

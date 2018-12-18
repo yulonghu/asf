@@ -27,6 +27,7 @@
 #include "ext/standard/basic_functions.h"
 #include "ext/standard/php_var.h" /* php_var_export */
 #include "ext/date/php_date.h" /* php_format_date */
+#include <unistd.h> /* getpid */
 
 #include "php_asf.h"
 #include "kernel/asf_namespace.h"
@@ -104,14 +105,14 @@ PHP_METHOD(asf_log_adapter, log)
     (void)asf_log_adapter_extract_message(&retval, self, message, context);
 
     /* format message */
-    char *str_df = "d-M-Y H:i:s e", *str_ret = NULL;
+    char *str_df = "Y-m-d H:i:s e", *str_ret = NULL;
     zend_string *str_date = NULL;
     size_t str_ret_len = 0;
     time_t curtime;
 
     time(&curtime);
     str_date = php_format_date(str_df, strlen(str_df), curtime, 1);
-    str_ret_len = spprintf(&str_ret, 0, "%s [%s] %s %s", str_date->val, ZSTR_VAL(level), Z_STRVAL(retval), PHP_EOL); 
+    str_ret_len = spprintf(&str_ret, 0, "%s | %s | %d | %s%s", str_date->val, ZSTR_VAL(level), getpid(), Z_STRVAL(retval), PHP_EOL); 
     zend_string_release(str_date);
 
     /* call doLog() */
