@@ -710,6 +710,9 @@ PHP_METHOD(asf_absadapter, doQuery)
     zval zret_1, zmn_1, zmn_2, args[3];
     zval fetch_type;
 
+    /* trace log */
+    double start_time = asf_func_trace_gettime();
+
     if (mode == 0) {
         mode = PDO_FETCH_ASSOC;
     }
@@ -735,22 +738,21 @@ PHP_METHOD(asf_absadapter, doQuery)
     ASF_FAST_STRING_PTR_DTOR(zmn_1);
     ASF_FAST_STRING_PTR_DTOR(args[0]);
 
-    /* have a asf_exception */
-    if (!Z_ISUNDEF(zret_1) && IS_OBJECT == Z_TYPE(zret_1)) {
-        ZVAL_STRING(&zmn_2, (one == 1) ? "fetch" : "fetchAll");
-        ZVAL_LONG(&fetch_type, mode);
+    ZVAL_STRING(&zmn_2, (one == 1) ? "fetch" : "fetchAll");
+    ZVAL_LONG(&fetch_type, mode);
 
-        /* If FALSE(return_value) is returned on failure */
-        call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, return_value, 1, &fetch_type, 1, NULL);
-        
-        ASF_FAST_STRING_PTR_DTOR(zmn_2);
-        zval_ptr_dtor(&zret_1);
-    }
+    /* If FALSE(return_value) is returned on failure */
+    call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, return_value, 1, &fetch_type, 1, NULL);
+
+    ASF_FAST_STRING_PTR_DTOR(zmn_2);
+    zval_ptr_dtor(&zret_1);
 
     /* The correct result is an array */
     if (!return_value || Z_TYPE_P(return_value) == IS_FALSE || Z_TYPE_P(return_value) == IS_UNDEF) {
         array_init(return_value);
     }
+
+    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), size ? 1 : 0, bind_value, return_value);
 }
 /* }}} */
 
@@ -810,11 +812,10 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, &zret_2, count, args, 1, NULL);
     ASF_FAST_STRING_PTR_DTOR(zmn_2);
 
-    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), count, bind_value, NULL);
-
     if (EG(exception)) {
         zval_ptr_dtor(&zret_1);
-        RETURN_FALSE;
+        zend_exception_error(EG(exception), E_ERROR);
+        return;
     }
 
     if (IS_FALSE == Z_TYPE(zret_2)) {
@@ -831,6 +832,7 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     if (ret_obj) {
         ZVAL_COPY_VALUE(return_value, &zret_1);
     } else {
+        (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), count, bind_value, &zret_2);
         zval_ptr_dtor(&zret_1);
         RETURN_BOOL(&zret_2);
     }
@@ -844,35 +846,33 @@ PHP_METHOD(asf_absadapter, exeQuery)
     zend_string *sql = NULL;
     zval *bind_value = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|z", &sql, &bind_value) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|a", &sql, &bind_value) == FAILURE) {
         return;
     }
 
     zval args[3], zmn_1, zmn_2, zret_1;
     zval *self = getThis();
+    double start_time = asf_func_trace_gettime();
 
     ZVAL_STRINGL(&zmn_1, "exeNoQuery", 10);
-    ZVAL_STR_COPY(&args[0], sql);
-    ZVAL_LONG(&args[2], 1);
-    if (bind_value && IS_ARRAY == Z_TYPE_P(bind_value) && zend_hash_num_elements(Z_ARRVAL_P(bind_value))) {
-        ZVAL_COPY_VALUE(&args[1], bind_value);
+    ZVAL_STR(&args[0], sql);
+    if (!bind_value) {
+        ZVAL_NULL(&args[1]);  
     } else {
-        ZVAL_NULL(&args[1]);
+        ZVAL_COPY_VALUE(&args[1], bind_value);
     }
+    ZVAL_LONG(&args[2], 1);
 
     call_user_function_ex(&Z_OBJCE_P(self)->function_table, self, &zmn_1, &zret_1, 3, args, 1, NULL);
     ASF_FAST_STRING_PTR_DTOR(zmn_1);
-    ASF_FAST_STRING_PTR_DTOR(args[0]);
-
-    /* have a asf_exception */
-    if (IS_OBJECT != Z_TYPE(zret_1)) {
-        return;
-    }
 
     ZVAL_STRINGL(&zmn_2, "rowCount", 8);
     call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, return_value, 0, 0, 1, NULL);
     ASF_FAST_STRING_PTR_DTOR(zmn_2);
     zval_ptr_dtor(&zret_1);
+
+    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql),
+           bind_value ? 1 : 0, &args[1], return_value);
 }
 /* }}} */
 
