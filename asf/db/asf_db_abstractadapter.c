@@ -25,6 +25,7 @@
 #include "Zend/zend_interfaces.h" /* zend_call_ */
 #include "zend_smart_str.h" /* for smart_str */
 #include "ext/standard/php_var.h" /* php_serialize_data_t */
+#include "Zend/zend_exceptions.h" /* zend_exception_error */
 
 #include "php_asf.h"
 #include "kernel/asf_namespace.h"
