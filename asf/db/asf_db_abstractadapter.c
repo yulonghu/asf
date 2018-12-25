@@ -1083,13 +1083,13 @@ PHP_METHOD(asf_absadapter, getCount)
     ASF_FAST_STRING_PTR_DTOR(zmn_1);
     ASF_FAST_STRING_PTR_DTOR(args[0]);
 
+    ZVAL_LONG(return_value, 0);
+
     if (IS_ARRAY == Z_TYPE(ret)) {
-        convert_to_long(return_value);
         Z_LVAL_P(return_value) = zval_get_long(zend_hash_str_find(Z_ARRVAL(ret), "asf_cnt", 7));
-        zval_ptr_dtor(&ret);
-    } else {
-        RETURN_LONG(0);
     }
+
+    zval_ptr_dtor(&ret);
 }
 /* }}} */
 
