@@ -670,16 +670,14 @@ PHP_METHOD(asf_db_absqb, exec)
     curd = Z_LVAL_P(zend_read_property(asf_db_absqb_ce, self, ZEND_STRL(ASF_DB_ABSQB_PRONAME_CURD), 1, NULL));
 
     if (Z_TYPE_P(sql) != IS_STRING) {
-        RETURN_FALSE;
-    }
-
-    if (asf_func_isempty(Z_STRVAL_P(sql))) {
+        php_error_docref(NULL, E_WARNING, "The SQL is invalid");
         RETURN_FALSE;
     }
 
     cur_link = zend_read_static_property(asf_Db_ce, ZEND_STRL(CLINK), 1);
 
     if (IS_OBJECT != Z_TYPE_P(cur_link)) {
+        php_error_docref(NULL, E_WARNING, "Please connect to DB first");
         RETURN_FALSE;
     }
 
@@ -692,12 +690,12 @@ PHP_METHOD(asf_db_absqb, exec)
             break;
     }
 
+    ZVAL_COPY_VALUE(&params[0], sql);
     if (Z_TYPE_P(bind_value) == IS_NULL) {
         params_i = 1;
+    } else {
+        ZVAL_COPY_VALUE(&params[1], bind_value);
     }
-
-    ZVAL_COPY_VALUE(&params[0], sql);
-    ZVAL_COPY_VALUE(&params[1], bind_value);
 
     call_user_function_ex(&Z_OBJCE_P(cur_link)->function_table, cur_link, &function_name, return_value, params_i, params, 1, NULL);
     zval_ptr_dtor(&function_name);
