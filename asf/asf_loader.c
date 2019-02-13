@@ -48,20 +48,25 @@ do { \
 #define ASF_LOADER_METHOD(name, len) \
     PHP_METHOD(asf_loader, name) \
     { \
-        zval *args = NULL, *instance = NULL; \
-        int argc = 0; \
+        zval *instance = NULL, args[2];\
+        zend_string *class_name = NULL, *module_name = NULL; \
         ZEND_PARSE_PARAMETERS_START(1, 3) \
-            Z_PARAM_VARIADIC('+', args, argc) \
+            Z_PARAM_STR(class_name) \
+            Z_PARAM_OPTIONAL \
+            Z_PARAM_STR(module_name) \
         ZEND_PARSE_PARAMETERS_END_EX(RETURN_FALSE); \
-        if (UNEXPECTED(Z_TYPE(args[0]) != IS_STRING)) { \
-            RETURN_FALSE; \
-        } \
         ASF_LOADER_CHECK_CE(instance); \
-        Z_STR(args[0]) = zend_string_extend(Z_STR(args[0]), Z_STRLEN(args[0]) + len, 0); \
-        memcpy(Z_STRVAL(args[0]) + Z_STRLEN(args[0]) - len, #name, len); \
-        Z_STRVAL(args[0])[Z_STRLEN(args[0])] = '\0'; \
-        ASF_CALL_USER_FUNCTION_EX(instance, "get", 3, return_value, argc, args); \
-        zend_string_release(Z_STR(args[0])); \
+        class_name = zend_string_extend(class_name, ZSTR_LEN(class_name) + len, 0); \
+        memcpy(ZSTR_VAL(class_name) + ZSTR_LEN(class_name) - len, #name, len); \
+        ZSTR_VAL(class_name)[ZSTR_LEN(class_name)] = '\0'; \
+        ZVAL_STR(&args[0], class_name); \
+        if (!module_name) { \
+            ASF_CALL_USER_FUNCTION_EX(instance, "get", 3, return_value, 1, args); \
+        } else { \
+            ZVAL_STR(&args[1], module_name); \
+            ASF_CALL_USER_FUNCTION_EX(instance, "get", 3, return_value, 2, args); \
+        } \
+        zend_string_release(class_name); \
     }
 /* }}} */
 
@@ -446,6 +451,7 @@ PHP_METHOD(asf_loader, get)
     }
 
     if (UNEXPECTED(object_init_ex(return_value, ce) != SUCCESS)) {
+        efree(lc_class_name);
         RETURN_FALSE;
     }
 

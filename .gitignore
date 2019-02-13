@@ -34,3 +34,5 @@ tests/*/*.log
 tests/*/*.sh
 *.swp
 tools/*.log
+tags
+

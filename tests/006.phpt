@@ -6,7 +6,9 @@ Check for Asf_Loader
 asf.use_namespace=0
 --FILE--
 <?php
-var_dump(Asf_Loader::getInstance('/tmp'));
+define('TMP_PATH', '/tmp');
+
+var_dump(Asf_Loader::getInstance(TMP_PATH));
 
 var_dump(Asf_Loader::import('Notfound.php'));
 

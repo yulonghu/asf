@@ -29,6 +29,14 @@ class IndexLogic
     }/*}}}*/
 }
 
+class IndexDao
+{
+    public function getUser()
+    {/*{{{*/
+        return "IndexDao::getUser()";   
+    }/*}}}*/
+}
+
 class IndexService
 {
     public function indexAction()
@@ -54,6 +62,14 @@ class IndexService
             var_dump($e->getMessage());
         }
         
+        try {
+            var_dump(Asf_Loader::Logic('Index'));
+        } catch (Exception $e) {
+            var_dump($e->getMessage());
+        }
+
+        echo Asf_Loader::Dao('Index')->getUser(), PHP_EOL;
+        
         return $data;
     }/*}}}*/
 }
@@ -67,5 +83,7 @@ string(%d) "%s"
 string(%d) "%s"
 bool(true)
 string(%d) "%s"
+string(%d) "%s"
+IndexDao::getUser()
 {"errno":0,"errmsg":"","data":"zhangsan"}
 
