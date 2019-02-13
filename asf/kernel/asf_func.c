@@ -115,6 +115,9 @@ _Bool asf_func_shutdown_buffer() /* {{{ */
     /* ['file_path1' =>  [xx, yyy], 'file_path2' => [xxx, yyy]] */
     ZEND_HASH_FOREACH_STR_KEY_VAL(ht, key, entry_1) {
         if (NULL == (stream = asf_func_fopen(ZSTR_VAL(key), ZSTR_LEN(key), NULL))) {
+            /* Close Logger Buffer, Write directly to a local file */
+            ASF_G(use_lcache) = 0;
+            php_error_docref(NULL, E_WARNING, "File open failed: %s", ZSTR_VAL(key));
             continue;
         }
 
@@ -128,6 +131,9 @@ _Bool asf_func_shutdown_buffer() /* {{{ */
 
     zval_ptr_dtor(&ASF_G(log_buffer));
     ZVAL_UNDEF(&ASF_G(log_buffer));
+
+    /* Restore settings */
+    ASF_G(use_lcache) = 1;
 
     return 1;
 }

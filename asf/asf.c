@@ -158,6 +158,9 @@ PHP_RINIT_FUNCTION(asf)
 */
 PHP_RSHUTDOWN_FUNCTION(asf)
 {
+    /* Use Logger buffer, Before cleaning up the log directory */
+    (void)asf_func_shutdown_buffer();
+
     /* one */
     if (ASF_G(root_path)) {
         zend_string_release(ASF_G(root_path));
@@ -223,8 +226,6 @@ PHP_RSHUTDOWN_FUNCTION(asf)
         efree(ASF_G(last_load_err_full_path));
     }
 
-    /* Use Logger buffer */
-    (void)asf_func_shutdown_buffer();
 
     return SUCCESS;
 }

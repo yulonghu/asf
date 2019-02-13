@@ -6,7 +6,9 @@ Check for Asf_Logger
 asf.use_namespace=0
 --FILE--
 <?php
-error_reporting(0);
+error_reporting(E_ALL ^ E_WARNING);
+
+ini_set('asf.use_lcache', 0);
 
 echo '-----error type-----', PHP_EOL;
 var_dump(Asf_Logger::init(''));

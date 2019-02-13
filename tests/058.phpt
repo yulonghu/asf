@@ -8,6 +8,7 @@ asf.use_namespace=0
 --FILE--
 <?php
 ini_set('asf.ctype_id', 0);
+ini_set('asf.use_lcache', 1);
 
 define('ROOT_PATH', __DIR__);
 require ROOT_PATH . "/build.inc";
@@ -44,6 +45,12 @@ $configs = array(
     'asf' => array(
         'root_path'  => MODULE_PATH,
         'log_path' => LOG_PATH,
+        'dispatcher' => [
+            'log' => [
+                'sql' => 1,
+                'err' => 1
+            ]
+        ]
     )
 );
 
