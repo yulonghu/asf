@@ -742,7 +742,8 @@ PHP_METHOD(asf_absadapter, doQuery)
         array_init(return_value);
     }
 
-    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), bind_value ? 1 : 0, bind_value, return_value);
+    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql),
+            (Z_ISNULL_P(bind_value) ? 0 : 1), bind_value, return_value);
 }
 /* }}} */
 
@@ -863,7 +864,7 @@ PHP_METHOD(asf_absadapter, exeQuery)
     zval_ptr_dtor(&zret_1);
 
     (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql),
-           bind_value ? 1 : 0, &args[1], return_value);
+           (Z_ISNULL_P(bind_value) ? 0 : 1), &args[1], return_value);
 }
 /* }}} */
 
