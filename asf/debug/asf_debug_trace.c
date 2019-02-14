@@ -24,6 +24,7 @@
 #include "main/SAPI.h"
 #include "php_asf.h"
 #include "kernel/asf_namespace.h"
+#include "kernel/asf_func.h"
 #include "asf_debug_trace.h"
 
 /* {{{ ARG_INFO
