@@ -293,7 +293,14 @@ void asf_func_trace_zval_add(uint trace_id, double start_time, zval *method,
 
     double exec_time = asf_func_gettimeofday() - start_time;
 
-    if (Z_TYPE(ASF_G(trace_buf)) != IS_ARRAY) {
+    /* Limit length */
+    if (Z_TYPE(ASF_G(trace_buf)) == IS_ARRAY) {
+        if (zend_hash_num_elements(Z_ARRVAL(ASF_G(trace_buf))) > 100) {
+            asf_func_trace_clear();
+            goto init;
+        }
+    } else {
+init:
         array_init(&ASF_G(trace_buf));
     }
 
@@ -364,6 +371,17 @@ double asf_func_trace_gettime() /* {{{ */
     }
 
     return 0.0;
+}
+/* }}} */
+
+_Bool asf_func_trace_clear() /* {{{ */
+{
+    if (Z_TYPE(ASF_G(trace_buf)) == IS_ARRAY) {
+        zval_ptr_dtor(&ASF_G(trace_buf));
+        ZVAL_UNDEF(&ASF_G(trace_buf));
+        return 1;
+    }
+    return 0;
 }
 /* }}} */
 

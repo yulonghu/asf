@@ -70,11 +70,20 @@ PHP_METHOD(asf_debug_trace, log)
 }
 /* }}} */
 
+/* {{{ proto void Asf_Debug_Trace::clear()
+*/
+PHP_METHOD(asf_debug_trace, clear)
+{
+    RETURN_BOOL(asf_func_trace_clear());
+}
+/* }}} */
+
 /* {{{ asf_debug_trace_methods[]
 */
 zend_function_entry asf_debug_trace_methods[] = {
     PHP_ME(asf_debug_trace, show, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_ME(asf_debug_trace, log, asf_trace_set_arginfo, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(asf_debug_trace, clear, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     PHP_FE_END
 };
 /* }}} */

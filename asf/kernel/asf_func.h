@@ -124,6 +124,8 @@ PHP_METHOD(name, __call) \
 } \
 /* }}} */
 
+_Bool asf_func_trace_clear();
+
 #endif
 
 /*

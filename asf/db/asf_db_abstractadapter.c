@@ -611,14 +611,13 @@ PHP_METHOD(asf_absadapter, findOne)
 
     ZVAL_STRINGL(&zmn_1, "doQuery", 7);
     ZVAL_STR_COPY(&args[0], sql);
-    ZVAL_LONG(&args[2], mode);
-    ZVAL_LONG(&args[3], 1);
-
-    if (bind_value && IS_ARRAY == Z_TYPE_P(bind_value) && zend_hash_num_elements(Z_ARRVAL_P(bind_value))) {
+    if (bind_value) {
         ZVAL_COPY_VALUE(&args[1], bind_value);
     } else {
         ZVAL_NULL(&args[1]);
     }
+    ZVAL_LONG(&args[2], mode);
+    ZVAL_LONG(&args[3], 1);
 
     call_user_function_ex(&Z_OBJCE_P(self)->function_table, self, &zmn_1, return_value, 4, args, 1, NULL);
 
@@ -644,14 +643,13 @@ PHP_METHOD(asf_absadapter, findAll)
 
     ZVAL_STRINGL(&zmn_1, "doQuery", 7);
     ZVAL_STR_COPY(&args[0], sql);
-    ZVAL_LONG(&args[2], mode);
-    ZVAL_LONG(&args[3], 0);
-
-    if (bind_value && IS_ARRAY == Z_TYPE_P(bind_value) && zend_hash_num_elements(Z_ARRVAL_P(bind_value))) {
+    if (bind_value) {
         ZVAL_COPY_VALUE(&args[1], bind_value);
     } else {
         ZVAL_NULL(&args[1]);
     }
+    ZVAL_LONG(&args[2], mode);
+    ZVAL_LONG(&args[3], 0);
 
     call_user_function_ex(&Z_OBJCE_P(self)->function_table, self, &zmn_1, return_value, 4, args, 1, NULL);
     ASF_FAST_STRING_PTR_DTOR(zmn_1);
@@ -659,7 +657,7 @@ PHP_METHOD(asf_absadapter, findAll)
 }
 /* }}} */
 
-/* {{{ proto array Asf_Db_AbstractAdapter::findOneBy(array $data [, array $bind_value = array() [, int $mode = PDO::FETCH_ASSOC]])
+/* {{{ proto array Asf_Db_AbstractAdapter::findOneBy(array $data [, array $fields_name = array() [, int $mode = PDO::FETCH_ASSOC]])
 */
 PHP_METHOD(asf_absadapter, findOneBy)
 {
@@ -674,7 +672,7 @@ PHP_METHOD(asf_absadapter, findOneBy)
 }
 /* }}} */
 
-/* {{{ proto array Asf_Db_AbstractAdapter::findAllBy(array $data [, array $bind_value = array() [, int $mode = PDO::FETCH_ASSOC]])
+/* {{{ proto array Asf_Db_AbstractAdapter::findAllBy(array $data [, array $fields_name = array() [, int $mode = PDO::FETCH_ASSOC]])
 */
 PHP_METHOD(asf_absadapter, findAllBy)
 {
@@ -696,7 +694,6 @@ PHP_METHOD(asf_absadapter, doQuery)
     zend_string *sql = NULL;
     zval *bind_value = NULL;
     zend_long mode = 0, one = 0;
-    size_t size = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|zll", &sql, &bind_value, &mode, &one) == FAILURE) {
         return;
@@ -718,17 +715,9 @@ PHP_METHOD(asf_absadapter, doQuery)
         mode = PDO_FETCH_ASSOC;
     }
 
-    if (bind_value && IS_ARRAY == Z_TYPE_P(bind_value)) {
-        size = zend_hash_num_elements(Z_ARRVAL_P(bind_value));
-        if (size < 1) {
-            zval_ptr_dtor(bind_value);
-        }
-    }
-
     ZVAL_STRINGL(&zmn_1, "exeNoQuery", 10);
     ZVAL_STR_COPY(&args[0], sql);
-
-    if (size > 0) {
+    if (bind_value) {
         ZVAL_COPY_VALUE(&args[1], bind_value);
     } else {
         ZVAL_NULL(&args[1]);
@@ -753,7 +742,7 @@ PHP_METHOD(asf_absadapter, doQuery)
         array_init(return_value);
     }
 
-    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), size ? 1 : 0, bind_value, return_value);
+    (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, ZSTR_VAL(sql), ZSTR_LEN(sql), bind_value ? 1 : 0, bind_value, return_value);
 }
 /* }}} */
 
@@ -813,6 +802,7 @@ PHP_METHOD(asf_absadapter, exeNoQuery)
     call_user_function_ex(&Z_OBJCE_P(&zret_1)->function_table, &zret_1, &zmn_2, &zret_2, count, args, 1, NULL);
     ASF_FAST_STRING_PTR_DTOR(zmn_2);
 
+    /* Throw an PDOStatement::execute() exception message */
     if (EG(exception)) {
         zval_ptr_dtor(&zret_1);
         zend_exception_error(EG(exception), E_ERROR);
@@ -1069,12 +1059,11 @@ PHP_METHOD(asf_absadapter, getCount)
 
     ZVAL_STRINGL(&zmn_1, "doQuery", 7);
     ZVAL_STRINGL(&args[0], sql, len);
-    if (bind_value && IS_ARRAY == Z_TYPE_P(bind_value) && zend_hash_num_elements(Z_ARRVAL_P(bind_value))) {
+    if (bind_value) {
         ZVAL_COPY_VALUE(&args[1], bind_value);
     } else {
         ZVAL_NULL(&args[1]);
     }
-    
     ZVAL_LONG(&args[2], 0);
     ZVAL_LONG(&args[3], 1);
 

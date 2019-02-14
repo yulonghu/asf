@@ -216,10 +216,7 @@ PHP_RSHUTDOWN_FUNCTION(asf)
 
     /* Reset debug, trace log */
     ASF_G(debug_dump) = 0;
-    if (Z_TYPE(ASF_G(trace_buf)) == IS_ARRAY) {
-        zval_ptr_dtor(&ASF_G(trace_buf));
-        ZVAL_UNDEF(&ASF_G(trace_buf));
-    }
+    asf_func_trace_clear();
 
     /* Loader */
     if (ASF_G(last_load_err_full_path)) {
