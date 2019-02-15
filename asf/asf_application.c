@@ -538,9 +538,10 @@ PHP_METHOD(asf_application, errorHandler)
         zval *module = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_MODULE), 1, NULL);
         zval *service = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_SERVICE), 1, NULL);
         zval *action = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), 1, NULL);
-        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%sStack trace:%s## Module=%s, Service=%s, Action=%s%s%s",
+        zval *uri = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_URI), 1, NULL);
+        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%sStack trace:%s## URI=%s, Module=%s, Service=%s, Action=%s%s%s",
                 errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1, PHP_EOL, PHP_EOL,
-                Z_STRVAL_P(module), Z_STRVAL_P(service), Z_STRVAL_P(action), PHP_EOL, Z_STRVAL_P(_4));
+                Z_STRVAL_P(uri), Z_STRVAL_P(module), Z_STRVAL_P(service), Z_STRVAL_P(action), PHP_EOL, Z_STRVAL_P(_4));
     } else {
         errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1);
     }
