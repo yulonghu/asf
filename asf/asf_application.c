@@ -201,7 +201,7 @@ static _Bool asf_application_instance(zval *self, zval *config, zval *section) /
 
     (void)asf_dispatcher_instance(&zdispatcher, &zrequest);
     if (UNEXPECTED(Z_TYPE(zdispatcher) != IS_OBJECT)) {
-        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "initialized dispatcher failed");
+        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "Initialized dispatcher failed");
         return 0;
     }
 
@@ -223,7 +223,7 @@ static _Bool asf_application_instance(zval *self, zval *config, zval *section) /
     }
 
     if (UNEXPECTED(Z_TYPE(zloader) != IS_OBJECT)) {
-        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "initialized loader failed");
+        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "Initialized loader failed");
         return 0;
     }
 
@@ -259,9 +259,7 @@ PHP_METHOD(asf_application, __construct)
 
     ret = asf_application_instance(getThis(), config, section);
 
-    if (UNEXPECTED(!ret)) {
-        RETURN_FALSE;
-    }
+    RETURN_BOOL(ret);
 }
 /* }}} */
 
@@ -316,7 +314,7 @@ PHP_METHOD(asf_application, run)
 
     /* Unexpected exit before 'asf_dispatcher_instance()' function */
     if (UNEXPECTED(Z_TYPE_P(dispatcher) != IS_OBJECT)) {
-        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "initialized dispatcher failed");
+        asf_trigger_error(ASF_ERR_STARTUP_FAILED, "Initialized dispatcher failed");
         return;
     }
 
@@ -493,7 +491,8 @@ PHP_METHOD(asf_application, errorHandler)
         return;
     }
 
-    zval *fname = zend_read_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), 1, NULL);
+    zval *self = getThis();
+    zval *fname = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), 1, NULL);
 
     switch (_0) {/*{{{*/
         case E_PARSE:
@@ -534,7 +533,14 @@ PHP_METHOD(asf_application, errorHandler)
 
     /* If _4 is a string type, it comes from exceptionHandler */
     if (Z_TYPE_P(_4) == IS_STRING) {
-        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%s%s", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1, PHP_EOL, Z_STRVAL_P(_4));
+        zval *dispatcher = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_DISPATCHER), 1, NULL);
+        zval *request = zend_read_property(Z_OBJCE_P(dispatcher), dispatcher, ZEND_STRL(ASF_DISP_PRONAME_REQ), 1, NULL);
+        zval *module = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_MODULE), 1, NULL);
+        zval *service = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_SERVICE), 1, NULL);
+        zval *action = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), 1, NULL);
+        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%sStack trace:%s## Module=%s, Service=%s, Action=%s%s%s",
+                errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1, PHP_EOL, PHP_EOL,
+                Z_STRVAL_P(module), Z_STRVAL_P(service), Z_STRVAL_P(action), PHP_EOL, Z_STRVAL_P(_4));
     } else {
         errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1);
     }
@@ -543,7 +549,8 @@ PHP_METHOD(asf_application, errorHandler)
 
     efree(errmsg);
 
-    zval *error_handler = zend_read_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), 1, NULL);
+    /* Call user function */
+    zval *error_handler = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), 1, NULL);
     if (Z_TYPE_P(error_handler) != IS_NULL) {
         zval error_retval, params[4];
         /* params[4] = { $errno, $errstr, $errfile, $errline } */

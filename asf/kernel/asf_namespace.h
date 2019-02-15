@@ -61,11 +61,6 @@
     zclass_entry## _ce = zend_register_internal_interface(&ce); \
 }
 
-#define ASF_EG_EXCEPTION(errno, errmsg) \
-    if (!EG(exception)) { \
-        asf_trigger_error(errno, errmsg); \
-    } \
-
 #endif
 
 /*

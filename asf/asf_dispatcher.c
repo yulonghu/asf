@@ -235,8 +235,14 @@ static inline zend_class_entry *asf_dispatcher_load_service(zend_string *service
     if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL
             && asf_internal_autoload(filename, strlen(filename), &path)) {
         if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL) {
-            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found in %s/%s.php", ZSTR_VAL(lc_class), path, filename);
+            asf_trigger_error(ASF_ERR_AUTOLOAD_FAILED, "Class '%s' not found in %s/%s.php",
+                    ZSTR_VAL(lc_class), path, filename);
         }
+    }
+
+    if (!ce) {
+        asf_trigger_error(ASF_ERR_NOTFOUND_SERVICE,
+                "File not found: %s/%s.php", path, filename);
     }
 
     zend_string_release(lc_class);
@@ -385,7 +391,7 @@ static inline _Bool asf_dispatcher_run(asf_disp_t *dispatcher, asf_http_req_t *r
 
     if (!fptr) {
         asf_trigger_error(ASF_ERR_NOTFOUND_ACTION,
-                "There is no method %s in %s", ZSTR_VAL(func_name), ZSTR_VAL(Z_OBJCE_P(&zservice)->name));
+                "No method %s in %s", ZSTR_VAL(func_name), ZSTR_VAL(Z_OBJCE_P(&zservice)->name));
         zend_string_release(func_name);
         zval_ptr_dtor(&zservice);
         zval_ptr_dtor(response_ptr);
@@ -412,12 +418,12 @@ _Bool asf_dispatcher_ondispatch(asf_disp_t *dispatcher, asf_http_rep_t *response
 
     if (UNEXPECTED(!zend_read_property(Z_OBJCE_P(dispatcher), dispatcher,
                     ZEND_STRL(ASF_DISP_PRONAME_ROUTER), 1, NULL))) {
-        ASF_EG_EXCEPTION(ASF_ERR_ROUTE_FAILED, "Routing match failed");
+        asf_trigger_error(ASF_ERR_ROUTE_FAILED, "Routing match failed");
         return 0;
     }
 
     if (UNEXPECTED(!(asf_dispatcher_run(dispatcher, request, response_ptr)))) {
-        ASF_EG_EXCEPTION(ASF_ERR_DISPATCH_FAILED, "Dispatcher run failed");
+        asf_trigger_error(ASF_ERR_DISPATCH_FAILED, "Dispatcher run failed");
         return 0;
     }
 
