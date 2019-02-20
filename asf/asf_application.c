@@ -140,7 +140,7 @@ static _Bool asf_application_merge_config(zval *zconfig) /* {{{ */
             ASF_G(route) = pzval_2;
         }
 
-        /* log.* */
+        /* Asf_Err_Log, Asf_Sql_Log */
         if ((pzval_2 = zend_hash_str_find(Z_ARRVAL_P(pzval_1),
                         ZEND_STRL("log"))) != NULL && Z_TYPE_P(pzval_2) == IS_ARRAY && Z_STRLEN_P(pzval_2) > 0) {
             if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("sql"))) != NULL) {
@@ -148,6 +148,20 @@ static _Bool asf_application_merge_config(zval *zconfig) /* {{{ */
             }
             if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("err"))) != NULL) {
                 ASF_G(log_err) = zend_is_true(pzval_3);
+            }
+        }
+
+        /* Timeout Limit */
+        if ((pzval_2 = zend_hash_str_find(Z_ARRVAL_P(pzval_1),
+                        ZEND_STRL("alarm"))) != NULL && Z_TYPE_P(pzval_2) == IS_ARRAY && Z_STRLEN_P(pzval_2) > 0) {
+            if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("max_script_time"))) != NULL) {
+                ASF_G(max_script_time) = zval_get_double(pzval_3);
+            }
+            if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("max_db_time"))) != NULL) {
+                ASF_G(max_db_time) = zval_get_double(pzval_3);
+            }
+            if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("max_cache_time"))) != NULL) {
+                ASF_G(max_cache_time) = zval_get_double(pzval_3);
             }
         }
     }
@@ -182,6 +196,9 @@ static _Bool asf_application_instance(zval *self, zval *config, zval *section) /
 {
     zval zconfig = {{0}},     zrequest = {{0}};
     zval zdispatcher = {{0}}, zloader = {{0}};
+
+	/* Time-consuming statistics */
+    ASF_G(script_start_time) = asf_func_gettimeofday();
 
     (void)asf_absconfig_instance(&zconfig, config, section);
     if  (UNEXPECTED(Z_TYPE(zconfig) != IS_OBJECT || !asf_application_merge_config(&zconfig))) {
@@ -227,12 +244,12 @@ static _Bool asf_application_instance(zval *self, zval *config, zval *section) /
         return 0;
     }
 
+    zend_update_static_property(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE), self);
+
     if (ASF_G(log_err) && ASF_G(log_path)) {
         ASF_FUNC_CALL_PHP_FUNC(self, "set_error_handler", "errorHandler", 12, NULL, 1);
         ASF_FUNC_CALL_PHP_FUNC(self, "set_exception_handler", "exceptionHandler", 16, NULL, 1);
     }
-
-    zend_update_static_property(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE), self);
 
     return 1;
 }
@@ -492,7 +509,6 @@ PHP_METHOD(asf_application, errorHandler)
     }
 
     zval *self = getThis();
-    zval *fname = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), 1, NULL);
 
     switch (_0) {/*{{{*/
         case E_PARSE:
@@ -533,35 +549,24 @@ PHP_METHOD(asf_application, errorHandler)
 
     /* If _4 is a string type, it comes from exceptionHandler */
     if (Z_TYPE_P(_4) == IS_STRING) {
-        zval *dispatcher = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_DISPATCHER), 1, NULL);
-        zval *request = zend_read_property(Z_OBJCE_P(dispatcher), dispatcher, ZEND_STRL(ASF_DISP_PRONAME_REQ), 1, NULL);
-        zval *module = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_MODULE), 1, NULL);
-        zval *service = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_SERVICE), 1, NULL);
-        zval *action = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), 1, NULL);
-        zval *uri = zend_read_property(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_URI), 1, NULL);
-        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%sStack trace:%s## URI=%s, Module=%s, Service=%s, Action=%s%s%s",
+        errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d%sStack trace:%s## settled_uri = %s%s%s",
                 errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1, PHP_EOL, PHP_EOL,
-                Z_STRVAL_P(uri), Z_STRVAL_P(module), Z_STRVAL_P(service), Z_STRVAL_P(action), PHP_EOL, Z_STRVAL_P(_4));
+                ZSTR_VAL(ASF_G(settled_uri)), PHP_EOL, Z_STRVAL_P(_4));
     } else {
         errmsg_len = spprintf(&errmsg, 0, "%s: %s in %s on line %d", errtype, ZSTR_VAL(_2), ZSTR_VAL(_3), _1);
     }
 
-    (void)asf_log_adapter_write_file(Z_STRVAL_P(fname), Z_STRLEN_P(fname), level, level_len, errmsg, errmsg_len);
+    /* Enable Error Log */
+    if (ASF_G(log_err) && ASF_G(log_path)) {
+        zval *fname = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), 1, NULL);
+        (void)asf_log_adapter_write_file(Z_STRVAL_P(fname), Z_STRLEN_P(fname), level, level_len, errmsg, errmsg_len);
+    }
 
     efree(errmsg);
 
-    /* Call user function */
-    zval *error_handler = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), 1, NULL);
-    if (Z_TYPE_P(error_handler) != IS_NULL) {
-        zval error_retval, params[4];
-        /* params[4] = { $errno, $errstr, $errfile, $errline } */
-        ZVAL_LONG(&params[0], _0);
-        ZVAL_STR(&params[1], _2);
-        ZVAL_STR(&params[2], _3);
-        ZVAL_LONG(&params[3], _1);
-        if (call_user_function_ex(CG(function_table), NULL, error_handler, &error_retval, 4, params, 1, NULL) == SUCCESS) {
-            zval_ptr_dtor(&error_retval);
-        }
+    /* Enable set_error_handler */
+    if (!Z_ISUNDEF(ASF_G(err_handler_func))) {
+        (void)asf_func_call_user_alarm_func(_0, _2, _3, _1);
     }
 
     if (_999) {
@@ -579,10 +584,10 @@ PHP_METHOD(asf_application, exceptionHandler)
     zval *_0 = NULL, _1, *_2 = NULL, *_3 = NULL;
     char *errmsg = NULL;
     uint errmsg_len = 0;
-    zval args[5];
+    zval args[6];
     zend_class_entry *ce = NULL;
-    zend_long _4 = 0, _5 = 0;
     zval trace;
+    zend_long _5 = 0, _6 = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "o", &_0) == FAILURE) {
         return;
@@ -593,19 +598,20 @@ PHP_METHOD(asf_application, exceptionHandler)
 
     _2 = zend_read_property(ce, _0, ZEND_STRL("message"), 1, NULL);
     _3 = zend_read_property(ce, _0, ZEND_STRL("file"), 1, NULL);
-    _4 = E_USER_ERROR;
     _5 = zval_get_long(zend_read_property(ce, _0, ZEND_STRL("line"), 1, NULL));
+    //_6 = zval_get_long(zend_read_property(ce, _0, ZEND_STRL("code"), 1, NULL));
 
     /* getTraceAsString */
     zend_call_method_with_0_params(_0, ce, NULL, "gettraceasstring", &trace);
    
     ZVAL_STRINGL(&_1, "errorHandler", 12);
 
-    ZVAL_LONG(&args[0], 1);
+    ZVAL_LONG(&args[0], E_ERROR);
     ZVAL_COPY_VALUE(&args[1], _2);
     ZVAL_COPY_VALUE(&args[2], _3);
     ZVAL_LONG(&args[3], _5);
     ZVAL_COPY_VALUE(&args[4], &trace);
+    //ZVAL_LONG(&args[5], _6);
 
     call_user_function_ex(&(Z_OBJCE_P(self))->function_table, self, &_1, return_value, 5, args, 1, NULL);
 
@@ -655,7 +661,14 @@ PHP_METHOD(asf_application, setErrorHandler) /* {{{ */
         zend_string_release(error_handler_name);
     }
 
-    zend_update_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), error_handler);
+    ZVAL_DUP(&ASF_G(err_handler_func), error_handler);
+
+    /* No need to repeat registration */
+    if (!(ASF_G(log_path) && ASF_G(log_err))) {
+        zval *self = getThis();
+        ASF_FUNC_CALL_PHP_FUNC(self, "set_error_handler", "errorHandler", 12, NULL, 1);
+        ASF_FUNC_CALL_PHP_FUNC(self, "set_exception_handler", "exceptionHandler", 16, NULL, 1);
+    }
 
     RETURN_TRUE;
 }
@@ -699,8 +712,6 @@ ASF_INIT_CLASS(application) /* {{{ */
     zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
     zend_declare_property_long(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_MODE), 0, ZEND_ACC_PROTECTED);
     zend_declare_property_stringl(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), "Asf_Err_Log", 11, ZEND_ACC_PROTECTED);
-
-    zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), ZEND_ACC_PROTECTED);
 
     return SUCCESS;
 }

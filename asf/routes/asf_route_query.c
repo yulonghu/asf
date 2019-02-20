@@ -93,6 +93,11 @@ _Bool asf_route_query_run(asf_route_t *route, asf_http_req_t *request) /* {{{ */
 	service		= asf_http_req_pg_find_len(TRACK_VARS_GET, Z_STRVAL_P(nservice), Z_STRLEN_P(nservice));
 	action		= asf_http_req_pg_find_len(TRACK_VARS_GET, Z_STRVAL_P(naction), Z_STRLEN_P(naction));
 
+	zval *q_string = asf_http_req_pg_find_len(TRACK_VARS_SERVER, "QUERY_STRING", sizeof("QUERY_STRING") - 1);
+	if (q_string) {
+		ASF_G(settled_uri) = zend_string_copy(Z_STR_P(q_string));
+	}
+
 	return asf_route_query_set(request, module, service, action);
 }
 /* }}} */

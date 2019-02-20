@@ -47,6 +47,7 @@ _Bool asf_route_dot_run(asf_route_t *route, asf_http_req_t *request) /* {{{ */
 		size_t len = 0;
 
 		array_init(&args);
+		ASF_G(settled_uri) = zend_string_copy(Z_STR_P(uri));
 
         /* Create string the 'skey' */
         skey = estrndup(Z_STRVAL_P(uri), Z_STRLEN_P(uri));

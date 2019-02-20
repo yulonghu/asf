@@ -39,6 +39,7 @@ void asf_cache_adapter_handler_req(uint trace_id, zval *self, uint32_t param_cou
     /* trace log */
     double start_time = asf_func_trace_gettime();
     ASF_CALL_USER_FUNCTION_EX(handler, method, method_len, retval, param_count, params);
+    (void)asf_func_alarm_stats(trace_id, start_time, method, params, self);
     (void)asf_func_trace_str_add(trace_id, start_time, method, method_len, param_count, params, retval);
 }/*}}}*/
 
@@ -46,8 +47,8 @@ void asf_cache_adapter_handler_req(uint trace_id, zval *self, uint32_t param_cou
 */
 PHP_METHOD(asf_cache_absadapter, getConnectInfo)
 {
-    ZVAL_COPY(return_value,
-            zend_read_property(asf_cache_absadapter_ce, getThis(), ZEND_STRL(ASF_CACHE_PRONAME_CONNECT_INFO), 1, NULL));
+    ZVAL_COPY(return_value, zend_read_property(asf_cache_absadapter_ce,
+                getThis(), ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), 1, NULL));
 }
 /* }}} */
 
@@ -55,8 +56,8 @@ PHP_METHOD(asf_cache_absadapter, getConnectInfo)
 */
 PHP_METHOD(asf_cache_absadapter, getHandler)
 {
-    ZVAL_COPY(return_value,
-            zend_read_property(asf_cache_absadapter_ce, getThis(), ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL));
+    ZVAL_COPY(return_value, zend_read_property(asf_cache_absadapter_ce,
+                getThis(), ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL));
 }
 /* }}} */
 
@@ -71,11 +72,12 @@ zend_function_entry asf_cache_absadapter_methods[] = {
 
 ASF_INIT_CLASS(cache_absadapter) /* {{{ */
 {
-    ASF_REGISTER_CLASS_PARENT(asf_cache_absadapter, Asf_Cache_AbstractAdapter, Asf\\Cache\\AbstractAdapter, ZEND_ACC_EXPLICIT_ABSTRACT_CLASS);
+    ASF_REGISTER_CLASS_PARENT(asf_cache_absadapter,
+            Asf_Cache_AbstractAdapter, Asf\\Cache\\AbstractAdapter, ZEND_ACC_EXPLICIT_ABSTRACT_CLASS);
     
     zend_declare_property_null(asf_cache_absadapter_ce, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), ZEND_ACC_PROTECTED);
     zend_declare_property_long(asf_cache_absadapter_ce, ZEND_STRL(ASF_CACHE_PRONAME_CONSUME), 0, ZEND_ACC_PROTECTED);
-    zend_declare_property_null(asf_cache_absadapter_ce, ZEND_STRL(ASF_CACHE_PRONAME_CONNECT_INFO), ZEND_ACC_PROTECTED);
+    zend_declare_property_null(asf_cache_absadapter_ce, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), ZEND_ACC_PROTECTED);
 
     return SUCCESS;
 }

@@ -52,7 +52,7 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
     if (SG(request_info).request_method) {
         method_len = strlen((char *)SG(request_info).request_method);
         method = estrndup((char *)SG(request_info).request_method, method_len);
-    } else if (strncmp(sapi_module.name, "cli", 3) == 0) {
+    } else if (ASF_G(cli)) {
         method_len = strlen(sapi_module.name);
         method = estrndup(sapi_module.name, method_len);
     } else {
@@ -145,6 +145,7 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
         if (base_uri) {
             zend_update_property_str(asf_http_request_ce, this_ptr, ZEND_STRL(ASF_HTTP_REQ_PRONAME_BASE), base_uri);
         }
+
         zend_string_release(settled_uri);
     }
 

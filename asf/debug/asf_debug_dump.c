@@ -48,7 +48,7 @@ PHP_METHOD(asf_debug_dump, vars)
     instance = zend_read_static_property(asf_debug_dump_ce, ZEND_STRL(ASF_DEBUG_DUMP_PRONAME_INSTANCE), 1);
 
     if (Z_TYPE_P(instance) != IS_OBJECT) {
-        if (strncmp(sapi_module.name, "cli", 3) == 0 || strncmp(sapi_module.name, "phpdbg", 6) == 0) {
+        if (ASF_G(cli) || strncmp(sapi_module.name, "phpdbg", 6) == 0) {
             instance = asf_debug_dump_cli_instance(&rv);
         } else {
             instance = asf_debug_dump_html_instance(&rv);

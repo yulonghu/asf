@@ -111,10 +111,26 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_ulong cache_config_mtime;
 	zend_bool  cache_config_enable;
 	
-	/* Dump. trace */
+	/* Dump, trace */
 	zend_bool debug_dump;
 	zend_bool trace_enable;
 	zval trace_buf;
+
+	/* Alarm, Execution time, Non-connected time */
+	double script_start_time;
+	double max_script_time; /* Script execution time */
+	double max_db_time; /* MySQL, PgSQL, SQLite */
+	double max_cache_time; /* Memcached, Redis, Mongo */
+
+	/* Run Mode */
+	zend_bool cli;
+
+	/* set_error_handler, Asf_Error_Log */
+	zval err_handler_func; /* default value is UNDEF*/
+
+    /* Used for ASF_G(err_handler_func), \
+			Application::errorHandler(), Part of request_uri */
+	zend_string *settled_uri;
 ZEND_END_MODULE_GLOBALS(asf)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(asf);

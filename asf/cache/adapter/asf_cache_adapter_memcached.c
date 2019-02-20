@@ -101,7 +101,7 @@ PHP_METHOD(asf_cache_adapter_memcached, __construct)
     zval *self = getThis();
 
     zend_update_property(asf_cache_adapter_memcached_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), &memcached);
-    zend_update_property(asf_cache_adapter_memcached_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_CONNECT_INFO), options);
+    zend_update_property(asf_cache_adapter_memcached_ce, self, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), options);
 
     zval_ptr_dtor(&memcached);
 

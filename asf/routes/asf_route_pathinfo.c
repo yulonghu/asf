@@ -90,6 +90,8 @@ _Bool asf_route_pathinfo_run(asf_route_t *route, asf_http_req_t *request) /* {{{
 		req_uri = zend_string_init(Z_STRVAL_P(zuri), Z_STRLEN_P(zuri), 0);
 	}
 
+	ASF_G(settled_uri) = zend_string_copy(Z_STR_P(zuri));
+
     /**
      * urls
      *

@@ -21,7 +21,6 @@
 
 #define ASF_CACHE_PRONAME_HANDLER "_handler"
 #define ASF_CACHE_PRONAME_CONSUME "_consume"
-#define ASF_CACHE_PRONAME_CONNECT_INFO "_connect_info"
 
 /* {{{ ARG_INFO
 */

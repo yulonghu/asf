@@ -73,6 +73,5 @@ Asf_Application Object
     [_env:protected] => %s
     [_m:protected] => %d
     [_ef:protected] => %s
-    [_eh:protected] => 
 )
 

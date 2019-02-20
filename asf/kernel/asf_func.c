@@ -29,6 +29,9 @@
 #include "ext/standard/php_string.h" /* php_basename */
 #include "ext/standard/php_math.h" /* _php_math_number_format */
 #include "asf_exception.h"
+#include <sys/time.h> /* gettimeofday */
+
+const char *TRACE_NAME[] = {"MySQL", "Redis", "Memcached", "PgSQL", "SQLite", "CURL"};
 
 _Bool asf_func_isempty(const char *s) /* {{{ */
 {
@@ -366,11 +369,7 @@ void asf_func_trace_str_add(uint trace_id, double start_time, char *method, size
 
 double asf_func_trace_gettime() /* {{{ */
 {
-    if (ASF_G(trace_enable)) {
-        return asf_func_gettimeofday();
-    }
-
-    return 0.0;
+    return asf_func_gettimeofday();
 }
 /* }}} */
 
@@ -381,6 +380,106 @@ _Bool asf_func_trace_clear() /* {{{ */
         ZVAL_UNDEF(&ASF_G(trace_buf));
         return 1;
     }
+    return 0;
+}
+/* }}} */
+
+/* Alarm call user func */
+void asf_func_call_user_alarm_func(zend_long err_no, zend_string *err_str, zend_string *err_file, zend_long err_line) /* {{{ */
+{
+    zval error_retval, params[4];
+    ZVAL_LONG(&params[0], err_no);
+    ZVAL_STR(&params[1], err_str);
+    ZVAL_STR(&params[2], err_file);
+    ZVAL_LONG(&params[3], err_line);
+    if (call_user_function_ex(CG(function_table), NULL, &ASF_G(err_handler_func), &error_retval, 4, params, 1, NULL) == SUCCESS) {
+        zval_ptr_dtor(&error_retval);
+    }
+}
+/* }}} */
+
+/* Alarm Stats */
+_Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval *params, zval *this_ptr) /* {{{ */
+{
+    if (ASF_G(cli) || Z_ISUNDEF(ASF_G(err_handler_func))) {
+        return 0;
+    }
+
+    double max_exec_time = 0, exec_time = 0;
+
+    switch (trace_id) {
+        case ASF_TRACE_SCRIPT:
+            max_exec_time = ASF_G(max_script_time);
+            break;
+        case ASF_TRACE_MYSQL:
+            max_exec_time = ASF_G(max_db_time);
+            break;
+        default:
+            max_exec_time = ASF_G(max_cache_time);
+            break;
+    }
+
+    exec_time = asf_func_gettimeofday() - start_time;
+
+    if ((exec_time - max_exec_time) > 0.000001) {
+        char *errmsg = NULL; size_t errmsg_len = 0;
+        
+        switch (trace_id) {
+            /* RSHUTDOWN */
+            case ASF_TRACE_SCRIPT:
+                errmsg_len = spprintf(&errmsg, 0, "%s executing too slow %f sec", ZSTR_VAL(ASF_G(settled_uri)), exec_time);
+                break;
+
+            case ASF_TRACE_REDIS:
+            case ASF_TRACE_MEMCACHED:
+                {
+                    /* No parameters */
+                    char *host = NULL; zend_long port = 6379;
+                    zval *connect_info = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), 1, NULL);
+                    php_printf("%d, %d, %d \n", Z_TYPE_P(connect_info), Z_TYPE_INFO_P(connect_info), Z_REFCOUNTED_P(connect_info));
+                    zend_string *key = (params) ? zval_get_string(params) : zend_string_init("void", 4, 0);
+
+                    /* Fault tolerance mechanism */
+                    if (UNEXPECTED(!Z_ISNULL_P(connect_info))) {
+                        host = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(connect_info), "host", 4));
+                        port = zval_get_long(zend_hash_str_find(Z_ARRVAL_P(connect_info), "port", 4));
+                    } else {
+                        host = "Unknown";
+                    }
+
+                    errmsg_len = spprintf(&errmsg, 0, "%s:%d %s::%s(%s) executing too slow %f sec",
+                            host, port, TRACE_NAME[trace_id], method, ZSTR_VAL(key), exec_time);
+                    zend_string_release(key);
+                }
+                break;
+
+            case ASF_TRACE_MYSQL:
+            case ASF_TRACE_PGSQL:
+            case ASF_TRACE_SQLITE:
+                {
+                    /* IS_STRING */
+                    zval *connect_info = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), 1, NULL);
+                    php_printf("%d, %d, %d \n", Z_TYPE_P(connect_info), Z_TYPE_INFO_P(connect_info), Z_REFCOUNTED_P(connect_info));
+                    zend_string *key = (params) ? zval_get_string(params) : zend_string_init("void", 4, 0);
+                    errmsg_len = spprintf(&errmsg, 0, "%s %s:%s(%s) executing too slow %f sec",
+                            Z_STRVAL_P(connect_info), TRACE_NAME[trace_id], method, ZSTR_VAL(key), exec_time);
+                    zend_string_release(key);
+                }
+                break;
+        }
+
+        zend_string *err_str = zend_string_init(errmsg, errmsg_len, 0);
+        zend_string *err_file = ZSTR_EMPTY_ALLOC();
+
+        (void)asf_func_call_user_alarm_func(555, err_str, err_file, trace_id);
+
+        efree(errmsg);
+        zend_string_release(err_str);
+        zend_string_release(err_file);
+
+        return 1;
+    }
+
     return 0;
 }
 /* }}} */

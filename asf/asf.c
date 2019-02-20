@@ -117,6 +117,10 @@ PHP_MINIT_FUNCTION(asf)
     ASF_INIT(debug_trace);
     ASF_INIT(cache);
 
+    if (strcasecmp("cli", sapi_module.name) == 0) {
+        ASF_G(cli) = 1;
+    }
+
     return SUCCESS;
 }
 /* }}} */
@@ -150,6 +154,10 @@ PHP_RINIT_FUNCTION(asf)
     ASF_G(default_action)   = zend_string_init("index", sizeof("index") - 1, 0);
     ASF_G(last_load_err_full_path) = NULL;
 
+    ASF_G(max_script_time) = 3.0;
+    ASF_G(max_db_time) = 1.0;
+    ASF_G(max_cache_time) = 1.0;
+
     return SUCCESS;
 }
 /* }}} */
@@ -166,41 +174,37 @@ PHP_RSHUTDOWN_FUNCTION(asf)
         zend_string_release(ASF_G(root_path));
         ASF_G(root_path) = NULL;
     }
-
     if (ASF_G(log_path)) {
         zend_string_release(ASF_G(log_path));
         ASF_G(log_path) = NULL;
     }
-
     if (ASF_G(root_path_route)) {
         zend_string_release(ASF_G(root_path_route));
         ASF_G(root_path_route) = NULL;
     }
-
     if (ASF_G(bootstrap)) {
         zend_string_release(ASF_G(bootstrap));
         ASF_G(bootstrap) = NULL;
     }
-
     if (ASF_G(constants)) {
         zend_string_release(ASF_G(constants));
         ASF_G(constants) = NULL;
     }
-
     if (ASF_G(base_uri)) {
         zend_string_release(ASF_G(base_uri));
         ASF_G(base_uri) = NULL;
     }
 
-    /* two */
-    zend_string_release(ASF_G(default_module));
-    zend_string_release(ASF_G(default_service));
-    zend_string_release(ASF_G(default_action));
-
     if (ASF_G(local_library)) {
         zend_string_release(ASF_G(local_library));
         ASF_G(local_library) = NULL;
     }
+
+    /* Module_name, Service_name, Action_name */
+    zend_string_release(ASF_G(default_module));
+    zend_string_release(ASF_G(default_service));
+    zend_string_release(ASF_G(default_action));
+
 
     /* three */
     if (Z_TYPE(ASF_G(modules)) == IS_ARRAY) {
@@ -223,6 +227,17 @@ PHP_RSHUTDOWN_FUNCTION(asf)
         efree(ASF_G(last_load_err_full_path));
     }
 
+    /* Time-consuming statistics, Only used Asf */
+    (void)asf_func_alarm_stats(ASF_TRACE_SCRIPT, ASF_G(script_start_time), NULL, NULL, NULL);
+
+    if (!Z_ISUNDEF(ASF_G(err_handler_func))) {
+        zval_ptr_dtor(&ASF_G(err_handler_func));
+        ZVAL_UNDEF(&ASF_G(err_handler_func));
+    }
+
+    if (ASF_G(settled_uri)) {
+        zend_string_release(ASF_G(settled_uri));
+    }
 
     return SUCCESS;
 }

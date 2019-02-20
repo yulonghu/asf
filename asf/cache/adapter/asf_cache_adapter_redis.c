@@ -101,7 +101,7 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
 
     if (Z_TYPE(retval) == IS_FALSE) {
         zval_ptr_dtor(&redis);
-        asf_trigger_error(ASF_ERR_CACHE_CONNECT, "Redis connection failed, %s:"ZEND_LONG_FMT"", Z_STRVAL_P(host), l_port);
+        asf_trigger_error(ASF_ERR_CACHE_CONNECT, "Connection failed, %s:"ZEND_LONG_FMT"", Z_STRVAL_P(host), l_port);
         return;
     }
 
@@ -127,7 +127,7 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
     zval *self = getThis();
 
     zend_update_property(asf_cache_adapter_redis_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), &redis);
-    zend_update_property(asf_cache_adapter_redis_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_CONNECT_INFO), options);
+    zend_update_property(asf_cache_adapter_redis_ce, self, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), options);
 
     zval_ptr_dtor(&redis);
 
