@@ -31,7 +31,7 @@
 #include "asf_exception.h"
 #include <sys/time.h> /* gettimeofday */
 
-const char *TRACE_NAME[] = {"MySQL", "Redis", "Memcached", "PgSQL", "SQLite", "CURL"};
+const char *TRACE_NAME[] = {"MySQL", "Redis", "Memcached", "PgSQL", "SQLite", "CURL", "SCRIPT"};
 
 _Bool asf_func_isempty(const char *s) /* {{{ */
 {
