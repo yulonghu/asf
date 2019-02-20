@@ -436,7 +436,6 @@ _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval 
                     /* No parameters */
                     char *host = NULL; zend_long port = 6379;
                     zval *connect_info = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), 1, NULL);
-                    php_printf("%d, %d, %d \n", Z_TYPE_P(connect_info), Z_TYPE_INFO_P(connect_info), Z_REFCOUNTED_P(connect_info));
                     zend_string *key = (params) ? zval_get_string(params) : zend_string_init("void", 4, 0);
 
                     /* Fault tolerance mechanism */
@@ -459,7 +458,6 @@ _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval 
                 {
                     /* IS_STRING */
                     zval *connect_info = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), 1, NULL);
-                    php_printf("%d, %d, %d \n", Z_TYPE_P(connect_info), Z_TYPE_INFO_P(connect_info), Z_REFCOUNTED_P(connect_info));
                     zend_string *key = (params) ? zval_get_string(params) : zend_string_init("void", 4, 0);
                     errmsg_len = spprintf(&errmsg, 0, "%s %s:%s(%s) executing too slow %f sec",
                             Z_STRVAL_P(connect_info), TRACE_NAME[trace_id], method, ZSTR_VAL(key), exec_time);
