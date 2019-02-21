@@ -564,12 +564,15 @@ PHP_METHOD(asf_application, errorHandler)
         zval *fname = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), 1, NULL);
         (void)asf_log_adapter_write_file(Z_STRVAL_P(fname), Z_STRLEN_P(fname), level, level_len, errmsg, errmsg_len);
     }
-
     efree(errmsg);
 
     /* Enable set_error_handler */
     if (!Z_ISUNDEF(ASF_G(err_handler_func))) {
-        (void)asf_func_call_user_alarm_func(_0, _2, _3, _1);
+        errmsg_len = spprintf(&errmsg, 0, "%s: %s", errtype, ZSTR_VAL(_2));
+        zend_string *s_errmsg = zend_string_init(errmsg, errmsg_len, 0);
+        (void)asf_func_call_user_alarm_func(_0, s_errmsg, _3, _1);
+        efree(errmsg);
+        zend_string_release(s_errmsg);
     }
 
     if (_999) {
