@@ -505,7 +505,7 @@ PHP_METHOD(asf_application, errorHandler)
     char *errmsg = NULL, *errtype = NULL, *level = NULL;
     uint level_len = 6;
     size_t errmsg_len = 0;
-    _Bool _999 = 0;
+    zend_long errcode = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "lSSl|z", &_0, &_2, &_3, &_1, &_4) == FAILURE) {
         return;
@@ -520,7 +520,8 @@ PHP_METHOD(asf_application, errorHandler)
         case E_COMPILE_ERROR:
         case E_USER_ERROR:
             errtype = "Fatal Error";
-            level = "error"; level_len = 5; _999 = 1;
+            errcode = 999;
+            level = "error"; level_len = 5;
             break;
         case E_WARNING:
         case E_USER_WARNING:
@@ -528,24 +529,29 @@ PHP_METHOD(asf_application, errorHandler)
         case E_COMPILE_WARNING:
         case E_RECOVERABLE_ERROR:
             errtype = "Warning";
+            errcode = 998;
             level = "warning"; level_len = 7;
             break;
         case E_NOTICE:
         case E_USER_NOTICE:
             errtype = "Notice";
+            errcode = 997;
             level = "notice";
             break;
         case E_STRICT:
             errtype = "Strict";
             level = "notice";
+            errcode = 996;
             break;
         case E_DEPRECATED:
         case E_USER_DEPRECATED:
             errtype = "Deprecated";
+            errcode = 995;
             level = "notice";
             break;
         default:
             errtype = "Unknown Error";
+            errcode = 994;
             level = "error"; level_len = 5;
             break;
     }/*}}}*/
@@ -570,13 +576,14 @@ PHP_METHOD(asf_application, errorHandler)
     if (!Z_ISUNDEF(ASF_G(err_handler_func))) {
         errmsg_len = spprintf(&errmsg, 0, "%s: %s", errtype, ZSTR_VAL(_2));
         zend_string *s_errmsg = zend_string_init(errmsg, errmsg_len, 0);
-        (void)asf_func_call_user_alarm_func(_0, s_errmsg, _3, _1);
+        (void)asf_func_call_user_alarm_func(errcode, s_errmsg, _3, _1);
         efree(errmsg);
         zend_string_release(s_errmsg);
     }
 
-    if (_999) {
-        (void)asf_http_rep_display_error(999, NULL);
+    /* HELP */
+    if (errcode == 999) {
+        (void)asf_http_rep_display_error(errcode, NULL);
     }
 
     RETURN_TRUE;

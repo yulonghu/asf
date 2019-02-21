@@ -66,6 +66,9 @@
 #define ASF_ERR_CACHE_OTHERS            934
 #define ASF_ERR_CACHE_CONNECT           935
 
+/* 990 ~ 999 : Exception Error Range */
+/* 970 ~ 989 : Execution Time Error Range */
+
 extern zend_class_entry *asf_exception_ce;
 
 void asf_trigger_error(int code, char *format, ...);

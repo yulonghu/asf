@@ -398,7 +398,7 @@ void asf_func_call_user_alarm_func(zend_long err_no, zend_string *err_str, zend_
 }
 /* }}} */
 
-/* Alarm Stats, Errno: 980 ~ 998 */
+/* Alarm Stats, Errno Range: 970 ~ 989 */
 _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval *params, zval *this_ptr) /* {{{ */
 {
     if (ASF_G(cli) || Z_ISUNDEF(ASF_G(err_handler_func))) {
@@ -482,7 +482,7 @@ _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval 
         zend_string *err_str = zend_string_init(errmsg, errmsg_len, 0);
         zend_string *err_file = ZSTR_EMPTY_ALLOC();
 
-        (void)asf_func_call_user_alarm_func(980 + trace_id, err_str, err_file, 0);
+        (void)asf_func_call_user_alarm_func(970 + trace_id, err_str, err_file, 0);
 
         efree(errmsg);
         zend_string_release(err_str);
