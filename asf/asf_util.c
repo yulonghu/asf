@@ -141,23 +141,23 @@ static void asf_util_request_url(zend_string *http_url, _Bool http_ispost,
         return;
     }
 
-    zval url;
+    zval zurl;
     zval curl_init, opts, opts_retval, err_retval;
 
-    ZVAL_STR(&url, http_url);
-    zend_call_method_with_1_params(NULL, NULL, NULL, "curl_init", &curl_init, &url);
+    ZVAL_STR(&zurl, http_url);
+    zend_call_method_with_1_params(NULL, NULL, NULL, "curl_init", &curl_init, &zurl);
     if (Z_TYPE(curl_init) == IS_FALSE) {
         php_error_docref(NULL, E_WARNING, "Call the function 'curl_init' failure");
         return;
     }
 
     array_init(&opts);
-    add_index_long(&opts, 13, 1); /* CURLOPT_TIMEOUT */
-    add_index_long(&opts, 78, 1); /* CURLOPT_CONNECTTIMEOUT */
-    add_index_long(&opts, 19913, 1); /* CURLOPT_RETURNTRANSFER */
-    add_index_long(&opts, 64, 0); /* CURLOPT_SSL_VERIFYPEER */
-    add_index_long(&opts, 81, 0); /* CURLOPT_SSL_VERIFYHOST */
-    add_index_long(&opts, 52, 1); /* CURLOPT_FOLLOWLOCATION */
+    add_index_long(&opts, 13, 1);   /* CURLOPT_TIMEOUT */
+    add_index_long(&opts, 78, 1);   /* CURLOPT_CONNECTTIMEOUT */
+    add_index_long(&opts, 19913, 1);/* CURLOPT_RETURNTRANSFER */
+    add_index_long(&opts, 64, 0);   /* CURLOPT_SSL_VERIFYPEER */
+    add_index_long(&opts, 81, 0);   /* CURLOPT_SSL_VERIFYHOST */
+    add_index_long(&opts, 52, 1);   /* CURLOPT_FOLLOWLOCATION */
 
     if (http_ispost && http_data && Z_TYPE_P(http_data) == IS_STRING) {
         add_index_zval(&opts, 10015, http_data); /* CURLOPT_POSTFIELDS */
@@ -192,13 +192,9 @@ static void asf_util_request_url(zend_string *http_url, _Bool http_ispost,
     /* set default value */
     ZVAL_FALSE(return_value);
 
-    /* trace log */
     double start_time = asf_func_trace_gettime();
-
-    /* execute */
     zend_call_method_with_1_params(NULL, NULL, NULL, "curl_exec", return_value, &curl_init);
-
-    /* trace log */
+    (void)asf_func_alarm_stats(ASF_TRACE_CURL, start_time, method, &zurl, NULL);
     (void)asf_func_trace_str_add(ASF_TRACE_CURL, start_time, method, method_len, 1, &opts, return_value);
 
     if (Z_TYPE_P(return_value) == IS_FALSE) {

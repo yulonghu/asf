@@ -121,6 +121,7 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	double max_script_time; /* Script execution time */
 	double max_db_time; /* MySQL, PgSQL, SQLite */
 	double max_cache_time; /* Memcached, Redis, Mongo */
+	double max_curl_time; /* Curl */
 
 	/* Run Mode */
 	zend_bool cli;

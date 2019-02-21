@@ -398,7 +398,7 @@ void asf_func_call_user_alarm_func(zend_long err_no, zend_string *err_str, zend_
 }
 /* }}} */
 
-/* Alarm Stats */
+/* Alarm Stats, Errno: 980 ~ 998 */
 _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval *params, zval *this_ptr) /* {{{ */
 {
     if (ASF_G(cli) || Z_ISUNDEF(ASF_G(err_handler_func))) {
@@ -411,11 +411,20 @@ _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval 
         case ASF_TRACE_SCRIPT:
             max_exec_time = ASF_G(max_script_time);
             break;
+        case ASF_TRACE_REDIS:
+        case ASF_TRACE_MEMCACHED:
+            max_exec_time = ASF_G(max_cache_time);
+            break;
         case ASF_TRACE_MYSQL:
+        case ASF_TRACE_PGSQL:
+        case ASF_TRACE_SQLITE:
             max_exec_time = ASF_G(max_db_time);
             break;
+        case ASF_TRACE_CURL:
+            max_exec_time = ASF_G(max_curl_time);
+            break;
         default:
-            max_exec_time = ASF_G(max_cache_time);
+            max_exec_time = ASF_G(max_script_time);
             break;
     }
 
@@ -464,12 +473,16 @@ _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval 
                     zend_string_release(key);
                 }
                 break;
+
+            case ASF_TRACE_CURL:
+                errmsg_len = spprintf(&errmsg, 0, "CURL::%s(%s) executing too slow %f sec", method, Z_STRVAL_P(params), exec_time);
+                break;
         }
 
         zend_string *err_str = zend_string_init(errmsg, errmsg_len, 0);
         zend_string *err_file = ZSTR_EMPTY_ALLOC();
 
-        (void)asf_func_call_user_alarm_func(555, err_str, err_file, trace_id);
+        (void)asf_func_call_user_alarm_func(980 + trace_id, err_str, err_file, 0);
 
         efree(errmsg);
         zend_string_release(err_str);

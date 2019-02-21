@@ -157,6 +157,7 @@ PHP_RINIT_FUNCTION(asf)
     ASF_G(max_script_time) = 1.0;
     ASF_G(max_db_time) = 0.1;
     ASF_G(max_cache_time) = 0.1;
+    ASF_G(max_curl_time) = 0.1;
 
     return SUCCESS;
 }

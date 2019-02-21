@@ -163,6 +163,9 @@ static _Bool asf_application_merge_config(zval *zconfig) /* {{{ */
             if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("max_cache_time"))) != NULL) {
                 ASF_G(max_cache_time) = zval_get_double(pzval_3);
             }
+            if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("max_curl_time"))) != NULL) {
+                ASF_G(max_curl_time) = zval_get_double(pzval_3);
+            }
         }
     }
 
