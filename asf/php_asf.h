@@ -94,8 +94,9 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
     
     /* log */
 	zval		log_buffer;
-    zend_bool   log_sql;
-    zend_bool   log_err;
+    zend_bool   log_sql; /* Asf_Sql_Log */
+    zend_bool   log_err; /* Asf_Err_log */
+    zend_bool   log_timeout; /* Asf_Timeout_Log */
 
 	/* ini */
 	char		*environ_name;
@@ -126,11 +127,10 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	/* Run Mode */
 	zend_bool cli;
 
-	/* set_error_handler, Asf_Error_Log */
-	zval err_handler_func; /* default value is UNDEF*/
+	/* App::setTimeoutHandler */
+	zval timeout_func;  /* default value is UNDEF */
 
-    /* Used for ASF_G(err_handler_func), \
-			Application::errorHandler(), Part of request_uri */
+    /* Application::errorHandler(), Part of request_uri */
 	zend_string *settled_uri;
 ZEND_END_MODULE_GLOBALS(asf)
 

@@ -167,6 +167,9 @@ PHP_RINIT_FUNCTION(asf)
 */
 PHP_RSHUTDOWN_FUNCTION(asf)
 {
+    /* Time-consuming statistics, Only used Asf */
+    (void)asf_func_alarm_stats(ASF_TRACE_SCRIPT, ASF_G(script_start_time), NULL, NULL, NULL);
+
     /* Use Logger buffer, Before cleaning up the log directory */
     (void)asf_func_shutdown_buffer();
 
@@ -218,6 +221,7 @@ PHP_RSHUTDOWN_FUNCTION(asf)
     /* four */
     ASF_G(log_sql) = 0;
     ASF_G(log_err) = 0;
+    ASF_G(log_timeout) = 0;
 
     /* Reset debug, trace log */
     ASF_G(debug_dump) = 0;
@@ -228,12 +232,9 @@ PHP_RSHUTDOWN_FUNCTION(asf)
         efree(ASF_G(last_load_err_full_path));
     }
 
-    /* Time-consuming statistics, Only used Asf */
-    (void)asf_func_alarm_stats(ASF_TRACE_SCRIPT, ASF_G(script_start_time), NULL, NULL, NULL);
-
-    if (!Z_ISUNDEF(ASF_G(err_handler_func))) {
-        zval_ptr_dtor(&ASF_G(err_handler_func));
-        ZVAL_UNDEF(&ASF_G(err_handler_func));
+    if (!Z_ISUNDEF(ASF_G(timeout_func))) {
+        zval_ptr_dtor(&ASF_G(timeout_func));
+        ZVAL_UNDEF(&ASF_G(timeout_func));
     }
 
     if (ASF_G(settled_uri)) {

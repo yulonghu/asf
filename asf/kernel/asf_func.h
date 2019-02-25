@@ -130,7 +130,6 @@ PHP_METHOD(name, __call) \
 } \
 /* }}} */
 
-void asf_func_call_user_alarm_func(zend_long err_no, zend_string *err_str, zend_string *err_file, zend_long err_line);
 void asf_func_timeout_db(double start_time, const char *type, char *method);
 _Bool asf_func_trace_clear();
 

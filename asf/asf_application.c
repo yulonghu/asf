@@ -149,11 +149,14 @@ static _Bool asf_application_merge_config(zval *zconfig) /* {{{ */
             if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("err"))) != NULL) {
                 ASF_G(log_err) = zend_is_true(pzval_3);
             }
+            if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("timeout"))) != NULL) {
+                ASF_G(log_timeout) = zend_is_true(pzval_3);
+            }
         }
 
         /* Timeout Limit */
         if ((pzval_2 = zend_hash_str_find(Z_ARRVAL_P(pzval_1),
-                        ZEND_STRL("alarm"))) != NULL && Z_TYPE_P(pzval_2) == IS_ARRAY && Z_STRLEN_P(pzval_2) > 0) {
+                        ZEND_STRL("timeout"))) != NULL && Z_TYPE_P(pzval_2) == IS_ARRAY && Z_STRLEN_P(pzval_2) > 0) {
             if ((pzval_3 = zend_hash_str_find(Z_ARRVAL_P(pzval_2), ZEND_STRL("max_script_time"))) != NULL) {
                 ASF_G(max_script_time) = zval_get_double(pzval_3);
             }
@@ -573,13 +576,23 @@ PHP_METHOD(asf_application, errorHandler)
     efree(errmsg);
 
     /* Enable set_error_handler */
-    if (!Z_ISUNDEF(ASF_G(err_handler_func))) {
+    zval *error_handler = zend_read_property(asf_application_ce, self, ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), 1, NULL);
+    if (!Z_ISNULL_P(error_handler)) {/*{{{*/
+        zval error_retval, params[4];
         errmsg_len = spprintf(&errmsg, 0, "%s: %s", errtype, ZSTR_VAL(_2));
-        zend_string *s_errmsg = zend_string_init(errmsg, errmsg_len, 0);
-        (void)asf_func_call_user_alarm_func(errcode, s_errmsg, _3, _1);
+
+        ZVAL_LONG(&params[0], errcode);
+        ZVAL_STRINGL(&params[1], errmsg, errmsg_len);
+        ZVAL_STR(&params[2], _3);
+        ZVAL_LONG(&params[3], _1);
+
+        if (call_user_function_ex(CG(function_table), NULL, error_handler, &error_retval, 4, params, 1, NULL) == SUCCESS) {
+            zval_ptr_dtor(&error_retval);
+        }
+
         efree(errmsg);
-        zend_string_release(s_errmsg);
-    }
+        zval_ptr_dtor(&params[1]);
+    }/*}}}*/
 
     /* HELP */
     if (errcode == 999) {
@@ -600,7 +613,7 @@ PHP_METHOD(asf_application, exceptionHandler)
     zval args[6];
     zend_class_entry *ce = NULL;
     zval trace;
-    zend_long _5 = 0, _6 = 0;
+    zend_long _5 = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "o", &_0) == FAILURE) {
         return;
@@ -612,7 +625,6 @@ PHP_METHOD(asf_application, exceptionHandler)
     _2 = zend_read_property(ce, _0, ZEND_STRL("message"), 1, NULL);
     _3 = zend_read_property(ce, _0, ZEND_STRL("file"), 1, NULL);
     _5 = zval_get_long(zend_read_property(ce, _0, ZEND_STRL("line"), 1, NULL));
-    //_6 = zval_get_long(zend_read_property(ce, _0, ZEND_STRL("code"), 1, NULL));
 
     /* getTraceAsString */
     zend_call_method_with_0_params(_0, ce, NULL, "gettraceasstring", &trace);
@@ -624,7 +636,6 @@ PHP_METHOD(asf_application, exceptionHandler)
     ZVAL_COPY_VALUE(&args[2], _3);
     ZVAL_LONG(&args[3], _5);
     ZVAL_COPY_VALUE(&args[4], &trace);
-    //ZVAL_LONG(&args[5], _6);
 
     call_user_function_ex(&(Z_OBJCE_P(self))->function_table, self, &_1, return_value, 5, args, 1, NULL);
 
@@ -674,7 +685,7 @@ PHP_METHOD(asf_application, setErrorHandler) /* {{{ */
         zend_string_release(error_handler_name);
     }
 
-    ZVAL_DUP(&ASF_G(err_handler_func), error_handler);
+    zend_update_property(asf_application_ce, getThis(), ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), error_handler);
 
     /* No need to repeat registration */
     if (!(ASF_G(log_path) && ASF_G(log_err))) {
@@ -683,6 +694,30 @@ PHP_METHOD(asf_application, setErrorHandler) /* {{{ */
         ASF_FUNC_CALL_PHP_FUNC(self, "set_exception_handler", "exceptionHandler", 16, NULL, 1);
     }
 
+    RETURN_TRUE;
+}
+/* }}} */
+
+PHP_METHOD(asf_application, setTimeoutHandler) /* {{{ */
+{
+    zval *to_func = NULL;
+    zend_string *to_func_name = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &to_func) == FAILURE) {
+        return;
+    }
+
+    if (Z_TYPE_P(to_func) != IS_NULL) {
+        if (!zend_is_callable(to_func, 0, &to_func_name)) {
+            zend_error(E_WARNING, "%s() expects the argument (%s) to be a valid callback",
+                    get_active_function_name(), to_func_name?ZSTR_VAL(to_func_name):"unknown");
+            zend_string_release(to_func_name);
+            return;
+        }
+        zend_string_release(to_func_name);
+    }
+
+    ZVAL_DUP(&ASF_G(timeout_func), to_func);
     RETURN_TRUE;
 }
 /* }}} */
@@ -710,6 +745,7 @@ zend_function_entry asf_application_methods[] = {
     PHP_ME(asf_application, errorHandler,       asf_app_errorhandler_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_application, exceptionHandler,   asf_app_exceptionhandler_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(asf_application, setErrorHandler,    asf_app_errorhandler_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(asf_application, setTimeoutHandler,  asf_app_errorhandler_arginfo, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 /* }}} */
@@ -725,6 +761,8 @@ ASF_INIT_CLASS(application) /* {{{ */
     zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_INSTANCE), ZEND_ACC_PROTECTED | ZEND_ACC_STATIC);
     zend_declare_property_long(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_MODE), 0, ZEND_ACC_PROTECTED);
     zend_declare_property_stringl(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_ERR_FNAME), "Asf_Err_Log", 11, ZEND_ACC_PROTECTED);
+
+    zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_ERR_HANDLER), ZEND_ACC_PROTECTED);
 
     return SUCCESS;
 }

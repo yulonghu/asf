@@ -384,24 +384,10 @@ _Bool asf_func_trace_clear() /* {{{ */
 }
 /* }}} */
 
-/* Alarm call user func */
-void asf_func_call_user_alarm_func(zend_long err_no, zend_string *err_str, zend_string *err_file, zend_long err_line) /* {{{ */
-{
-    zval error_retval, params[4];
-    ZVAL_LONG(&params[0], err_no);
-    ZVAL_STR(&params[1], err_str);
-    ZVAL_STR(&params[2], err_file);
-    ZVAL_LONG(&params[3], err_line);
-    if (call_user_function_ex(CG(function_table), NULL, &ASF_G(err_handler_func), &error_retval, 4, params, 1, NULL) == SUCCESS) {
-        zval_ptr_dtor(&error_retval);
-    }
-}
-/* }}} */
-
-/* Alarm Stats, Errno Range: 970 ~ 989 */
+/* Timeout Stats, Errno Range: 970 ~ 989 */
 _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval *params, zval *this_ptr) /* {{{ */
 {
-    if (ASF_G(cli) || Z_ISUNDEF(ASF_G(err_handler_func))) {
+    if (ASF_G(cli) || (Z_ISUNDEF(ASF_G(timeout_func)) && !ASF_G(log_timeout))) {
         return 0;
     }
 
@@ -479,14 +465,23 @@ _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval 
                 break;
         }
 
-        zend_string *err_str = zend_string_init(errmsg, errmsg_len, 0);
-        zend_string *err_file = ZSTR_EMPTY_ALLOC();
+        /* callable */
+        if (!Z_ISUNDEF(ASF_G(timeout_func))) {
+            zval error_retval, params[2];
+            ZVAL_LONG(&params[0], 970 + trace_id);
+            ZVAL_STRINGL(&params[1], errmsg, errmsg_len);
+            if (call_user_function_ex(CG(function_table), NULL, &ASF_G(timeout_func), &error_retval, 2, params, 1, NULL) == SUCCESS) {
+                zval_ptr_dtor(&error_retval);
+            }
+            zval_ptr_dtor(&params[1]);
+        }
 
-        (void)asf_func_call_user_alarm_func(970 + trace_id, err_str, err_file, 0);
+        /* Asf_Timeout_Log */
+        if (ASF_G(log_timeout) && ASF_G(log_path)) {
+            (void)asf_log_adapter_write_file("Asf_Timeout_Log", 15, "info", 4, errmsg, errmsg_len);
+        }
 
         efree(errmsg);
-        zend_string_release(err_str);
-        zend_string_release(err_file);
 
         return 1;
     }
