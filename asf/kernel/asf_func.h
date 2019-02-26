@@ -133,6 +133,8 @@ PHP_METHOD(name, __call) \
 void asf_func_timeout_db(double start_time, const char *type, char *method);
 _Bool asf_func_trace_clear();
 
+void asf_log_adapter_write_file(const char *fname, size_t fname_len, const char *method, uint method_len, const char *msg, size_t msg_len);
+
 #endif
 
 /*

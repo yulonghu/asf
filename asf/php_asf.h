@@ -88,17 +88,19 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	/* Loader */
 	char *last_load_err_full_path;
 
-    /* router */
+    /* Router */
 	zval		modules;
 	zval		*route;
     
-    /* log */
+    /* Log */
 	zval		log_buffer;
+	zend_ulong	log_buffer_size;
+	zend_ulong	log_buffer_count;
     zend_bool   log_sql; /* Asf_Sql_Log */
     zend_bool   log_err; /* Asf_Err_log */
     zend_bool   log_timeout; /* Asf_Timeout_Log */
 
-	/* ini */
+	/* Ini */
 	char		*environ_name;
 	zend_bool	use_namespace;
 	zend_ulong	ctype_id;

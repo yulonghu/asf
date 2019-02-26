@@ -106,7 +106,7 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
 
 _Bool asf_func_shutdown_buffer() /* {{{ */
 {
-    if (!ASF_G(use_lcache) || IS_ARRAY != Z_TYPE(ASF_G(log_buffer))) {
+    if (!ASF_G(use_lcache) || ASF_G(log_buffer_count) < 1) {
         return 0;
     }
 
@@ -137,6 +137,7 @@ _Bool asf_func_shutdown_buffer() /* {{{ */
 
     /* Restore settings */
     ASF_G(use_lcache) = 1;
+    ASF_G(log_buffer_count) = 0;
 
     return 1;
 }

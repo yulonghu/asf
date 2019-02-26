@@ -99,6 +99,8 @@ static _Bool asf_func_buffer_cache(zend_string *message, const char *path, const
     size_t fpath_len = 0;
 
     fpath_len = spprintf(&fpath, 0, "%s%c%s", path, DEFAULT_SLASH, fname);
+    
+    ++ASF_G(log_buffer_count);
 
     do {
         if (IS_ARRAY != Z_TYPE(ASF_G(log_buffer))) {
@@ -159,7 +161,12 @@ PHP_METHOD(asf_log_adapter_file, doLog)
         if (UNEXPECTED(Z_ISNULL_P(fname))) {
             RETURN_FALSE;
         }
+
         ret = asf_func_buffer_cache(message, Z_STRVAL_P(path), Z_STRVAL_P(fname));
+
+        if (ret && (ASF_G(log_buffer_count) >= ASF_G(log_buffer_size))) {
+            (void)asf_func_shutdown_buffer();
+        }
     } else {
         php_stream *stream = NULL;
         zval *zstream = zend_read_property(asf_log_adapter_file_ce, self, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_STREAM), 1, NULL);

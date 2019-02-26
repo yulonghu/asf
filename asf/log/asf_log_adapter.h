@@ -47,8 +47,6 @@ PHP_METHOD(asf_log_adapter, mname) \
 
 extern zend_class_entry *asf_log_adapter_ce;
 
-void asf_log_adapter_write_file(const char *fname, size_t fname_len, const char *method, uint method_len, const char *msg, size_t msg_len);
-
 ASF_INIT_CLASS(log_adapter);
 
 #endif

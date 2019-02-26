@@ -52,15 +52,16 @@ ZEND_DECLARE_MODULE_GLOBALS(asf)
 /* {{{ PHP_INI
 */
 PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("asf.env",			  "online", PHP_INI_SYSTEM, OnUpdateString, environ_name, zend_asf_globals, asf_globals)
-    STD_PHP_INI_BOOLEAN("asf.use_namespace",  "0", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.env",                    "online", PHP_INI_SYSTEM, OnUpdateString, environ_name, zend_asf_globals, asf_globals)
+    STD_PHP_INI_BOOLEAN("asf.use_namespace",        "0", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_asf_globals, asf_globals)
 
-    STD_PHP_INI_BOOLEAN("asf.use_lcache",     "0", PHP_INI_ALL, OnUpdateBool, use_lcache, zend_asf_globals, asf_globals)
-    STD_PHP_INI_BOOLEAN("asf.throw_exception","1", PHP_INI_ALL, OnUpdateBool, throw_exception, zend_asf_globals, asf_globals)
+    STD_PHP_INI_BOOLEAN("asf.use_lcache",           "0", PHP_INI_ALL, OnUpdateBool, use_lcache, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.log_buffer_size",        "100", PHP_INI_ALL, OnUpdateLong, log_buffer_size, zend_asf_globals, asf_globals)
+    STD_PHP_INI_BOOLEAN("asf.throw_exception",      "1", PHP_INI_ALL, OnUpdateBool, throw_exception, zend_asf_globals, asf_globals)
 
-    STD_PHP_INI_ENTRY("asf.ctype_id",            "5", PHP_INI_ALL, OnUpdateLong, ctype_id, zend_asf_globals, asf_globals)
-    STD_PHP_INI_ENTRY("asf.cache_config_enable", "0", PHP_INI_ALL, OnUpdateBool, cache_config_enable, zend_asf_globals, asf_globals)
-    STD_PHP_INI_ENTRY("asf.cache_config_expire", "300", PHP_INI_ALL, OnUpdateLong, cache_config_expire, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.ctype_id",               "5", PHP_INI_ALL, OnUpdateLong, ctype_id, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.cache_config_enable",    "0", PHP_INI_ALL, OnUpdateBool, cache_config_enable, zend_asf_globals, asf_globals)
+    STD_PHP_INI_ENTRY("asf.cache_config_expire",    "300", PHP_INI_ALL, OnUpdateLong, cache_config_expire, zend_asf_globals, asf_globals)
 
     STD_PHP_INI_BOOLEAN("asf.trace_enable","0", PHP_INI_ALL, OnUpdateBool, trace_enable, zend_asf_globals, asf_globals)
 PHP_INI_END()
