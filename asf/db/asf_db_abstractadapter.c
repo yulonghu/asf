@@ -75,17 +75,15 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
 
     if (options_1 && IS_ARRAY == Z_TYPE_P(options_1)) {
         if (!zend_hash_index_exists(Z_ARRVAL_P(options_1), PDO_ATTR_ERRMODE)) {
+            ZVAL_DUP(&options_2, options_1);
             ZVAL_LONG(&exception, PDO_ERRMODE_EXCEPTION);
-            zend_hash_index_add(Z_ARRVAL_P(options_1), PDO_ATTR_ERRMODE, &exception);
+            zend_hash_index_add(Z_ARRVAL(options_2), PDO_ATTR_ERRMODE, &exception);
         }
-        if (!zend_hash_index_exists(Z_ARRVAL_P(options_1), PDO_ATTR_TIMEOUT)) {
+        if (!zend_hash_index_exists(Z_ARRVAL(options_2), PDO_ATTR_TIMEOUT)) {
             ZVAL_LONG(&timeout, 1);
-            zend_hash_index_add(Z_ARRVAL_P(options_1), PDO_ATTR_TIMEOUT, &timeout);
+            zend_hash_index_add(Z_ARRVAL(options_2), PDO_ATTR_TIMEOUT, &timeout);
         }
-
-        ZVAL_COPY_VALUE(&options_2, options_1);
     } else {
-        options_1 = NULL;
         array_init(&options_2);
         ZVAL_LONG(&exception, PDO_ERRMODE_EXCEPTION);
         ZVAL_LONG(&timeout, 1);
@@ -173,9 +171,7 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
     ASF_FAST_STRING_PTR_DTOR(args[0]);
     ASF_FAST_STRING_PTR_DTOR(zmn_1);
 
-    if (!options_1) {
-        zval_ptr_dtor(&options_2);
-    }
+    zval_ptr_dtor(&options_2);
 
     /* If get value, the result is NULL in most cases */
     if (!Z_ISUNDEF(zret_1)) {

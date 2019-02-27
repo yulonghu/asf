@@ -101,19 +101,23 @@ PHP_METHOD(asf_Db, init)
     smart_str_free(&ins);
 
     zval *zlinks = zend_read_static_property(asf_Db_ce, ZEND_STRL(LINKS), 1);
-    if (!reset && !Z_ISNULL_P(zlinks) && IS_ARRAY == Z_TYPE_P(zlinks)) {
+    if (!reset && IS_ARRAY == Z_TYPE_P(zlinks)) {
         if ((cpdo = zend_hash_str_find(Z_ARRVAL_P(zlinks), md5str, 32)) != NULL) {
             zval attr_args[1], *fpdo = NULL;
 
-            /* PDO_ATTR_SERVER_INFO */
-            ZVAL_LONG(&attr_args[0], 6);
+            ZVAL_LONG(&attr_args[0], 6); /* PDO_ATTR_SERVER_INFO */
             fpdo = zend_read_property(Z_OBJCE_P(cpdo), cpdo, ZEND_STRL("_dbh"), 1, NULL);
+
+            /* If return null, throw a PHP Warning:  PDO::getAttribute(): MySQL server has gone away. \
+                Allow to do, Log infomation is written to the file 'Asf_Err_Log'
+            */
             zend_call_method_with_1_params(fpdo, Z_OBJCE_P(fpdo), NULL, "getattribute", NULL, attr_args);
 
             if (!EG(exception)) {
                 zend_update_static_property(asf_Db_ce, ZEND_STRL(CLINK), cpdo);
                 RETURN_TRUE;
             } else {
+                /* Reconnect Db once */
                 zend_hash_str_del(Z_ARRVAL_P(zlinks), md5str, 32);
                 zend_clear_exception();
             }
