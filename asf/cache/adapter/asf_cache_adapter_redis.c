@@ -46,8 +46,14 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
     zval *host = NULL, *port = NULL, *password = NULL, *timeout = NULL, *select = NULL, *persistent = NULL;
     zend_long l_port = 0, l_timeout = 1, l_select = 0;
     zval retval, args[4], redis;
+    _Bool is_persistent = 0;
 
     HashTable *ht = Z_ARRVAL_P(options);
+
+    zend_class_entry *driver = asf_find_driver("redis", 5);
+    if (UNEXPECTED(driver == NULL)) {
+        return;
+    }
 
     if (UNEXPECTED((host = zend_hash_str_find(ht, "host", 4)) == NULL)) {
         asf_trigger_error(ASF_ERR_CACHE_OPTIONS, "The options 'host' not found");
@@ -71,11 +77,7 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
     select = zend_hash_str_find(ht, "select", 6);
     l_select = (select != NULL) ? zval_get_long(select) : 0;
 
-    zend_class_entry *driver = asf_find_driver("redis", 5);
-    if (UNEXPECTED(driver == NULL)) {
-        return;
-    }
-
+    zval *self = getThis();
     object_init_ex(&redis, driver);
 
     ZVAL_COPY_VALUE(&args[0], host);
@@ -88,8 +90,10 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
     double start_time = asf_func_trace_gettime();
 
     if (persistent && zend_is_true(persistent)) {
+        is_persistent = 1;
         char persistent_id[7] = {0};
-        sprintf(persistent_id, "%s%d", "id_", l_select);
+        snprintf(persistent_id, sizeof(persistent_id), "%s%d", "id_", l_select); /* Linux */
+        // snprintf(persistent_id, sizeof(persistent_id) - 1, "%s%d", "id_", l_select); /* Windows */
         ZVAL_STRING(&args[3], persistent_id);
         ASF_CALL_USER_FUNCTION_EX(&redis, "pconnect", 8, &retval, 4, args);
         (void)asf_func_trace_str_add(ASF_TRACE_REDIS, start_time, "pconnect", 8, 4, args, &retval);
@@ -124,10 +128,10 @@ PHP_METHOD(asf_cache_adapter_redis, __construct)
         }
     }
 
-    zval *self = getThis();
-
     zend_update_property(asf_cache_adapter_redis_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), &redis);
     zend_update_property(asf_cache_adapter_redis_ce, self, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), options);
+
+    (void)asf_func_alarm_stats(ASF_TRACE_REDIS, start_time, (!is_persistent ? "connect" : "pconnect"), NULL, self);
 
     zval_ptr_dtor(&redis);
 

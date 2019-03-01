@@ -103,6 +103,8 @@ PHP_METHOD(asf_cache_adapter_memcached, __construct)
     zend_update_property(asf_cache_adapter_memcached_ce, self, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), &memcached);
     zend_update_property(asf_cache_adapter_memcached_ce, self, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), options);
 
+    (void)asf_func_alarm_stats(ASF_TRACE_MEMCACHED, start_time, "addservers", NULL, self);
+
     zval_ptr_dtor(&memcached);
 
     RETURN_ZVAL(self, 1, 0);

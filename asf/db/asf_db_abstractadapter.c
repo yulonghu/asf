@@ -165,6 +165,7 @@ _Bool asf_db_absadapter_instance(asf_db_t *this_ptr, const char *type, zval *con
     /* trace log */
     double start_time = asf_func_trace_gettime();
     call_user_function_ex(&Z_OBJCE(pdo)->function_table, &pdo, &zmn_1, &zret_1, args_i, args, 1, NULL);
+    (void)asf_func_alarm_stats(ASF_TRACE_MYSQL, start_time, "__construct", NULL, this_ptr);
     (void)asf_func_trace_str_add(ASF_TRACE_MYSQL, start_time, "__construct", 11, args_i, args, NULL);
 
     efree(data_source);
