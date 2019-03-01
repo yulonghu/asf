@@ -30,6 +30,7 @@
 #include "ext/standard/php_math.h" /* _php_math_number_format */
 #include "asf_exception.h"
 #include <sys/time.h> /* gettimeofday */
+#include "ext/json/php_json.h" /* php_json_encode */
 
 const char *TRACE_NAME[] = {"MySQL", "Redis", "Memcached", "PgSQL", "SQLite", "CURL", "SCRIPT"};
 
@@ -427,23 +428,30 @@ _Bool asf_func_alarm_stats(uint trace_id, double start_time, char *method, zval 
                 break;
 
             case ASF_TRACE_REDIS:
-            case ASF_TRACE_MEMCACHED:
                 {
-                    /* No parameters */
-                    char *host = NULL; zend_long port = 6379;
                     zval *connect_info = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), 1, NULL);
-                    zend_string *key = (params) ? zval_get_string(params) : zend_string_init("void", 4, 0);
+                    zend_string *key = (params) ? zval_get_string(params) : zend_string_init("void", 4, 0); 
 
-                    /* Fault tolerance mechanism */
-                    if (UNEXPECTED(!Z_ISNULL_P(connect_info))) {
-                        host = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(connect_info), "host", 4));
-                        port = zval_get_long(zend_hash_str_find(Z_ARRVAL_P(connect_info), "port", 4));
-                    } else {
-                        host = "Unknown";
-                    }
+                    char *host = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(connect_info), "host", 4));
+                    zend_long port = zval_get_long(zend_hash_str_find(Z_ARRVAL_P(connect_info), "port", 4));
 
                     errmsg_len = spprintf(&errmsg, 0, "%s:%d %s::%s(%s) executing too slow %f sec",
                             host, port, TRACE_NAME[trace_id], method, ZSTR_VAL(key), exec_time);
+                    zend_string_release(key);
+                    break;
+                }
+
+            case ASF_TRACE_MEMCACHED:
+                {
+                    smart_str buf = {0};
+                    zval *connect_info = zend_read_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_FUNC_PRONAME_CONNECT_INFO), 1, NULL);
+                    zend_string *key = (params) ? zval_get_string(params) : zend_string_init("void", 4, 0); 
+                    php_json_encode(&buf, (zend_hash_str_find(Z_ARRVAL_P(connect_info), "host", 4)), PHP_JSON_UNESCAPED_UNICODE);
+                    smart_str_0(&buf);
+
+                    errmsg_len = spprintf(&errmsg, 0, "%s %s::%s(%s) executing too slow %f sec",
+                            ZSTR_VAL(buf.s), TRACE_NAME[trace_id], method, ZSTR_VAL(key), exec_time);
+                    smart_str_free(&buf);
                     zend_string_release(key);
                 }
                 break;
