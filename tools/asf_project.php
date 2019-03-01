@@ -19,10 +19,15 @@ if (is_dir($pdir)) {
     $create_project   = APP_PATH . '/' . $pname;
 }
 
+if (is_dir($create_project)) {
+    echo PHP_EOL, "{$create_project} => Already Exists, Create Failed ...", PHP_EOL, PHP_EOL;
+    exit(0);
+}
+
 system("cp -r {$template_project} {$create_project}", $ret);
 if ($ret == 0) {
-    echo "{$pname} project create success", PHP_EOL;
+    echo PHP_EOL, "{$pname} => Project Create Success", PHP_EOL, PHP_EOL;
 } else {
-    echo "{$pname} create failed", PHP_EOL;
+    echo PHP_EOL, "{$pname} => Create Failed ...", PHP_EOL, PHP_EOL;
 }
 
