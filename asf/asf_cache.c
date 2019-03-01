@@ -114,8 +114,20 @@ PHP_METHOD(asf_cache, store)
     zval *ins = zend_read_static_property(asf_cache_ce, ZEND_STRL(ASF_CACHE_PRONAME_INS), 1);
     zval *find = NULL;
     if (Z_TYPE_P(ins) != IS_NULL && (find = zend_symtable_find(Z_ARRVAL_P(ins), tmp_name))) {
+        zval ping_ret;
+        zval *handler = zend_read_property(Z_OBJCE_P(find), find, ZEND_STRL(ASF_CACHE_PRONAME_HANDLER), 1, NULL);
+        zend_call_method_with_0_params(handler, Z_OBJCE_P(handler), NULL, "ping", &ping_ret);
+        zval_ptr_dtor(&ping_ret);
+        
+        /* Throws a RedisException object on connectivity error */
+        if (!EG(exception)) {
+            RETURN_ZVAL(find, 1, 0);
+        } else {
+            /* Reconnect Redis once */
+            zend_hash_del(Z_ARRVAL_P(ins), tmp_name);
+            zend_clear_exception();
+        }
         zend_string_release(tmp_name);
-        RETURN_ZVAL(find, 1, 0);
     }
 
     /* found name.type */
