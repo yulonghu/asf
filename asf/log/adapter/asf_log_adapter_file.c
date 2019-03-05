@@ -60,7 +60,7 @@ void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_nam
     zend_string *s_path = file_path ? file_path : ASF_G(log_path);
 
     if (!s_path) {
-        asf_trigger_error(ASF_ERR_NOTFOUND_LOGGER_PATH, "Parameter 'file_path/asf.log_path' must be a string");
+        php_error_docref(NULL, E_WARNING, "Parameter 'file_path/asf.log_path' must be a string");
         return;
     }
 
@@ -69,7 +69,7 @@ void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_nam
     zend_update_property_str(asf_log_adapter_file_ce, this_ptr
             , ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_FILE_NAME), file_name);
 
-    /* load local file */
+    /* (Not recommended) Load Local File */
     if (!ASF_G(use_lcache)) {
         php_stream *stream = NULL;
         char *fpath = NULL;
@@ -82,7 +82,10 @@ void asf_log_adapter_file_instance(asf_logger_t *this_ptr, zend_string *file_nam
         if (stream) {
             php_stream_to_zval(stream, &zstream);
             zend_update_property(Z_OBJCE_P(this_ptr), this_ptr, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_STREAM), &zstream);
-            ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, 1);
+            /* Notice: source file movement in Linux, appear 'Node Name = deleted' */
+            if (!ASF_G(cli)) {
+                ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, 1);   
+            }
         }
 
         efree(fpath);
@@ -141,6 +144,7 @@ PHP_METHOD(asf_log_adapter_file, __construct)
 /* }}} */
 
 /* {{{ proto bool Asf_Log_Adapter_File::doLog(string $message)
+    Notice: source file movement in Linux, appear 'Node Name = deleted'
 */
 PHP_METHOD(asf_log_adapter_file, doLog)
 {

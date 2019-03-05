@@ -49,19 +49,11 @@ ZEND_BEGIN_ARG_INFO_EX(asf_log_adapter_syslog_dolog_arginfo, 0, 0, 3)
 ZEND_END_ARG_INFO()
 /* }}}*/
 
-/* {{{ proto object Asf_Log_Adapter_Syslog::__construct(string $ident [, int $options = LOG_PID [, int $facility = LOG_LOCAL0]])
-*/
-PHP_METHOD(asf_log_adapter_syslog, __construct)
+void asf_log_adapter_syslog_instance(asf_logger_t *this_ptr, zend_string *file_name, zend_long options, zend_long facility) /* {{{ */
 {
-    zend_string *ident = NULL;
-    zend_long options = 0, facility = 0;
-    zval *self = NULL;
-
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|ll", &ident, &options, &facility) == FAILURE) {
-        return;
+    if (Z_TYPE_P(this_ptr) != IS_OBJECT) {
+        object_init_ex(this_ptr, asf_log_adapter_syslog_ce);
     }
-
-    self = getThis();
 
     if (options == 0) {
         options = LOG_ODELAY;
@@ -76,14 +68,32 @@ PHP_METHOD(asf_log_adapter_syslog, __construct)
         BG(syslog_device) = NULL;
     }
 
-    BG(syslog_device) = zend_strndup(ZSTR_VAL(ident), ZSTR_LEN(ident));
+    BG(syslog_device) = zend_strndup(ZSTR_VAL(file_name), ZSTR_LEN(file_name));
     if(BG(syslog_device) == NULL) {
         return;
     }
 
     openlog(BG(syslog_device), options, facility);
 
-    ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(self, 1);
+    if (!ASF_G(cli)) {
+        ASF_FUNC_REGISTER_SHUTDOWN_FUNCTION_CLOSE(this_ptr, 1);
+    }
+}
+/* }}} */
+
+/* {{{ proto object Asf_Log_Adapter_Syslog::__construct(string $ident [, int $options = LOG_PID [, int $facility = LOG_LOCAL0]])
+*/
+PHP_METHOD(asf_log_adapter_syslog, __construct)
+{
+    zend_string *ident = NULL;
+    zend_long options = 0, facility = 0;
+    zval *self = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|ll", &ident, &options, &facility) == FAILURE) {
+        return;
+    }
+
+    (void)asf_log_adapter_syslog_instance(getThis(), ident, options, facility);
 }
 /* }}} */
 
@@ -123,7 +133,8 @@ zend_function_entry asf_log_adapter_syslog_methods[] = {
 
 ASF_INIT_CLASS(log_adapter_syslog) /* {{{ */
 {
-    ASF_REGISTER_CLASS_INTERNAL(asf_log_adapter_syslog, Asf_Log_Adapter_Syslog, Asf\\Log\\Adapter\\Syslog, asf_log_adapter_ce, asf_log_adapter_syslog_methods);
+    ASF_REGISTER_CLASS_INTERNAL(asf_log_adapter_syslog,
+            Asf_Log_Adapter_Syslog, Asf\\Log\\Adapter\\Syslog, asf_log_adapter_ce, asf_log_adapter_syslog_methods);
 
     return SUCCESS;
 }

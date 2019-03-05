@@ -23,6 +23,9 @@ extern zend_class_entry *asf_log_adapter_syslog_ce;
 
 #define ASF_LOG_ADAPTER_SYSLOG_PRONAME_STREAM	"_s"
 
+void asf_log_adapter_syslog_instance(asf_logger_t *this_ptr,
+        zend_string *file_name, zend_long options, zend_long facility);
+
 ASF_INIT_CLASS(log_adapter_syslog);
 
 #endif

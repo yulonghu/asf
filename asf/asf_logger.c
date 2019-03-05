@@ -70,12 +70,14 @@ PHP_METHOD(asf_logger, adapter)
         RETURN_FALSE;
     }
 
+    ZVAL_UNDEF(return_value);
+
     switch (adapter_id) {
         case ASF_LOGGER_FILE:
             (void)asf_logger_instance(return_value, file_name, NULL);
             break;
         case ASF_LOGGER_SYSLOG:
-            object_init_ex(return_value, asf_log_adapter_syslog_ce);
+            (void)asf_log_adapter_syslog_instance(return_value, file_name, 0, 0);
             break;
         default:
             RETURN_FALSE;
@@ -109,8 +111,14 @@ PHP_METHOD(asf_logger, init)
 
     zval *find = NULL;
     zval *ins = zend_read_static_property(asf_logger_ce, ZEND_STRL(ASF_LOGGER_PRONAME_INS), 1);
+    
+    /* If found it, Check File Stream health */
     if (Z_TYPE_P(ins) != IS_NULL && (find = zend_symtable_find(Z_ARRVAL_P(ins), full_path))) {
-        RETURN_ZVAL(find, 1, 0);
+        if (!Z_ISNULL_P(zend_read_property(Z_OBJCE_P(find), find, ZEND_STRL(ASF_LOG_ADAPTER_FILE_PRONAME_STREAM), 1, NULL))) {
+            RETURN_ZVAL(find, 1, 0);
+        } else {
+            zend_hash_del(Z_ARRVAL_P(ins), full_path);
+        }
     }
 
     zend_string *file_name = php_basename(ZSTR_VAL(full_path), path_len, NULL, 0);

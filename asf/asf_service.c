@@ -75,7 +75,7 @@ PHP_METHOD(asf_service, getFileLogger)
     }
 
     if (UNEXPECTED(asf_func_isempty(ZSTR_VAL(file_name)))) {
-        asf_trigger_error(ASF_ERR_LOGGER_FILENAME, "Parameter 'filename' must be a string");
+        php_error_docref(NULL, E_WARNING, "Parameter 'filename' must be a string");
         return;
     }
 

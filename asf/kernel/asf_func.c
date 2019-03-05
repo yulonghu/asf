@@ -89,7 +89,7 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
     }
 
     if (!ret) {
-        asf_trigger_error(ASF_ERR_LOGGER_STREAM_ERROR, "Directory mkdir failed: %s", fpath);
+        php_error_docref(NULL, E_WARNING, "Directory mkdir failed: %s", fpath);
         return NULL;
     }
 
@@ -98,7 +98,7 @@ php_stream *asf_func_fopen(const char *fpath, size_t fpath_len, zend_string *dpa
     php_stream *stream = php_stream_fopen(fpath, mode, NULL);
 
     if (NULL == stream) {
-        asf_trigger_error(ASF_ERR_LOGGER_STREAM_ERROR, "File open failed: %s", fpath);
+        php_error_docref(NULL, E_WARNING, "%s: %s", strerror(errno), fpath);
     }
 
     return stream;
@@ -121,7 +121,7 @@ _Bool asf_func_shutdown_buffer() /* {{{ */
         if (NULL == (stream = asf_func_fopen(ZSTR_VAL(key), ZSTR_LEN(key), NULL))) {
             /* Close Logger Buffer, Write directly to a local file */
             ASF_G(use_lcache) = 0;
-            php_error_docref(NULL, E_WARNING, "File open failed: %s", ZSTR_VAL(key));
+            php_error_docref(NULL, E_WARNING, "%s: %s", strerror(errno), ZSTR_VAL(key));
             continue;
         }
 

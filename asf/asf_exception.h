@@ -40,31 +40,25 @@
 #define ASF_ERR_NOTFOUND_CONSTANTS_TABLE 	914
 #define ASF_ERR_NOTFOUND_CONSTANTS_PROP		915
 
-#define ASF_ERR_NOTFOUND_LOGGER_PATH	916
-#define ASF_ERR_NOTFOUND_LOGGER_LEVEL	917
-#define ASF_ERR_LOGGER_STREAM_ERROR		918
-#define ASF_ERR_LOGGER_FILENAME		    919
+#define ASF_ERR_DB_OPTIONS_DSN			916
+#define ASF_ERR_DB_OPTIONS_USERNAME		917
+#define ASF_ERR_DB_PDO_CE				918
+#define ASF_ERR_DB_PREPARE				919
+#define ASF_ERR_DB_EXECUTE				920
+#define ASF_ERR_DB_TABLE				921
+#define ASF_ERR_DB_SET_COLUMN			922
+#define ASF_ERR_DB_PARAM				923
+#define ASF_ERR_DB_QB                   924
 
-#define ASF_ERR_DB_OPTIONS_DSN			920
-#define ASF_ERR_DB_OPTIONS_USERNAME		921
-#define ASF_ERR_DB_PDO_CE				922
-//#define ASF_ERR_DB_BINDVALUE			919
-#define ASF_ERR_DB_PREPARE				923
-#define ASF_ERR_DB_EXECUTE				924
-#define ASF_ERR_DB_TABLE				925
-#define ASF_ERR_DB_SET_COLUMN			926
-#define ASF_ERR_DB_PARAM				927
-#define ASF_ERR_DB_QB                   928
-
-#define ASF_ERR_CONFIG_PARAM            929
-#define ASF_ERR_COOKIE_PUBLIC           930
+#define ASF_ERR_CONFIG_PARAM            925
+#define ASF_ERR_COOKIE_PUBLIC           926
 
 /* cache */
-#define ASF_ERR_CACHE_MODULE            931
-#define ASF_ERR_CACHE_OPTIONS           932
-#define ASF_ERR_CACHE_AUTH              933
-#define ASF_ERR_CACHE_OTHERS            934
-#define ASF_ERR_CACHE_CONNECT           935
+#define ASF_ERR_CACHE_MODULE            930
+#define ASF_ERR_CACHE_OPTIONS           931
+#define ASF_ERR_CACHE_AUTH              932
+#define ASF_ERR_CACHE_OTHERS            933
+#define ASF_ERR_CACHE_CONNECT           934
 
 /* 990 ~ 999 : Exception Error Range */
 /* 970 ~ 989 : Execution Time Error Range */
