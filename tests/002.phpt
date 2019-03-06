@@ -33,6 +33,12 @@ var_dump(Asf_Sg::get($name));
 
 unset($name);
 
+Asf_Sg::$inputs['cat'][0] = 100;
+Asf_Sg::$inputs['cat'][1] = 200;
+var_dump(Asf_Sg::get('cat.0'));
+var_dump(Asf_Sg::get('cat.1'));
+
+
 ?>
 --EXPECT--
 string(7) "A apple"
@@ -49,4 +55,6 @@ bool(true)
 bool(false)
 string(6) "dvalue"
 string(9) "trim_test"
+int(100)
+int(200)
 
