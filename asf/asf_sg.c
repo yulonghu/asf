@@ -22,6 +22,7 @@
 
 #include "php.h"
 #include "php_asf.h"
+#include "ext/standard/php_string.h"
 #include "kernel/asf_namespace.h"
 
 #include "http/asf_http_request.h"
@@ -151,13 +152,17 @@ PHP_METHOD(asf_sg, get)
     }
 
     if (strtok) {
-        if ((pzval = asf_sg_strtok_get(Z_ARRVAL_P(vars), name)) != NULL) {
-            RETURN_ZVAL(pzval, 1, 0);
-        }
+        pzval = asf_sg_strtok_get(Z_ARRVAL_P(vars), name);
     } else {
-        if ((pzval = zend_hash_find(Z_ARRVAL_P(vars), name)) != NULL) {
-            RETURN_ZVAL(pzval, 1, 0);
+        pzval = zend_hash_find(Z_ARRVAL_P(vars), name);
+    }
+
+    if (pzval) {
+        if (Z_TYPE_P(pzval) == IS_STRING) {
+            zend_string *sval = php_trim(Z_STR_P(pzval), NULL, 0, 3);
+            RETURN_STR(sval);
         }
+        RETURN_ZVAL(pzval, 1, 0);
     }
 
     if (default_value) {
