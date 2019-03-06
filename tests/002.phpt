@@ -25,9 +25,10 @@ unset($name);
 
 Asf_Sg::$inputs['post']['list']['product'] = 'asf';
 var_dump(Asf_Sg::get('post.list.product'));
-var_dump(Asf_Sg::get('post.list.product', 0));
+var_dump(Asf_Sg::get('post.list.product', null, 0));
 var_dump(Asf_Sg::has('post.list.product'));
 var_dump(Asf_Sg::has('post.list.product', 0));
+var_dump(Asf_Sg::get('post.list.cat', 'dvalue'));
 
 ?>
 --EXPECT--
@@ -43,4 +44,5 @@ string(3) "asf"
 NULL
 bool(true)
 bool(false)
+string(6) "dvalue"
 

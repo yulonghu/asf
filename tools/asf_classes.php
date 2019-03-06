@@ -19,6 +19,8 @@ final class Asf_Application
     public function getEnv(void)
     public function getMode(void)
     public function setLogErrFileName(string $filename)
+    public function setErrorHandler(callable $error_handler)
+    public function setTimeoutHandler(callable $timeout_handler)
 }
 /*}}}*/
 
@@ -55,7 +57,7 @@ final class Asf_Sg
     public static $inputs = ['get' => array(), 'post' => array(), 'cookie' => array()];
 
     public static has(string $name [, bool $strtok = 1])
-    public static get(string $name [, bool $strtok = 1])
+    public static get(string $name [, mixed $default_value = null [, bool $strtok = 1]])
     public static set(string $name, mixed $value)
     public static del(string $name)
 }
@@ -418,13 +420,13 @@ interface Asf_Http_RequestInterface
     public function getBaseUri(void)
     public function getRequestUri(void)
 
-    public function getQuery(void)
-    public function getPost(void)
-    public function getRequest(void)
-    public function getFiles(void)
-    public function getCookie(void)
-    public function getServer(void)
-    public function getEnv(void)
+    public function getQuery(string $name [, mixed $default = NULL])
+    public function getPost(string $name [, mixed $default = NULL])
+    public function getRequest(string $name [, mixed $default = NULL])
+    public function getFiles(string $name [, mixed $default = NULL])
+    public function getCookie(string $name [, mixed $default = NULL])
+    public function getServer(string $name [, mixed $default = NULL])
+    public function getEnv(string $name [, mixed $default = NULL])
 
     public function hasPost(void)
     public function hasQuery(void)
@@ -457,7 +459,7 @@ final class Asf_Http_Request implements Asf_Http_RequestInterface
     public function isFlashRequest(void)
     public function isPropFind(void)
 
-    public function getParam(string $name, mixed $default)
+    public function getParam(string $name, mixed $default = null)
     public function getParams(void)
     public function getModuleName(void)
     public function getServiceName(void)
@@ -466,13 +468,14 @@ final class Asf_Http_Request implements Asf_Http_RequestInterface
     public function getBaseUri(void)
     public function getRequestUri(void)
 
-    public function getQuery(void)
-    public function getPost(void)
-    public function getRequest(void)
-    public function getFiles(void)
-    public function getCookie(void)
-    public function getServer(void)
-    public function getEnv(void)
+
+    public function getQuery(string $name [, mixed $default = NULL])
+    public function getPost(string $name [, mixed $default = NULL])
+    public function getRequest(string $name [, mixed $default = NULL])
+    public function getFiles(string $name [, mixed $default = NULL])
+    public function getCookie(string $name [, mixed $default = NULL])
+    public function getServer(string $name [, mixed $default = NULL])
+    public function getEnv(string $name [, mixed $default = NULL])
 
     public function hasPost(void)
     public function hasQuery(void)

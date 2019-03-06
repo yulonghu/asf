@@ -132,15 +132,16 @@ PHP_METHOD(asf_sg, has)
 }
 /* }}} */
 
-/* {{{ proto mixed Asf_Sg::get(string $name [, bool $strtok = 1])
+/* {{{ proto mixed Asf_Sg::get(string $name [, mixed $default_value = null [, bool $strtok = 1]])
 */
 PHP_METHOD(asf_sg, get)
 {
     zend_string *name = NULL;
+    zval *default_value = NULL;
     zval *vars = NULL, *pzval = NULL;
     _Bool strtok = 1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|b", &name, &strtok) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|zb", &name, &default_value, &strtok) == FAILURE) {
         return;
     }
 
@@ -157,6 +158,10 @@ PHP_METHOD(asf_sg, get)
         if ((pzval = zend_hash_find(Z_ARRVAL_P(vars), name)) != NULL) {
             RETURN_ZVAL(pzval, 1, 0);
         }
+    }
+
+    if (default_value) {
+        RETURN_ZVAL(default_value, 1, 0);
     }
 
     RETURN_NULL();
