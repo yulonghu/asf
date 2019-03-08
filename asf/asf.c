@@ -240,6 +240,7 @@ PHP_RSHUTDOWN_FUNCTION(asf)
 
     if (ASF_G(settled_uri)) {
         zend_string_release(ASF_G(settled_uri));
+        ASF_G(settled_uri) = NULL;
     }
 
     return SUCCESS;
