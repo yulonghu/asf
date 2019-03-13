@@ -160,7 +160,8 @@ PHP_METHOD(asf_sg, get)
     if (pzval) {
         if (Z_TYPE_P(pzval) == IS_STRING) {
             zend_string *sval = php_trim(Z_STR_P(pzval), NULL, 0, 3);
-            RETURN_STR(sval);
+            zval_ptr_dtor(pzval);
+            ZVAL_STR(pzval, sval);
         }
         RETURN_ZVAL(pzval, 1, 0);
     }

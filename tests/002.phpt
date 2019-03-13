@@ -28,16 +28,19 @@ var_dump(Asf_Sg::has('post.list.product'));
 var_dump(Asf_Sg::has('post.list.product', 0));
 var_dump(Asf_Sg::get('post.list.cat', 'dvalue'));
 
-Asf_Sg::set($name, ' trim_test ');
+$a = 'hello ';
+Asf_Sg::set($name, ' trim_' . $a);
+var_dump(Asf_Sg::get($name));
 var_dump(Asf_Sg::get($name));
 
 unset($name);
 
 Asf_Sg::$inputs['cat'][0] = 100;
 Asf_Sg::$inputs['cat'][1] = 200;
+Asf_Sg::$inputs['cat']['title'] = ' title ';
 var_dump(Asf_Sg::get('cat.0'));
 var_dump(Asf_Sg::get('cat.1'));
-
+var_dump(Asf_Sg::get('cat.title'));
 
 ?>
 --EXPECT--
@@ -54,7 +57,9 @@ NULL
 bool(true)
 bool(false)
 string(6) "dvalue"
-string(9) "trim_test"
+string(10) "trim_hello"
+string(10) "trim_hello"
 int(100)
 int(200)
+string(5) "title"
 
