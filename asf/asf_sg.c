@@ -38,7 +38,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(asf_sg_get_arginfo, 0, 0, 1)
     ZEND_ARG_INFO(0, name)
-    ZEND_ARG_INFO(0, strtok)
+    ZEND_ARG_INFO(0, default_value)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(asf_sg_set_arginfo, 0, 0, 2)
@@ -79,40 +79,88 @@ static inline zval *asf_sg_strtok_get(HashTable *vars, zend_string *name) /* {{{
 }
 /* }}} */
 
+static inline void asf_sg_strtok_set(HashTable *vars, zend_string *name, zval *value) /*{{{*/
+{
+    zval *pzval = NULL;
+
+    if (zend_memrchr(ZSTR_VAL(name), '.', ZSTR_LEN(name))) {
+        char *last_seg = NULL, *seg = NULL, *entry = NULL, *ptr = NULL;
+        zval zarr;
+
+        entry = estrndup(ZSTR_VAL(name), ZSTR_LEN(name));
+        if ((seg = php_strtok_r(entry, ".", &ptr))) {
+            do {
+                /* Check if it is over? */
+                if (strlen(ptr) < 1) {
+                    zend_symtable_str_update(vars, seg, strlen(seg), value);
+                    break;
+                }
+
+                pzval = zend_symtable_str_find(vars, seg, strlen(seg));
+                if (!pzval) {
+                    array_init(&zarr);
+                    zend_hash_str_add_new(vars, seg, strlen(seg), &zarr);
+                    pzval = &zarr;
+                } else if (Z_TYPE_P(pzval) != IS_ARRAY) {
+                    array_init(&zarr);
+                    zend_symtable_str_update(vars, seg, strlen(seg), &zarr);
+                    pzval = &zarr;
+                }
+
+                vars = Z_ARRVAL_P(pzval);
+                seg = php_strtok_r(NULL, ".", &ptr);
+            } while (seg);
+            efree(entry);
+        }
+    } else {
+        zend_symtable_update(vars, name, value);
+    }
+
+    Z_TRY_ADDREF_P(value);
+}/*}}}*/
+
 void asf_sg_instance() /* {{{ */
 {
     zval regs;
 
     array_init(&regs);
 
-    zval *get = asf_http_req_pg_find(TRACK_VARS_GET);
-    Z_TRY_ADDREF_P(get);
-
-    zval *post = asf_http_req_pg_find(TRACK_VARS_POST);
-    Z_TRY_ADDREF_P(post);
-
-    zval *cookie = asf_http_req_pg_find(TRACK_VARS_COOKIE);
-    Z_TRY_ADDREF_P(cookie);
+    zval *get = &PG(http_globals)[TRACK_VARS_GET];
+    zval *post = &PG(http_globals)[TRACK_VARS_POST];
+    zval *cookie = &PG(http_globals)[TRACK_VARS_COOKIE];
 
     HashTable *ht = Z_ARRVAL(regs);
 
+    /* Compatible with older versions */
     zend_hash_str_add_new(ht, "get",     3, get);
     zend_hash_str_add_new(ht, "post",    4, post);
     zend_hash_str_add_new(ht, "cookie",  6, cookie);
+
+    Z_TRY_ADDREF_P(get);
+    Z_TRY_ADDREF_P(post);
+    Z_TRY_ADDREF_P(cookie);
+
+    /* New */
+    zend_hash_str_add_new(ht, "g", 1, get);
+    zend_hash_str_add_new(ht, "p", 1, post);
+    zend_hash_str_add_new(ht, "c", 1, cookie);
+
+    Z_TRY_ADDREF_P(get);
+    Z_TRY_ADDREF_P(post);
+    Z_TRY_ADDREF_P(cookie);
     
     zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), &regs);
     zval_ptr_dtor(&regs);
 }
 /* }}} */
 
-/* {{{ proto bool Asf_Sg::has(string $name [, bool $strtok = 1])
+/* {{{ proto bool Asf_Sg::has(string $name)
 */
 PHP_METHOD(asf_sg, has)
 {
     zend_string *name = NULL;
-    _Bool strtok = 1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|b", &name, &strtok) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
         return;
     }
 
@@ -121,28 +169,23 @@ PHP_METHOD(asf_sg, has)
         RETURN_FALSE;
     }
 
-    if (strtok) {
-        if (asf_sg_strtok_get(Z_ARRVAL_P(vars), name) != NULL) {
-            RETURN_TRUE;
-        } else {
-            RETURN_FALSE;
-        }
+    if (asf_sg_strtok_get(Z_ARRVAL_P(vars), name) != NULL) {
+        RETURN_TRUE;
     } else {
-        RETURN_BOOL(zend_hash_exists(Z_ARRVAL_P(vars), name));
+        RETURN_FALSE;
     }
 }
 /* }}} */
 
-/* {{{ proto mixed Asf_Sg::get(string $name [, mixed $default_value = null [, bool $strtok = 1]])
+/* {{{ proto mixed Asf_Sg::get(string $name [, mixed $default_value = null])
 */
 PHP_METHOD(asf_sg, get)
 {
     zend_string *name = NULL;
     zval *default_value = NULL;
     zval *vars = NULL, *pzval = NULL;
-    _Bool strtok = 1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|zb", &name, &default_value, &strtok) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|z", &name, &default_value) == FAILURE) {
         return;
     }
 
@@ -151,11 +194,7 @@ PHP_METHOD(asf_sg, get)
         RETURN_NULL();
     }
 
-    if (strtok) {
-        pzval = asf_sg_strtok_get(Z_ARRVAL_P(vars), name);
-    } else {
-        pzval = zend_hash_find(Z_ARRVAL_P(vars), name);
-    }
+    pzval = asf_sg_strtok_get(Z_ARRVAL_P(vars), name);
 
     if (pzval) {
         if (Z_TYPE_P(pzval) == IS_STRING) {
@@ -191,17 +230,14 @@ PHP_METHOD(asf_sg, set)
         vars = &regs;
     }
 
-    if (zend_hash_update(Z_ARRVAL_P(vars), name, value) != NULL) {
-        Z_TRY_ADDREF_P(value);
-        RETVAL_TRUE;
-    } else {
-        RETVAL_FALSE; 
-    }
+    asf_sg_strtok_set(Z_ARRVAL_P(vars), name, value);
 
     if (Z_TYPE(regs) == IS_ARRAY) {
         zend_update_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), &regs);
         zval_ptr_dtor(&regs);
     }
+
+    RETURN_TRUE;
 }
 /* }}} */
 
@@ -221,11 +257,11 @@ PHP_METHOD(asf_sg, del)
         RETURN_FALSE;
     }
 
-    if (zend_hash_del(Z_ARRVAL_P(vars), name) == SUCCESS) {
-        RETURN_TRUE;
-    }
+    zval ztmp;
+    ZVAL_NULL(&ztmp);
+    asf_sg_strtok_set(Z_ARRVAL_P(vars), name, &ztmp);
 
-    RETURN_FALSE;
+    RETURN_TRUE;
 }
 /* }}} */
 

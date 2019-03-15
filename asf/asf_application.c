@@ -752,7 +752,7 @@ zend_function_entry asf_application_methods[] = {
 
 ASF_INIT_CLASS(application) /* {{{ */
 {
-    ASF_REGISTER_CLASS_PARENT(asf_application, Asf_Application, Asf\\Application, ZEND_ACC_FINAL);
+    ASF_REGISTER_CLASS_PARENT(asf_application, Asf_Application, Asf\\Application, ZEND_ACC_PUBLIC);
 
     zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_CONFIG), ZEND_ACC_PROTECTED);
     zend_declare_property_null(asf_application_ce, ZEND_STRL(ASF_APP_PRONAME_DISPATCHER), ZEND_ACC_PROTECTED);

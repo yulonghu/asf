@@ -38,7 +38,7 @@ $handle->run();
 shutdown();
 ?>
 --EXPECT--
-array(3) {
+array(6) {
   ["get"]=>
   array(0) {
   }
@@ -46,6 +46,15 @@ array(3) {
   array(0) {
   }
   ["cookie"]=>
+  array(0) {
+  }
+  ["g"]=>
+  array(0) {
+  }
+  ["p"]=>
+  array(0) {
+  }
+  ["c"]=>
   array(0) {
   }
 }
