@@ -57,7 +57,6 @@ PHP_INI_BEGIN()
 
     STD_PHP_INI_BOOLEAN("asf.use_lcache",           "0", PHP_INI_ALL, OnUpdateBool, use_lcache, zend_asf_globals, asf_globals)
     STD_PHP_INI_ENTRY("asf.log_buffer_size",        "100", PHP_INI_ALL, OnUpdateLong, log_buffer_size, zend_asf_globals, asf_globals)
-    STD_PHP_INI_BOOLEAN("asf.throw_exception",      "1", PHP_INI_ALL, OnUpdateBool, throw_exception, zend_asf_globals, asf_globals)
 
     STD_PHP_INI_ENTRY("asf.ctype_id",               "5", PHP_INI_ALL, OnUpdateLong, ctype_id, zend_asf_globals, asf_globals)
     STD_PHP_INI_ENTRY("asf.cache_config_enable",    "0", PHP_INI_ALL, OnUpdateBool, cache_config_enable, zend_asf_globals, asf_globals)
@@ -276,13 +275,6 @@ zend_module_dep asf_deps[] = {
 };
 /* }}} */
 
-/* {{{ asf_functions[]
-    Every user visible function must have an entry in asf_functions[] */
-const zend_function_entry asf_functions[] = {
-    PHP_FE_END
-};
-/* }}} */
-
 /* {{{ asf_module_entry
 */
 zend_module_entry asf_module_entry = {
@@ -290,7 +282,7 @@ zend_module_entry asf_module_entry = {
     NULL,
     asf_deps,
     "asf",
-    asf_functions,
+    NULL,
     PHP_MINIT(asf),
     PHP_MSHUTDOWN(asf),
     PHP_RINIT(asf),

@@ -525,15 +525,7 @@ PHP_METHOD(asf_dispatcher, setDefaultAction)
 */
 PHP_METHOD(asf_dispatcher, throwException)
 {
-    zend_bool start = 0;
-
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "b", &start) == FAILURE) {
-        return;
-    }
-
-    ASF_G(throw_exception) = start;
-
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_FALSE;
 }
 /* }}} */
 

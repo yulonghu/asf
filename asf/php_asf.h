@@ -105,7 +105,6 @@ ZEND_BEGIN_MODULE_GLOBALS(asf)
 	zend_bool	use_namespace;
 	zend_ulong	ctype_id;
 	zend_bool	use_lcache;
-	zend_bool	throw_exception;
 
 	/* Cache Config */
 	HashTable *cache_config_buf;

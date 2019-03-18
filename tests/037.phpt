@@ -6,8 +6,6 @@ Check for Asf_Config_Simple
 asf.use_namespace=0
 --FILE--
 <?php
-ini_set('asf.throw_exception', 0);
-
 $config_default = array(
     'asf' => array(
         'root_path'  => __DIR__,
