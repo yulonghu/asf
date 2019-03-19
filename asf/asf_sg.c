@@ -47,7 +47,7 @@ ZEND_BEGIN_ARG_INFO_EX(asf_sg_set_arginfo, 0, 0, 2)
 ZEND_END_ARG_INFO()
 /* }}} */
 
-static inline zval *asf_sg_strtok_get(HashTable *vars, zend_string *name) /* {{{ */
+static zval *asf_sg_strtok_get(HashTable *vars, zend_string *name) /* {{{ */
 {
     zval *pzval = NULL;
 
@@ -79,45 +79,73 @@ static inline zval *asf_sg_strtok_get(HashTable *vars, zend_string *name) /* {{{
 }
 /* }}} */
 
-static inline void asf_sg_strtok_set(HashTable *vars, zend_string *name, zval *value) /*{{{*/
+static zval *asf_sg_strtok_set(HashTable *ht, zend_string *key, zval *value) /* {{{ */
 {
     zval *pzval = NULL;
 
-    if (zend_memrchr(ZSTR_VAL(name), '.', ZSTR_LEN(name))) {
-        char *last_seg = NULL, *seg = NULL, *entry = NULL, *ptr = NULL;
+    if (zend_memrchr(ZSTR_VAL(key), '.', ZSTR_LEN(key))) {
+        char *seg = NULL, *entry = NULL, *ptr = NULL;
         zval zarr;
 
-        entry = estrndup(ZSTR_VAL(name), ZSTR_LEN(name));
+        entry = estrndup(ZSTR_VAL(key), ZSTR_LEN(key));
         if ((seg = php_strtok_r(entry, ".", &ptr))) {
             do {
-                /* Check if it is over? */
-                if (strlen(ptr) < 1) {
-                    zend_symtable_str_update(vars, seg, strlen(seg), value);
-                    break;
-                }
+				if (strlen(ptr) < 1) {
+					pzval = zend_symtable_str_update(ht, seg, strlen(seg), value);
+					break;
+				}
+                pzval = zend_symtable_str_find(ht, seg, strlen(seg));
+				if (!pzval || Z_TYPE_P(pzval) != IS_ARRAY) {
+					array_init(&zarr);
+					zend_symtable_str_update(ht, seg, strlen(seg), &zarr);
+					pzval = &zarr;
+				}
 
-                pzval = zend_symtable_str_find(vars, seg, strlen(seg));
-                if (!pzval) {
-                    array_init(&zarr);
-                    zend_hash_str_add_new(vars, seg, strlen(seg), &zarr);
-                    pzval = &zarr;
-                } else if (Z_TYPE_P(pzval) != IS_ARRAY) {
-                    array_init(&zarr);
-                    zend_symtable_str_update(vars, seg, strlen(seg), &zarr);
-                    pzval = &zarr;
-                }
-
-                vars = Z_ARRVAL_P(pzval);
+                ht = Z_ARRVAL_P(pzval);
                 seg = php_strtok_r(NULL, ".", &ptr);
             } while (seg);
             efree(entry);
         }
     } else {
-        zend_symtable_update(vars, name, value);
+        pzval = zend_symtable_update(ht, key, value);
     }
 
     Z_TRY_ADDREF_P(value);
+
+	return pzval;
 }/*}}}*/
+
+static int asf_sg_strtok_del(HashTable *ht, zend_string *key) /* {{{ */
+{
+    zval *pzval = NULL;
+	int ret = FAILURE;
+
+	if (zend_memrchr(ZSTR_VAL(key), '.', ZSTR_LEN(key))) {
+		char *last_seg = NULL, *seg = NULL, *entry = NULL, *ptr = NULL;
+
+		entry = estrndup(ZSTR_VAL(key), ZSTR_LEN(key));
+		if ((seg = php_strtok_r(entry, ".", &ptr))) {
+			do {
+				if (!strlen(ptr)) {
+					ret = zend_symtable_str_del(ht, seg, strlen(seg));
+					break;
+				}
+				pzval = zend_symtable_str_find(ht, seg, strlen(seg));
+				if (pzval == NULL) {
+					break;
+				}
+				ht = Z_ARRVAL_P(pzval);
+				seg = php_strtok_r(NULL, ".", &ptr);
+			} while (seg);
+			efree(entry);
+			return ret;
+		}
+	}
+
+	return zend_symtable_del(ht, key);
+}/*}}}*/
+
+
 
 void asf_sg_instance() /* {{{ */
 {
@@ -160,9 +188,9 @@ PHP_METHOD(asf_sg, has)
 {
     zend_string *name = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
-        return;
-    }
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_STR(name)
+	ZEND_PARSE_PARAMETERS_END();
 
     zval *vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
     if (Z_TYPE_P(vars) != IS_ARRAY) {
@@ -171,9 +199,8 @@ PHP_METHOD(asf_sg, has)
 
     if (asf_sg_strtok_get(Z_ARRVAL_P(vars), name) != NULL) {
         RETURN_TRUE;
-    } else {
-        RETURN_FALSE;
     }
+    RETURN_FALSE;
 }
 /* }}} */
 
@@ -185,9 +212,11 @@ PHP_METHOD(asf_sg, get)
     zval *default_value = NULL;
     zval *vars = NULL, *pzval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S|z", &name, &default_value) == FAILURE) {
-        return;
-    }
+	ZEND_PARSE_PARAMETERS_START(1, 2)
+		Z_PARAM_STR(name)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_ZVAL(default_value)
+	ZEND_PARSE_PARAMETERS_END();
 
     vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
     if (Z_TYPE_P(vars) != IS_ARRAY) {
@@ -220,9 +249,10 @@ PHP_METHOD(asf_sg, set)
     zend_string *name = NULL;
     zval *vars = NULL, *value = NULL, regs;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "Sz", &name, &value) == FAILURE) {
-        return;
-    }
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_STR(name)
+		Z_PARAM_ZVAL(value)
+	ZEND_PARSE_PARAMETERS_END();
 
     vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
     if (Z_TYPE_P(vars) != IS_ARRAY) {
@@ -248,20 +278,19 @@ PHP_METHOD(asf_sg, del)
     zend_string *name = NULL;
     zval *vars = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &name) == FAILURE) {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(name)
+        ZEND_PARSE_PARAMETERS_END();
 
     vars = zend_read_static_property(asf_sg_ce, ZEND_STRL(ASF_SG_PRONAME_VAR), 1);
     if (Z_TYPE_P(vars) != IS_ARRAY) {
         RETURN_FALSE;
     }
 
-    zval ztmp;
-    ZVAL_NULL(&ztmp);
-    asf_sg_strtok_set(Z_ARRVAL_P(vars), name, &ztmp);
-
-    RETURN_TRUE;
+    if (asf_sg_strtok_del(Z_ARRVAL_P(vars), name) == SUCCESS) {
+        RETURN_TRUE;
+    }
+    RETURN_FALSE;
 }
 /* }}} */
 

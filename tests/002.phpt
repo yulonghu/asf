@@ -65,7 +65,7 @@ bool(true)
 string(6) "abc123"
 bool(true)
 NULL
-bool(true)
+bool(false)
 string(3) "asf"
 string(3) "asf"
 bool(true)
