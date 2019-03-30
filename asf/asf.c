@@ -144,10 +144,6 @@ PHP_MSHUTDOWN_FUNCTION(asf)
 */
 PHP_RINIT_FUNCTION(asf)
 {
-#if defined(COMPILE_DL_ASF) && defined(ZTS)
-    ZEND_TSRMLS_CACHE_UPDATE();
-#endif
-
     /* globals var */
     ASF_G(default_module)   = zend_string_init(ASF_API_NAME, ASF_API_LEN, 0);
     ASF_G(default_service)  = zend_string_init("index", sizeof("index") - 1, 0);
@@ -261,7 +257,6 @@ PHP_MINFO_FUNCTION(asf)
     php_info_print_table_row(2, "Build Date", __DATE__ " " __TIME__);
     php_info_print_table_end();
 
-    /* Remove comments if you have entries in php.ini */
     DISPLAY_INI_ENTRIES();
 }
 /* }}} */
@@ -294,9 +289,6 @@ zend_module_entry asf_module_entry = {
 /* }}} */
 
 #ifdef COMPILE_DL_ASF
-#ifdef ZTS
-ZEND_TSRMLS_CACHE_DEFINE()
-#endif
 ZEND_GET_MODULE(asf)
 #endif
 

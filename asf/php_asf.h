@@ -137,10 +137,6 @@ ZEND_END_MODULE_GLOBALS(asf)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(asf);
 
-#if defined(ZTS) && defined(COMPILE_DL_ASF)
-ZEND_TSRMLS_CACHE_EXTERN()
-#endif
-
 #endif	/* PHP_ASF_H */
 
 /*

@@ -145,8 +145,6 @@ static int asf_sg_strtok_del(HashTable *ht, zend_string *key) /* {{{ */
 	return zend_symtable_del(ht, key);
 }/*}}}*/
 
-
-
 void asf_sg_instance() /* {{{ */
 {
     zval regs;
