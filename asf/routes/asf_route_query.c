@@ -36,17 +36,14 @@ int asf_route_query_set(asf_http_req_t *request, zval *module, zval *service, zv
 	zend_class_entry *req_ce = Z_OBJCE_P(request);
 
 	if (module && Z_TYPE_P(module) == IS_STRING && asf_dispatcher_is_right_module(Z_STRVAL_P(module), Z_STRLEN_P(module))) {
-		zend_str_tolower(Z_STRVAL_P(module), Z_STRLEN_P(module));
 		zend_update_property(req_ce, request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_MODULE), module);
 	}
 
 	if (service) {
-		zend_str_tolower(Z_STRVAL_P(service), Z_STRLEN_P(service));
 		zend_update_property(req_ce, request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_SERVICE), service);
 	}
 
 	if (action) {
-		zend_str_tolower(Z_STRVAL_P(action), Z_STRLEN_P(action));
 		zend_update_property(req_ce, request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), action);
 	}
 

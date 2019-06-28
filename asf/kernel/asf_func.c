@@ -54,6 +54,7 @@ void asf_func_set_cur_module(char *module) /* {{{ */
     size_t path_len = 0;
 
     path_len = spprintf(&path, 0, "%s%c%s%c", ZSTR_VAL(ASF_G(root_path)), DEFAULT_SLASH, module, DEFAULT_SLASH);
+    zend_str_tolower(path, path_len);
 
     if (EXPECTED(path_len)) {
         ASF_G(root_path_route) = zend_string_init(path, path_len, 0);

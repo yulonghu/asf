@@ -22,7 +22,7 @@
 extern zend_module_entry asf_module_entry;
 #define phpext_asf_ptr &asf_module_entry
 
-#define PHP_ASF_VERSION "2.2.4"
+#define PHP_ASF_VERSION "2.2.5"
 #define PHP_ASF_AUTHOR  "fanjiapeng"
 #define PHP_ASF_DESCRIPTION "High performance PHP framework written in C, Work so easy."
 
@@ -138,6 +138,15 @@ ZEND_END_MODULE_GLOBALS(asf)
 extern ZEND_DECLARE_MODULE_GLOBALS(asf);
 
 #endif	/* PHP_ASF_H */
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: noet sw=4 ts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4
+ */
 
 /*
  * Local variables:

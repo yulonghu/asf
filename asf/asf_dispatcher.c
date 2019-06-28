@@ -224,13 +224,16 @@ static inline zend_class_entry *asf_dispatcher_load_service(zend_string *service
     zend_class_entry *ce = NULL;
     char *filename = NULL;
 
-    zend_string *lc_class = strpprintf(0, "%s%s", ZSTR_VAL(service), "service"); 
+    zend_string *lc_class = strpprintf(0, "%s%s", ZSTR_VAL(service), "service");
 
     /* index.php */
     filename = estrndup(ZSTR_VAL(service), ZSTR_LEN(service));
 
     /* Index.php */
     *filename = toupper(*filename);
+
+    /* class tolower */
+    zend_str_tolower(ZSTR_VAL(lc_class), ZSTR_LEN(lc_class));
 
     if ((ce = zend_hash_find_ptr(EG(class_table), lc_class)) == NULL
             && asf_internal_autoload(filename, strlen(filename), &path)) {
@@ -365,6 +368,7 @@ static inline _Bool asf_dispatcher_run(asf_disp_t *dispatcher, asf_http_req_t *r
 
     // Only Support xxxAction (>=2.2.3)
     func_name = strpprintf(0, "%s%s", Z_STRVAL_P(action), "action");
+    zend_str_tolower(ZSTR_VAL(func_name), ZSTR_LEN(func_name));
 
     if ((fptr = zend_hash_find_ptr(&((ce)->function_table), func_name)) != NULL) {
         zval *call_args = NULL;
@@ -458,10 +462,7 @@ PHP_METHOD(asf_dispatcher, setDefaultModule)
     zval *self = getThis();
     zval *request = zend_read_property(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DISP_PRONAME_REQ), 1, NULL);
 
-    zend_string *module_lowercase = zend_string_tolower(module);
-
-    zend_update_property_str(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_MODULE), module_lowercase);
-    zend_string_release(module_lowercase);
+    zend_update_property_str(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_MODULE), module);
 
     RETURN_ZVAL(self, 1, 0);
 }
@@ -485,10 +486,7 @@ PHP_METHOD(asf_dispatcher, setDefaultService)
     zval *self = getThis();
     zval *request = zend_read_property(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DISP_PRONAME_REQ), 1, NULL);
 
-    zend_string *service_lowercase = zend_string_tolower(service);
-
-    zend_update_property_str(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_SERVICE), service_lowercase);
-    zend_string_release(service_lowercase);
+    zend_update_property_str(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_SERVICE), service);
 
     RETURN_ZVAL(self, 1, 0);
 }
@@ -512,10 +510,7 @@ PHP_METHOD(asf_dispatcher, setDefaultAction)
     zval *self = getThis();
     zval *request = zend_read_property(Z_OBJCE_P(self), self, ZEND_STRL(ASF_DISP_PRONAME_REQ), 1, NULL);
 
-    zend_string *action_lowercase = zend_string_tolower(action);
-
-    zend_update_property_str(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), action_lowercase);
-    zend_string_release(action_lowercase);
+    zend_update_property_str(Z_OBJCE_P(request), request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), action);
 
     RETURN_ZVAL(self, 1, 0);
 }

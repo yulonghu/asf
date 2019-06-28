@@ -40,10 +40,8 @@ try {
     var_dump($e->getMessage());
 }
 
-// {"errno":0,"errmsg":"","data":"zhangsan"}
-
 shutdown();
 ?>
 --EXPECTF--
-string(%d) "%s"
+{"errno":0,"errmsg":"","data":"zhangsan"}
 

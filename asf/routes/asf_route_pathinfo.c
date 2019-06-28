@@ -179,19 +179,16 @@ _Bool asf_route_pathinfo_run(asf_route_t *route, asf_http_req_t *request) /* {{{
     } while (0);
     
 	if (module) {
-		zend_str_tolower(module, module_len);
 		zend_update_property_stringl(Z_OBJCE_P(request),
 				request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_MODULE), module, module_len);
 	}
 
 	if (service) {
-		zend_str_tolower(service, service_len);
 		zend_update_property_stringl(Z_OBJCE_P(request),
 				request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_SERVICE), service, service_len);
 	}
 
 	if (action) {
-		zend_str_tolower(action, action_len);
 		zend_update_property_stringl(Z_OBJCE_P(request),
 				request, ZEND_STRL(ASF_HTTP_REQ_PRONAME_ACTION), action, action_len);
 	}
