@@ -77,7 +77,9 @@ static zend_string *asf_absconfig_cache_str_persistent(const char *str, const si
 static void asf_absconfig_cache_zval_persistent(zval *zv, zval *rv) /* {{{ */
 {
     switch (Z_TYPE_P(zv)) {
+#ifdef IS_CONSTANT
         case IS_CONSTANT:
+#endif
         case IS_STRING:
             ZVAL_NEW_STR(rv, asf_absconfig_cache_str_persistent(Z_STRVAL_P(zv), Z_STRLEN_P(zv)));
             break;
