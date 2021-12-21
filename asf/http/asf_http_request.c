@@ -101,7 +101,11 @@ asf_http_req_t *asf_http_req_instance(asf_http_req_t *this_ptr, zend_string *bas
             if (strncasecmp(Z_STRVAL_P(uri), "http", sizeof("http") - 1) == 0) {
                 php_url *url_info = php_url_parse_ex(Z_STRVAL_P(uri), Z_STRLEN_P(uri));
                 if (url_info && url_info->path) {
+#if PHP_VERSION_ID < 70400
+                    settled_uri = zend_string_init(url_info->path, strlen(url_info->path), 0);
+#else
                     settled_uri = zend_string_init(ZSTR_VAL(url_info->path), ZSTR_LEN(url_info->path), 0);
+#endif
                 }
                 php_url_free(url_info);
             } else {
