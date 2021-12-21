@@ -43,7 +43,6 @@
 #include "asf_db.h"
 #include "kernel/asf_func.h"
 #include "asf_util.h"
-#include "debug/asf_debug_dump.h"
 #include "debug/asf_debug_trace.h"
 #include "asf_cache.h"
 
@@ -113,7 +112,6 @@ PHP_MINIT_FUNCTION(asf)
     ASF_INIT(logger);
     ASF_INIT(Db);
     ASF_INIT(util);
-    ASF_INIT(debug_dump);
     ASF_INIT(debug_trace);
     ASF_INIT(cache);
 

@@ -101,11 +101,12 @@ static zval *_get_recv_op_zval(zend_function *fptr, uint32_t offset)
     zend_op *end = op + ((zend_op_array*)fptr)->last;
 
     ++offset;
+
     while (op < end) {
         if ((op->opcode == ZEND_RECV || op->opcode == ZEND_RECV_INIT
                     || op->opcode == ZEND_RECV_VARIADIC) && op->op1.num == offset)
         {
-            break; 
+            break;
         }
         ++op;
     }
@@ -114,7 +115,11 @@ static zval *_get_recv_op_zval(zend_function *fptr, uint32_t offset)
         return NULL;
     }
 
+#if PHP_VERSION_ID < 70400
     return RT_CONSTANT(&fptr->op_array, op->op2);
+#else
+    return RT_CONSTANT(op, op->op2);
+#endif
 }
 /* }}} */
 

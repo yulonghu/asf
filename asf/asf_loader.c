@@ -515,9 +515,11 @@ PHP_METHOD(asf_loader, clean)
         (void)asf_loader_clean_interfaces_traits(ce->interfaces, ce->num_interfaces);
     }
 
+#if PHP_VERSION_ID < 70400
     if (ce->num_traits) {
         (void)asf_loader_clean_interfaces_traits(ce->traits, ce->num_traits);
     }
+#endif
 
     do {
         if (Z_TYPE_P(finder) == IS_ARRAY) {

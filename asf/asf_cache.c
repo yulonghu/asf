@@ -125,7 +125,9 @@ PHP_METHOD(asf_cache, store)
         } else {
             /* Reconnect Redis once */
             zend_hash_del(Z_ARRVAL_P(ins), tmp_name);
+#if PHP_VERSION_ID < 70400
             zend_clear_exception();
+#endif
         }
         zend_string_release(tmp_name);
     }

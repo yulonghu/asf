@@ -17,7 +17,7 @@ API Services Framework (or simply Asf). It's has many micro-innovation and is a 
 
 ## Install
 ### Requirements
-- PHP 7.0 +
+- PHP 7.0, PHP 7.1, PHP 7.2, PHP 7.3, PHP 7.4
 - GCC 4.4.0+ (Recommended GCC 4.8+)
 
 ### DownLoad
